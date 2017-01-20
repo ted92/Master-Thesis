@@ -378,7 +378,7 @@ methods in the systems are:
 	Lets say that informations about the block hash want to be analyzed, then it would only be necessary
 	to make a call to this method giving as attribute the string \emph{"hash"}, like showed in Appendix~\ref{lst:get-data-from-file}.
 	In that way the return list will contain hashes about all the blocks retrieved with the most recent hash In list[$0$].
-	Regular expression\,\cite{reg_ex} is used to analyze the file and read from it, in this way is possible
+	Regular expression\,\cite{Aho:1992:FCS} is used to analyze the file and read from it, in this way is possible
 	to interact with the saved data and get informations from them. This method allows the
 	function plot\_data() to easily display statistics.
 	\item [\emph{plot\_data(d, n, [r], [s], [e])}:] this method gets the data from the
@@ -429,7 +429,7 @@ methods in the systems are:
 
 
 The \emph{main()} method provides to call the others and if the
-\gls{grasp} principle is followed\,\cite{design_pattern}, then this method would be
+\gls{grasp} principle is followed\,\cite{Larman:2004:AUP}, then this method would be
 the controller, dispatching calls to other methods for collecting, analyzing and plotting
 data.
 
@@ -692,7 +692,7 @@ that predict the future growth of the blockchain and help nodes to smartly use t
 To get the model for the blockchain growth, data are collected and then a statistical
 regression is made on them. The function that represents the blockchain growth is obtained
 thanks to the \emph{NumPy} libraries\,\cite{scipy}. To find the model that more fits our data, polynomial
-interpolation was applied\,\cite{numerical_analysis}. An example of the code regarding it is found
+interpolation was applied\,\cite{Hildebrand:1987:INA}. An example of the code regarding it is found
 in Appendix~\ref{lst:polynomial-interpolation}.
 
 \begin{figure}[H]
@@ -897,14 +897,16 @@ that is not willing to pay enough fee ($T_g$).
 Plus, we defined a model for growth prediction and we tested its accuracy. Finally, a portion of
 the blockchain is saved locally and more analysis on it are possible in the future.
 
-show bibliography \cite{bitcoin}, \cite{ethereum}, \cite{hashcash},
-\cite{proof-of-work}, \cite{smartcontracts}, \cite{stepbystep_smartcontracts},
-\cite{ethereum_white_paper}, \cite{ethereum_solidity}, \cite{resource_exhaustion_asttacks},
-\cite{sha}, \cite{automata}, \cite{fireflies}, \cite{bitcoinmining}, \cite{byzantium}, \cite{hrdb},
-\cite{mitra}, \cite{bitcoin_api}, \cite{ethereum_api}, \cite{merkle_tree}, \cite{ethereum_wiki_patricia_tree},
-\cite{blockchain}, \cite{distributed_communication}, \cite{cryptography}, \cite{bitcoin_blockchain}, \cite{ethereum_bc_analysis}, \cite{ethereum_blockchain}, \cite{bitcoinmining_process},
-\cite{proof-of-work}, \cite{tradeblock}, \cite{ethereum_website}, \cite{design_pattern},
-\cite{reg_ex}, \cite{matplotlib}.
+show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash},
+\cite{Dwork:1992}, \cite{Luu:2016}, \cite{Delmolino2016},
+\cite{ethereum_white_paper}, \cite{ethereum_solidity}, \cite{Luu:2015:DIC},
+\cite{sha}, \cite{Hopcroft:2006:IAT}, \cite{Johansen2015Fireflies}, \cite{bitcoinmining},
+\cite{Garcia:2011:EMB}, \cite{vandiver2007hrdb},
+\cite{Luiz:2014:MBF}, \cite{bitcoin_api}, \cite{ethereum_api}, \cite{merkle_tree}, \cite{ethereum_wiki_patricia_tree},
+\cite{swan2015blockchain}, \cite{Baran1964:ODC}, \cite{Stallings:2002:CNS}, \cite{bitcoin_blockchain}, \cite{ethereum_bc_analysis}, \cite{ethereum_blockchain}, \cite{bitcoinmining_process},
+\cite{tradeblock}, \cite{ethereum_website}, \cite{Larman:2004:AUP},
+\cite{Aho:1992:FCS}, \cite{matplotlib}, \cite{croman2016}, \cite{DBLP:journals/corr/EyalGSR15},
+\cite{Hildebrand:1987:INA}.
 
 
 \bibliographystyle{plain}

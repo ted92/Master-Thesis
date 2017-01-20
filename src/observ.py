@@ -177,7 +177,7 @@ def get_blockchain(number_of_blocks, hash = None):
             min_height_to_write = int(current_block.height) - int(height_list_in_file[0])
             if (number_of_blocks <= min_height_to_write):
                 print ("\nWARNING: you are trying to retrieve " + str(number_of_blocks) +
-                       " blocks when you have a gap in theblockchain of " + str(min_height_to_write) + "!")
+                       " blocks when you have a gap in the blockchain of " + str(min_height_to_write) + "!")
                 sys.exit()
 
     for i in range(number_of_blocks):
