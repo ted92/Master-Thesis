@@ -124,6 +124,7 @@ def plot_sequence(regression, start_v, end_v):
         plot_data("efficiency", 5, start=start_v, end=end_v)
         plot_data("transaction_visibility", 6, start=start_v, end=end_v)
         plot_data("fee_transactions", 7, start=start_v, end=end_v)
+        plot_data("tthroughput", 8, start=start_v, end=end_v)
 
 # @profile
 def get_blockchain(number_of_blocks, hash = None):
@@ -147,7 +148,7 @@ def get_blockchain(number_of_blocks, hash = None):
     list_transactions = []
 
     append_end = False
-    key_error = False
+    error = False
 
     # -------- PROGRESS BAR -----------
     index_progress_bar = 0
@@ -176,7 +177,7 @@ def get_blockchain(number_of_blocks, hash = None):
             height_list_in_file = get_list_from_file("height")
             min_height_to_write = int(current_block.height) - int(height_list_in_file[0])
             if (number_of_blocks <= min_height_to_write):
-                print ("\nWARNING: you are trying to retrieve " + str(number_of_blocks) +
+                print ("\nWARNING: you are trying to retrieve " + str(number_of_blocks-1) +
                        " blocks when you have a gap in the blockchain of " + str(min_height_to_write) + "!")
                 sys.exit()
 
@@ -192,7 +193,7 @@ def get_blockchain(number_of_blocks, hash = None):
             time_in_seconds = get_time_in_seconds(time_to_fetch)
             fetch_time_list.append(time_in_seconds)
 
-            if(key_error == False):
+            if(error == False):
                 # ---- List creation
                 epoch = current_block.time
                 epoch_list.append(epoch)
@@ -230,6 +231,7 @@ def get_blockchain(number_of_blocks, hash = None):
                 add_mining_nodes(current_block)
 
                 current_block = prev_block
+
             else:
                 epoch = current_block["time"]
                 epoch_list.append(epoch)
@@ -269,8 +271,35 @@ def get_blockchain(number_of_blocks, hash = None):
 
                 current_block = prev_block
 
-                key_error = False
+                error = False
+        except Exception as e:
+            # if str(e) == "('The read operation timed out',)":
+            # retreive block from the website
+            start_time = datetime.datetime.now()  # -------------------------------------------------------------------------
+            if error:
+                json_req = urllib2.urlopen(
+                    "https://blockchain.info/block-index/" + current_block["prev_block"] + "?format=json").read()
+                print "\nhere in true"
+            else:
+                json_req = urllib2.urlopen(
+                "https://blockchain.info/block-index/" + current_block.previous_block + "?format=json").read()
+                print "\nhere in false"
+            end_time = datetime.datetime.now()  # ---------------------------------------------------------------------------
 
+            prev_block = json.loads(json_req)
+            prev_epoch_time = prev_block["time"]
+
+            if error:
+                current_creation_time = current_block["time"] - prev_epoch_time
+            else:
+                current_creation_time = current_block.time - prev_epoch_time
+            creation_time_list.append(current_creation_time)
+
+            # add_mining_nodes(current_block)
+
+            current_block = prev_block
+
+            error = True
 
         except KeyError:
             # retreive block from the website
@@ -289,7 +318,7 @@ def get_blockchain(number_of_blocks, hash = None):
 
             current_block = prev_block
 
-            key_error = True
+            error = True
             # ------
     # writing all the data retrieved in the file
     write_blockchain(hash_list, epoch_list, creation_time_list, size_list, fee_list, height_list, bandwidth_list, list_transactions, avg_transaction_list, append_end)
@@ -808,6 +837,33 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
 
         plt.savefig('plot/' + description + '(' + str(len(x_vals_size)) + ')')
         print("plot " + description + ".png created")
+    # -----------------------------------------------------------------------------------------------------------------------------
+    # ------------------------- TO IMPLEMENT THROUGHPUT -------------------------
+    elif(description == "tthroughput"):
+        x_vals = get_list_from_file("creation_time")
+        x_vals[:] = x_vals[end:start]
+        x_vals[:] = [float(x) for x in x_vals]
+
+        y_vals = get_list_from_file("transactions")
+        y_vals[:] = y_vals[end:start]
+        y_vals[:] = (float(x) for x in y_vals)
+
+        to_plot = []
+        to_plot[:] = [y/(x+1) for x,y in zip(x_vals, y_vals)]
+        to_plot.sort()
+        avg = np.mean(to_plot)
+
+        plt.plot(to_plot, 'b', label="Throughput tr/s\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1]), lw=2)
+        axes.set_ylim([0, 50])
+        axes.set_xlim([0, len(x_vals)])
+
+        plt.legend(loc="best")
+        plt.xlabel("block number")
+        plt.ylabel("transaction per second")
+        plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
+        print("plot " + description + ".png created")
+        print("Average throughput: " + str(avg) + " tr/s")
+    # -----------------------------------------------------------------------------------------------------------------------------
     elif(description == "fee_bandwidth"):
         x_vals = get_list_from_file("creation_time")
         x_vals[:] = [float(x) for x in x_vals]
@@ -838,7 +894,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         plt.legend(loc="best")
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
-    # --- future implementation
     elif(description == "fee_transactions"):
         y_vals = get_list_from_file("avgttime")
         y_vals[:] = [float(x) for x in y_vals]
@@ -862,7 +917,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         plt.ylabel("transaction visibility (min)")
         axes.set_ylim([0, max(y_vals)/10])
         axes.set_xlim([0, 0.006])
-
         if (regression):
             model = np.polyfit(x_vals, y_vals, 1)
             x_vals.sort()
