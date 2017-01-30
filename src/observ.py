@@ -320,14 +320,17 @@ def get_blockchain(number_of_blocks, hash = None):
 
             error = True
             # ------
+
+    to_write_list = [hash_list, epoch_list, creation_time_list, fee_list, size_list, height_list, bandwidth_list, list_transactions, avg_transaction_list]
+    # to_write_list[9] = mining_list
     # writing all the data retrieved in the file
-    write_blockchain(hash_list, epoch_list, creation_time_list, size_list, fee_list, height_list, bandwidth_list, list_transactions, avg_transaction_list, append_end)
+    write_blockchain(to_write_list, append_end)
 
     # check blockchain status
     print blockchain_info()
 
 # @profile
-def write_blockchain(hash, epoch, creation_time, size, fee, height, bandwidth, transactions, avg_tr_list, append_end):
+def write_blockchain(to_write_list, append_end):
     """
     write in blockchain.txt the blocks retrieved in get_blockchain().
     Add on the top if the block are newer than the existing one.
@@ -346,20 +349,21 @@ def write_blockchain(hash, epoch, creation_time, size, fee, height, bandwidth, t
     avgttime
 
     @params:
-      list hash: hash list
-      list epoch: epoch list
-      list creation_time: creation time list
-      list size: size list
-      list fee: fee list
-      list height: height list
-      list bandwidth: bandwidth list
-      list transactions: number of transactions in every block list
-      list avg_tr_list: list with the average time that a transaction need to be visible in the blockchain in a certain block
+      list to_write_list: it contains all the lists that need to be written:
+        [0] hash: hash list
+        [1] epoch: epoch list
+        [2] creation_time: creation time list
+        [3] size: size list
+        [4] fee: fee list
+        [5] height: height list
+        [6] bandwidth: bandwidth list
+        [7] transactions: number of transactions in every block list
+        [8] avg_tr_list: list with the average time that a transaction need to be visible in the blockchain in a certain block
       bool append_end: tells if is an append at the end of the file or at the beginning
     :return: None
     """
 
-    n = len(hash)
+    n = len(to_write_list[0])
     # ---------- PROGRESS BAR -----------
     index_progress_bar = 0
     printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
@@ -373,11 +377,10 @@ def write_blockchain(hash, epoch, creation_time, size, fee, height, bandwidth, t
         if(append_end):
             with io.FileIO(file_name, "a+") as file:
                 for i in range(n):
-                    file.write("hash: " + str(hash[i]) + "\nepoch: " + str(epoch[i]) + "\ncreation_time: " + str(
-                        creation_time[i]) + "\nsize: " + str(size[i]) + "\nfee: " + str(
-                        fee[i]) + "\nheight: " + str(height[i]) + "\nbandwidth: " + str(
-                        bandwidth[i]) + "\ntransactions: " + str(transactions[i]) + "\navgttime: " + str(
-                        avg_tr_list[i]) + "\n\n")
+                    # --- WRITE IN FILE ---
+                    write_file(to_write_list, file, i)
+                    # ---------------------
+
                     # -------- PROGRESS BAR -----------
                     sleep(0.01)
                     index_progress_bar += 1
@@ -403,15 +406,13 @@ def write_blockchain(hash, epoch, creation_time, size, fee, height, bandwidth, t
 
                 i = 0
                 while (i < n):
-                    if (first_hash == hash[i]):
+                    if (first_hash == to_write_list[0][i]):
                         met_first = True
                     while((met_first == False) and (i < n)):
                         # append on top
-                        file.write("hash: " + str(hash[i]) + "\nepoch: " + str(epoch[i]) + "\ncreation_time: " + str(
-                            creation_time[i]) + "\nsize: " + str(size[i]) + "\nfee: " + str(
-                            fee[i]) + "\nheight: " + str(height[i]) + "\nbandwidth: " + str(
-                            bandwidth[i]) + "\ntransactions: " + str(transactions[i]) + "\navgttime: " + str(
-                            avg_tr_list[i]) + "\n\n")
+                        # --- WRITE IN FILE ---
+                        write_file(to_write_list, file, i)
+                        # ---------------------
 
                         # -------- PROGRESS BAR -----------
                         sleep(0.01)
@@ -421,18 +422,18 @@ def write_blockchain(hash, epoch, creation_time, size, fee, height, bandwidth, t
                         # ---------------------------------
 
                         i = i + 1
-                        if ((i < n) and (first_hash == hash[i])):
+                        if ((i < n) and (first_hash == to_write_list[0][i])):
                             met_first = True
 
                     file.writelines(existing_lines)
 
 
-                    if ((i < n) and (last_hash == hash[i])):
+                    if ((i < n) and (last_hash == to_write_list[0][i])):
                         met_last = True
 
                     while((met_last == False) and (i < n)):
                         # part of the blockchain already present in the file
-                        if (last_hash == hash[i]):
+                        if (last_hash == to_write_list[0][i]):
                             met_last = True
 
                         # ---------- PROGRESS BAR -----------
@@ -445,11 +446,9 @@ def write_blockchain(hash, epoch, creation_time, size, fee, height, bandwidth, t
 
                     # append last elements in the file
                     while (i < n):
-                        file.write("hash: " + str(hash[i]) + "\nepoch: " + str(epoch[i]) + "\ncreation_time: " + str(
-                            creation_time[i]) + "\nsize: " + str(size[i]) + "\nfee: " + str(
-                            fee[i]) + "\nheight: " + str(height[i]) + "\nbandwidth: " + str(
-                            bandwidth[i]) + "\ntransactions: " + str(transactions[i]) + "\navgttime: " + str(
-                            avg_tr_list[i]) + "\n\n")
+                        # --- WRITE IN FILE ---
+                        write_file(to_write_list, file, i)
+                        # ---------------------
                         # ---------- PROGRESS BAR -----------
                         sleep(0.01)
                         index_progress_bar += 1
@@ -467,12 +466,24 @@ def write_blockchain(hash, epoch, creation_time, size, fee, height, bandwidth, t
                               barLength=50)
                 # -----------------------------------
 
-                file.write("hash: " + str(hash[i]) + "\nepoch: " + str(epoch[i]) + "\ncreation_time: " + str(
-                    creation_time[i]) + "\nsize: " + str(size[i]) + "\nfee: " + str(
-                    fee[i]) + "\nheight: " + str(height[i]) + "\nbandwidth: " + str(
-                    bandwidth[i]) + "\ntransactions: " + str(transactions[i]) + "\navgttime: " + str(
-                    avg_tr_list[i]) + "\n\n")
+                # --- WRITE IN FILE ---
+                write_file(to_write_list, file, i)
+                # ---------------------
 
+
+def write_file(list_to_write, file, index):
+    """
+    write the list_to_write in the file
+    :param list_to_write: list containing all the other list that need to be written in the blockchain file
+    :param file: open file used in write_blockchain() method
+    :param index: index of which element needs to be written
+    :return: none
+    """
+    file.write("hash: " + str(list_to_write[0][index]) + "\nepoch: " + str(list_to_write[1][index]) + "\ncreation_time: " + str(
+        list_to_write[2][index]) + "\nsize: " + str(list_to_write[3][index]) + "\nfee: " + str(
+        list_to_write[4][index]) + "\nheight: " + str(list_to_write[5][index]) + "\nbandwidth: " + str(
+        list_to_write[6][index]) + "\ntransactions: " + str(list_to_write[7][index]) + "\navgttime: " + str(
+        list_to_write[8][index]) + "\n\n")
 
 def create_growing_time_list(time_list):
     """
