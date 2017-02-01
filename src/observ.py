@@ -53,7 +53,7 @@ def main(argv):
         start_v = None
         end_v = None
 
-        opts, args = getopt.getopt(argv, "hiuRPp:t:e:r:")
+        opts, args = getopt.getopt(argv, "hiuRPxp:t:e:r:")
         valid_args = False
 
         for opt, arg in opts:
@@ -96,6 +96,24 @@ def main(argv):
                     start_v = int(args[0])
                 plot_sequence(True, start_v, end_v)
                 valid_args = True
+            if(opt == "-x"):
+                print "Try operator"
+                valid_args = True
+
+                list1 = get_list_from_file("epoch")
+                list2 = get_list_from_file("received_time")
+
+                diff_found = False
+                for x,y in zip(list1, list2):
+                    if (x != y):
+                        diff = int(x) - int(y)
+                        print "found different time: " + str(diff)
+                        diff_found = True
+
+                if(diff_found == False):
+                    print "no diff found!"
+
+
         if(valid_args == False):
             print (__doc__)
     except getopt.GetoptError:
@@ -146,6 +164,8 @@ def get_blockchain(number_of_blocks, hash = None):
     bandwidth_list = []
     avg_transaction_list = []
     list_transactions = []
+    list_miners = []
+    list_received_time = []
 
     append_end = False
     error = False
@@ -220,6 +240,12 @@ def get_blockchain(number_of_blocks, hash = None):
                 transactions = current_block.transactions
                 list_transactions.append(len(transactions))
 
+                miner = current_block.relayed_by
+                list_miners.append(miner)
+
+                received_time = current_block.received_time
+                list_received_time.append(received_time)
+
                 # --- creation time list
                 start_time = datetime.datetime.now() # -------------------------------------------------------------------------
                 prev_block = blockexplorer.get_block(current_block.previous_block)
@@ -257,6 +283,13 @@ def get_blockchain(number_of_blocks, hash = None):
 
                 transactions = len(current_block["tx"])
                 list_transactions.append(transactions)
+
+                miner = current_block["relayed_by"]
+                list_miners.append(miner)
+
+                received_time = current_block["received_time"]
+                list_received_time.append(received_time)
+
 
                 prev_block = current_block["prev_block"]
                 start_time = datetime.datetime.now()  # ------------------------------------------------------------------------
@@ -321,7 +354,7 @@ def get_blockchain(number_of_blocks, hash = None):
             error = True
             # ------
 
-    to_write_list = [hash_list, epoch_list, creation_time_list, fee_list, size_list, height_list, bandwidth_list, list_transactions, avg_transaction_list]
+    to_write_list = [hash_list, epoch_list, creation_time_list, fee_list, size_list, height_list, bandwidth_list, list_transactions, avg_transaction_list, list_miners, list_received_time]
     # to_write_list[9] = mining_list
     # writing all the data retrieved in the file
     write_blockchain(to_write_list, append_end)
@@ -347,6 +380,8 @@ def write_blockchain(to_write_list, append_end):
     bandwidth
     transactions
     avgttime
+    relayed_by
+    received_time
 
     @params:
       list to_write_list: it contains all the lists that need to be written:
@@ -359,6 +394,8 @@ def write_blockchain(to_write_list, append_end):
         [6] bandwidth: bandwidth list
         [7] transactions: number of transactions in every block list
         [8] avg_tr_list: list with the average time that a transaction need to be visible in the blockchain in a certain block
+        [9] list_miner: list with all the miners for each block
+        [10] list_received_time: list with all the received time for each block
       bool append_end: tells if is an append at the end of the file or at the beginning
     :return: None
     """
@@ -483,7 +520,7 @@ def write_file(list_to_write, file, index):
         list_to_write[2][index]) + "\nsize: " + str(list_to_write[3][index]) + "\nfee: " + str(
         list_to_write[4][index]) + "\nheight: " + str(list_to_write[5][index]) + "\nbandwidth: " + str(
         list_to_write[6][index]) + "\ntransactions: " + str(list_to_write[7][index]) + "\navgttime: " + str(
-        list_to_write[8][index]) + "\n\n")
+        list_to_write[8][index]) + "\nmined_by: " + str(list_to_write[9][index]) + "\nreceived_time: " + str(list_to_write[10][index])+"\n\n")
 
 def create_growing_time_list(time_list):
     """
