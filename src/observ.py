@@ -100,7 +100,7 @@ def main(argv):
                 print "Try operator"
                 valid_args = True
 
-                list1 = get_list_from_file("epoch")
+                """list1 = get_list_from_file("epoch")
                 list2 = get_list_from_file("received_time")
 
                 diff_found = False
@@ -112,7 +112,9 @@ def main(argv):
 
                 if(diff_found == False):
                     print "no diff found!"
+                    """
 
+                list_b = get_list_from_file("bandwidth")
 
         if(valid_args == False):
             print (__doc__)
@@ -580,11 +582,13 @@ def get_list_from_file(attribute):
         # open the file and read in it
         with open(file_name, "r") as blockchain_file:
             for line in blockchain_file:
-                # regular expression that puts in a list the line just read: ['hash', '<block_hash>']
-                list = re.findall(r"[\w']+", line)
-
+                # regular expression that puts in a list the line just read: ['hash', '<value>']
+                list = line.split(": ")
+                list[-1] = list[-1].strip()
+                # list = re.findall(r"[\w']+", line) # old regex
                 if ((list) and (list[0] == attribute)):
                     list_to_return.append(list[1])
+                    #print list[0] + " " + list[1]
         return list_to_return
     else:
         return False
@@ -899,6 +903,11 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         to_plot = []
         to_plot[:] = [y/(x+1) for x,y in zip(x_vals, y_vals)]
         to_plot.sort()
+
+        histogram_list = [0] * 1000
+        print histogram_list
+        # for x in to_plot:
+
         avg = np.mean(to_plot)
 
         plt.plot(to_plot, 'b', label="Throughput tr/s\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1]), lw=2)
