@@ -588,7 +588,7 @@ def get_list_from_file(attribute):
                 # list = re.findall(r"[\w']+", line) # old regex
                 if ((list) and (list[0] == attribute)):
                     list_to_return.append(list[1])
-                    #print list[0] + " " + list[1]
+                    # print list[0] + " " + list[1]
         return list_to_return
     else:
         return False
@@ -904,22 +904,32 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         to_plot[:] = [y/(x+1) for x,y in zip(x_vals, y_vals)]
         to_plot.sort()
 
-        histogram_list = [0] * 1000
-        print histogram_list
-        # for x in to_plot:
+        hist, bins = np.histogram(to_plot, bins=1000)
+        width = 0.7 * (bins[1] - bins[0])
+        center = (bins[:-1] + bins[1:]) / 2
+        plt.bar(center, hist, align='center', width=width, label="Throughput tr/s\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1]), alpha=0.5, facecolor='green')
+        plt.legend(loc="best")
 
+        axes.set_xlim([0,50])
+        plt.xlabel("transactions/second")
+        plt.ylabel("blocks (" + str(len(x_vals)) + " retrieved)")
+
+        plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
+
+
+        """old throughput
         avg = np.mean(to_plot)
-
-        plt.plot(to_plot, 'b', label="Throughput tr/s\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1]), lw=2)
         axes.set_ylim([0, 50])
         axes.set_xlim([0, len(x_vals)])
 
         plt.legend(loc="best")
         plt.xlabel("block number")
         plt.ylabel("transaction per second")
+        plt.plot(to_plot, 'b', label="Throughput tr/s\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1]), lw=2)
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
         print("Average throughput: " + str(avg) + " tr/s")
+        """
     # -----------------------------------------------------------------------------------------------------------------------------
     elif(description == "fee_bandwidth"):
         x_vals = get_list_from_file("creation_time")
