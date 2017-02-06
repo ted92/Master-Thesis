@@ -356,7 +356,7 @@ def get_blockchain(number_of_blocks, hash = None):
             error = True
             # ------
 
-    to_write_list = [hash_list, epoch_list, creation_time_list, fee_list, size_list, height_list, bandwidth_list, list_transactions, avg_transaction_list, list_miners, list_received_time]
+    to_write_list = [hash_list, epoch_list, creation_time_list, size_list, fee_list, height_list, bandwidth_list, list_transactions, avg_transaction_list, list_miners, list_received_time]
     # to_write_list[9] = mining_list
     # writing all the data retrieved in the file
     write_blockchain(to_write_list, append_end)
