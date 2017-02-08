@@ -265,7 +265,7 @@ def get_blockchain(number_of_blocks, hash = None):
                 current_creation_time = current_block.time - prev_epoch_time
                 # -- check if the creation time is negative
                 if (current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, False, False)
+                    current_creation_time = get_creation_time(current_block, prev_block, False, False, current_creation_time)
                 # -------------------------------------------
                 creation_time_list.append(current_creation_time)
                 # ------------------------
@@ -315,7 +315,7 @@ def get_blockchain(number_of_blocks, hash = None):
                 prev_epoch_time = prev_block.time
                 current_creation_time = current_block["time"] - prev_epoch_time
                 if (current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, True, True)
+                    current_creation_time = get_creation_time(current_block, prev_block, True, True, current_creation_time)
                 creation_time_list.append(current_creation_time)
 
                 # add_mining_nodes(current_block)
@@ -345,11 +345,11 @@ def get_blockchain(number_of_blocks, hash = None):
             if error:
                 current_creation_time = current_block["time"] - prev_epoch_time
                 if(current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, True, True)
+                    current_creation_time = get_creation_time(current_block, prev_block, True, True, current_creation_time)
             else:
                 current_creation_time = current_block.time - prev_epoch_time
                 if (current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, True, False)
+                    current_creation_time = get_creation_time(current_block, prev_block, True, False, current_creation_time)
             creation_time_list.append(current_creation_time)
 
             # add_mining_nodes(current_block)
@@ -548,7 +548,7 @@ def write_file(list_to_write, file, index):
         list_to_write[8][index]) + "\nmined_by: " + str(list_to_write[9][index]) + "\nreceived_time: " + str(list_to_write[10][index])+"\n\n")
 
 
-def get_creation_time(currblock, prevblock, isJson, error):
+def get_creation_time(currblock, prevblock, isJson, error, currtime):
     """
     Block that get the creation time, and it considers the possible negative
     creation time due to a time error in the blockchain.
@@ -562,20 +562,20 @@ def get_creation_time(currblock, prevblock, isJson, error):
     """
     right_ancestor = prevblock
     if (isJson == False):
-        while (current_creation_time < 0):
+        while (currtime < 0):
             right_ancestor = blockexplorer.get_block(right_ancestor.previous_block)
-            current_creation_time = currblock.time - right_ancestor.time
-            print "creation time turned positive: " + current_creation_time
+            currtime = currblock.time - right_ancestor.time
+            print "creation time turned positive: " + currtime
     elif (isJson == True):
-        while (current_creation_time < 0):
+        while (currtime < 0):
             json_req = urllib2.urlopen(
                 "https://blockchain.info/block-index/" + prevblock["prev_block"] + "?format=json").read()
             right_ancestor = json.loads(json_req)
             if(error == False):
-                current_creation_time = currblock.time - right_ancestor["time"]
+                currtime = currblock.time - right_ancestor["time"]
             elif (error == True):
-                current_creation_time = currblock["time"] - right_ancestor["time"]
-    return current_creation_time
+                currtime = currblock["time"] - right_ancestor["time"]
+    return currtime
 
 
 def create_growing_time_list(time_list):
@@ -955,7 +955,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         y_vals[:] = (float(x) for x in y_vals)
 
         to_plot = []
-        # todo: adjust the throughput CREATION TIME CAN'T BE NEGATIVE!
         to_plot[:] = [y/(x+1) for x,y in zip(x_vals, y_vals)]
         to_plot.sort()
 
