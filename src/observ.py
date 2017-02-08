@@ -265,7 +265,7 @@ def get_blockchain(number_of_blocks, hash = None):
                 current_creation_time = current_block.time - prev_epoch_time
                 # -- check if the creation time is negative
                 if (current_creation_time < 0):
-                    current_creation_time = correct_negative_creation_time(current_block, prev_block, False, False)
+                    current_creation_time = get_creation_time(current_block, prev_block, False, False)
                 # -------------------------------------------
                 creation_time_list.append(current_creation_time)
                 # ------------------------
@@ -315,7 +315,7 @@ def get_blockchain(number_of_blocks, hash = None):
                 prev_epoch_time = prev_block.time
                 current_creation_time = current_block["time"] - prev_epoch_time
                 if (current_creation_time < 0):
-                    current_creation_time = correct_negative_creation_time(current_block, prev_block, True, True)
+                    current_creation_time = get_creation_time(current_block, prev_block, True, True)
                 creation_time_list.append(current_creation_time)
 
                 # add_mining_nodes(current_block)
@@ -345,11 +345,11 @@ def get_blockchain(number_of_blocks, hash = None):
             if error:
                 current_creation_time = current_block["time"] - prev_epoch_time
                 if(current_creation_time < 0):
-                    current_creation_time = correct_negative_creation_time(current_block, prev_block, True, True)
+                    current_creation_time = get_creation_time(current_block, prev_block, True, True)
             else:
                 current_creation_time = current_block.time - prev_epoch_time
                 if (current_creation_time < 0):
-                    current_creation_time = correct_negative_creation_time(current_block, prev_block, True, False)
+                    current_creation_time = get_creation_time(current_block, prev_block, True, False)
             creation_time_list.append(current_creation_time)
 
             # add_mining_nodes(current_block)
