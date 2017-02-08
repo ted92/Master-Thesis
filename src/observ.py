@@ -97,10 +97,10 @@ def main(argv):
                 plot_sequence(True, start_v, end_v)
                 valid_args = True
             if(opt == "-x"):
-                print "Try operator"
+                print "Check if epoch == received_time"
                 valid_args = True
 
-                """list1 = get_list_from_file("epoch")
+                list1 = get_list_from_file("epoch")
                 list2 = get_list_from_file("received_time")
 
                 diff_found = False
@@ -112,9 +112,18 @@ def main(argv):
 
                 if(diff_found == False):
                     print "no diff found!"
-                    """
 
-                list_b = get_list_from_file("bandwidth")
+
+                print "Check whether creation_time is negative"
+                list3 = get_list_from_file("creation_time")
+                list4 = get_list_from_file("height")
+
+                i = 0
+                for x in list3:
+                    if(int(x) < 0):
+                        print (x + " " + list4[i])
+
+                    i += 1
 
         if(valid_args == False):
             print (__doc__)
@@ -248,13 +257,18 @@ def get_blockchain(number_of_blocks, hash = None):
                 received_time = current_block.received_time
                 list_received_time.append(received_time)
 
-                # --- creation time list
+                # --- creation time list--
                 start_time = datetime.datetime.now() # -------------------------------------------------------------------------
                 prev_block = blockexplorer.get_block(current_block.previous_block)
                 end_time = datetime.datetime.now()  # --------------------------------------------------------------------------
                 prev_epoch_time = prev_block.time
                 current_creation_time = current_block.time - prev_epoch_time
+                # -- check if the creation time is negative
+                if (current_creation_time < 0):
+                    current_creation_time = correct_negative_creation_time(current_block, prev_block, False, False)
+                # -------------------------------------------
                 creation_time_list.append(current_creation_time)
+                # ------------------------
 
                 add_mining_nodes(current_block)
 
@@ -300,6 +314,8 @@ def get_blockchain(number_of_blocks, hash = None):
 
                 prev_epoch_time = prev_block.time
                 current_creation_time = current_block["time"] - prev_epoch_time
+                if (current_creation_time < 0):
+                    current_creation_time = correct_negative_creation_time(current_block, prev_block, True, True)
                 creation_time_list.append(current_creation_time)
 
                 # add_mining_nodes(current_block)
@@ -315,10 +331,12 @@ def get_blockchain(number_of_blocks, hash = None):
                 json_req = urllib2.urlopen(
                     "https://blockchain.info/block-index/" + current_block["prev_block"] + "?format=json").read()
                 print "\nhere in true"
+                print e
             else:
                 json_req = urllib2.urlopen(
                 "https://blockchain.info/block-index/" + current_block.previous_block + "?format=json").read()
                 print "\nhere in false"
+                print e
             end_time = datetime.datetime.now()  # ---------------------------------------------------------------------------
 
             prev_block = json.loads(json_req)
@@ -326,8 +344,12 @@ def get_blockchain(number_of_blocks, hash = None):
 
             if error:
                 current_creation_time = current_block["time"] - prev_epoch_time
+                if(current_creation_time < 0):
+                    current_creation_time = correct_negative_creation_time(current_block, prev_block, True, True)
             else:
                 current_creation_time = current_block.time - prev_epoch_time
+                if (current_creation_time < 0):
+                    current_creation_time = correct_negative_creation_time(current_block, prev_block, True, False)
             creation_time_list.append(current_creation_time)
 
             # add_mining_nodes(current_block)
@@ -363,6 +385,7 @@ def get_blockchain(number_of_blocks, hash = None):
 
     # check blockchain status
     print blockchain_info()
+
 
 # @profile
 def write_blockchain(to_write_list, append_end):
@@ -523,6 +546,37 @@ def write_file(list_to_write, file, index):
         list_to_write[4][index]) + "\nheight: " + str(list_to_write[5][index]) + "\nbandwidth: " + str(
         list_to_write[6][index]) + "\ntransactions: " + str(list_to_write[7][index]) + "\navgttime: " + str(
         list_to_write[8][index]) + "\nmined_by: " + str(list_to_write[9][index]) + "\nreceived_time: " + str(list_to_write[10][index])+"\n\n")
+
+
+def get_creation_time(currblock, prevblock, isJson, error):
+    """
+    Block that get the creation time, and it considers the possible negative
+    creation time due to a time error in the blockchain.
+    Apparently some blocks have the previous block with an higher timestamp, so this method consider the
+    previous block the first one with a lower timestamp if the creation time turns to be negative.
+    :param currblock: current block to analyze
+    :param prevblock: block where to start the search of the ancestor
+    :param isJson: bool: if True data must be collected through Json
+    :param error: bool: tells if the block being analyzed is inside an error catch
+    :return: return the positive creation time for the currblock
+    """
+    right_ancestor = prevblock
+    if (isJson == False):
+        while (current_creation_time < 0):
+            right_ancestor = blockexplorer.get_block(right_ancestor.previous_block)
+            current_creation_time = currblock.time - right_ancestor.time
+            print "creation time turned positive: " + current_creation_time
+    elif (isJson == True):
+        while (current_creation_time < 0):
+            json_req = urllib2.urlopen(
+                "https://blockchain.info/block-index/" + prevblock["prev_block"] + "?format=json").read()
+            right_ancestor = json.loads(json_req)
+            if(error == False):
+                current_creation_time = currblock.time - right_ancestor["time"]
+            elif (error == True):
+                current_creation_time = currblock["time"] - right_ancestor["time"]
+    return current_creation_time
+
 
 def create_growing_time_list(time_list):
     """
@@ -901,6 +955,7 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         y_vals[:] = (float(x) for x in y_vals)
 
         to_plot = []
+        # todo: adjust the throughput CREATION TIME CAN'T BE NEGATIVE!
         to_plot[:] = [y/(x+1) for x,y in zip(x_vals, y_vals)]
         to_plot.sort()
 
