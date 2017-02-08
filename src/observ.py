@@ -565,7 +565,7 @@ def get_creation_time(currblock, prevblock, isJson, error, currtime):
         while (currtime < 0):
             right_ancestor = blockexplorer.get_block(right_ancestor.previous_block)
             currtime = currblock.time - right_ancestor.time
-            print "creation time turned positive: " + currtime
+            print "creation time turned positive: " + str(currtime)
     elif (isJson == True):
         while (currtime < 0):
             json_req = urllib2.urlopen(
@@ -575,6 +575,7 @@ def get_creation_time(currblock, prevblock, isJson, error, currtime):
                 currtime = currblock.time - right_ancestor["time"]
             elif (error == True):
                 currtime = currblock["time"] - right_ancestor["time"]
+            print "creation time turned positive: " + str(currtime)
     return currtime
 
 
