@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-"""ete011 @Enrico Tedeschi - UiT
+"""ete011 @Enrico Tedeschi - UiT v2
 Observing the Bitcoin blockchain in real time. The system will retreive portion of the Bitcoin blockchain,
 do data analysis, generating models and plotting the results.
+
+v2: the order of block retrieval doesn't matter, is possible to retrieve blocks starting from a certain hash
+
 Usage: observ.py -t number
     -h | --help         : usage
     -i                  : gives info of the blockchain in the file .txt
@@ -110,9 +113,13 @@ def main(argv):
                 s_time = epoch_datetime(epoch)
                 print ("Retreiving " + args[0] + " starting from: " + s_time)
 
-                get_blockchain(blocks, hash)
-                valid_args = True
 
+                # todo: check wheter the height included in the retrieval is already in the file - check the edges
+
+                get_blockchain(blocks, hash)
+                # todo: only append at the end
+                # todo: method to check where the blockchain is now (height)
+                valid_args = True
 
         if(valid_args == False):
             print (__doc__)
@@ -1181,6 +1188,16 @@ def update_blockchain():
 
 def myComplexFunc(x, a, b, c):
     return a * np.power(x, b) + c
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 if __name__ == "__main__":
     main(sys.argv[1:])
