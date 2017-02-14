@@ -1038,20 +1038,18 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
 
 def check_blockchain():
     """
-    check if the element in the local blockchain are in order, if not, local blockchain is not in a good status,
-    in that case is better to create a new file
+    check if the element in the local blockchain have plausible datz, if not, local blockchain is not in a good status,
+    in that case is better to create a new file.
+     - check whether the block size is in between 1kb and 2 MB
 
     :return: True or False
     """
     check = True
     if (os.path.isfile(file_name)):
-        list = get_list_from_file("height")
-        number = int(list[0])
-        length_list = len(list)
-        for i in range(length_list):
-            if (number != int(list[i])):
+        list = get_list_from_file("size")
+        for i in list:
+            if ((int(i) > 2000000) or (int(i) < 100)):
                 check = False
-            number = number - 1
     return check
 
 def get_number_blocks():
@@ -1073,8 +1071,7 @@ def get_earliest_hash():
     if (os.path.isfile(file_name)):
         hash_list = get_list_from_file("hash")
         if (hash_list != False):
-            length = len(hash_list)
-            earliest_hash = hash_list[length - 1]
+            earliest_hash = hash_list[-1]
         else:
             earliest_hash = False
     return earliest_hash
@@ -1100,6 +1097,7 @@ def datetime_retrieved(start = None, end = None):
     # portion of the blockchain retrieved
     return_list = []
     epoch_l = get_list_from_file("epoch")
+    epoch_l.sort()
     epoch_l_length = len(epoch_l)
 
     if(start == None):
@@ -1170,19 +1168,21 @@ def blockchain_info():
     if (os.path.isfile(file_name)):
         blockchain_status = check_blockchain()
         if (blockchain_status == True):
-            string_return+=(str(blockchain_status) + " -- Blockchain checked and in a correct status.\nNumber of blocks:\n   " + str(
-                get_number_blocks()))
+            string_return+=(bcolors.OKGREEN + "\nOK -- " + bcolors.ENDC +
+                            "Blockchain checked and in a correct status.\n\nNumber of blocks:\n"
+                            + '{:4}{}'.format("", str(get_number_blocks())))
         else:
-            string_return+=(str(blockchain_status) + " -- Blockchain not ordered correctly. Throw the file and make a new one")
+            string_return+=(bcolors.FAIL + "\nFAIL -- " + bcolors.ENDC +
+                            "Blockchain contains errors. Throw the file and make a new one")
 
         list_blockchain_time = datetime_retrieved()
-        string_return+=("\nAnalysis in between:\n   " + str(list_blockchain_time[0]) + "\n   " + str(list_blockchain_time[1]))
+        string_return+=("\n\nAnalysis in between:\n" + '{:4}{}'.format("", str(list_blockchain_time[0])) + "\n" + '{:4}{}'.format("", str(list_blockchain_time[1])))
 
         # build the interval_string
         interval_string = blockchain_intervals()
-        string_return+=("\nWith the following intervals " + bcolors.OKGREEN +"|| " + bcolors.ENDC + "height "
-                        + bcolors.OKGREEN + "||" + bcolors.ENDC + " date " + bcolors.OKGREEN
-                        + "||" + bcolors.ENDC +":\n" + interval_string)
+        string_return+=("\n\nBlocks stored:\n\n" + bcolors.OKGREEN +"|| " + bcolors.ENDC + '{:^21}'.format(" HEIGHT ")
+                        + bcolors.OKGREEN + "||" + bcolors.ENDC + '{:^44}'.format(" DATE ") + bcolors.OKGREEN
+                        + "||" + bcolors.ENDC +"\n" + bcolors.OKGREEN + "========================================================================\n" + bcolors.ENDC + interval_string)
     else:
         string_return = "File still doesn't exist. You need to fetch blocks first with -t command.\n" + str(__doc__)
     return string_return
@@ -1213,7 +1213,7 @@ def blockchain_intervals():
     date_start = epoch_list[i]
     date_start = epoch_datetime(date_start)
 
-    interval_string += bcolors.OKGREEN + "|| " + bcolors.ENDC + '{:>8}'.format(str(first)) + " -- "
+    interval_string += bcolors.OKGREEN + "|| " + bcolors.ENDC + '{:^8}'.format(str(first)) + " -- "
 
     for h in height_list:
         if(current == h):
@@ -1224,9 +1224,9 @@ def blockchain_intervals():
             date_end = epoch_list[i-1]
             date_end = epoch_datetime(date_end)
 
-            interval_string += '{:>8}'.format(str(last)) + bcolors.OKGREEN + " || " + bcolors.ENDC + str(date_start) \
+            interval_string += '{:^8}'.format(str(last)) + bcolors.OKGREEN + " || " + bcolors.ENDC + str(date_start) \
                                + " -- " + str(date_end) + bcolors.OKGREEN + " ||\n" + "|| " + bcolors.ENDC \
-                               + '{:>8}'.format(str(h)) + " -- "
+                               + '{:^8}'.format(str(h)) + " -- "
             current = h
 
             date_start = epoch_list[i]
@@ -1236,9 +1236,9 @@ def blockchain_intervals():
         i += 1
     date_end = epoch_list[-1]
     date_end = epoch_datetime(date_end)
-    interval_string += '{:>8}'.format(str(height_list[-1])) + bcolors.OKGREEN + " || " + bcolors.ENDC \
+    interval_string += '{:^8}'.format(str(height_list[-1])) + bcolors.OKGREEN + " || " + bcolors.ENDC \
                        + str(date_start) + " -- " + str(date_end) + bcolors.OKGREEN \
-                       + " ||" + bcolors.ENDC
+                       + " ||" + bcolors.ENDC + "\n"
     return interval_string
 
 
