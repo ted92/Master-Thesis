@@ -7,14 +7,15 @@ v2: the order of block retrieval doesn't matter, is possible to retrieve blocks 
 
 Usage: observ.py -t number
     -h | --help         : usage
-    -i                  : gives info of the blockchain in the file .txt
-    -t number           : add on top a number of blocks. The blocks retreived will be the most recent ones. If the blockchain growth more than the block requested do -u (update)
-    -e number           : append blocks at the end of the .txt file. Fetch older blocks starting from the last retrieved
-    -P                  : plot all
-    -p start [end]      : plot data in .txt file in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
-    -R                  : plot the regression and the models that predict the blockchain
-    -r start [end]      : plot the regression and the models in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
-    -u                  : update the local blockchain to the last block created
+    -i                  : gives info of the blockchain retrieved
+    -t number           : adds on top a number of blocks. The blocks retreived will be the most recent ones. If the blockchain growth more than the block requested do -u (update)
+    -e number           : appends blocks at the end of the .txt file. Fetch older blocks starting from the last retrieved
+    -P                  : plots all
+    -p start [end]      : plots data in .txt file in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
+    -R                  : plots the regression and the models that predict the blockchain
+    -r start [end]      : plots the regression and the models in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
+    -u                  : updates the local blockchain to the last block created
+    -c start end        : retrieves blocks to compare the blockchain in different epoch. The height to be retrieved is given from start and end
 
 """
 
@@ -71,10 +72,10 @@ def main(argv):
                 get_blockchain(number_of_blocks, earliest_hash)
                 valid_args = True
             if(opt == "-u"):    # update with the missing blocks
-                str = update_blockchain()
+                str_update = update_blockchain()
                 valid_args = True
-                if (str != None):
-                    print str
+                if (str_update != None):
+                    print str_update
             if(opt == "-i"):    # blockchain info
                 print blockchain_info()
                 valid_args = True
@@ -100,25 +101,29 @@ def main(argv):
                 plot_sequence(True, start_v, end_v)
                 valid_args = True
             if(opt == "-c"):    # compare with older blocks - retrieve blockchain in previous time
-                # todo: to add in the description
                 # todo: how to compare, retrieve and represent these data
-                height = int(arg)
-                blocks = int(args[0])
+                start_height = int(arg)
+                end_height = int(args[0])
+                blocks = end_height - start_height
 
-                b_array = blockexplorer.get_block_height(height)
+                b_array = blockexplorer.get_block_height(start_height)
+                b = b_array[0]
+                epoch = b.time
+                s_time = epoch_datetime(epoch)
+
+                b_array = blockexplorer.get_block_height(end_height)
                 b = b_array[0]
                 hash = b.hash
 
-                epoch = b.time
-                s_time = epoch_datetime(epoch)
-                print ("Retreiving " + args[0] + " starting from: " + s_time)
-
-
-                # todo: check wheter the height included in the retrieval is already in the file - check the edges
-
-                get_blockchain(blocks, hash)
+                # check wheter if a portion of the interval to be retrieved is already in the file
+                in_file = check_hash(start_height, end_height)
+                if(in_file == True):
+                    print (bcolors.WARNING + "Warning: " + bcolors.ENDC +"The protion you are trying to retrieve is already present in the " + file_name)
+                elif(in_file == False):
+                    print ("Retreiving " + str(blocks) + " blocks starting from: " + s_time)
+                    get_blockchain(blocks, hash)
                 # todo: only append at the end
-                # todo: method to check where the blockchain is now (height)
+                # todo: review the True and False method on the blockchain
                 valid_args = True
 
         if(valid_args == False):
@@ -126,7 +131,6 @@ def main(argv):
     except getopt.GetoptError:
         print (__doc__)
         sys.exit(2)
-
 
 def plot_sequence(regression, start_v, end_v):
     """
@@ -1118,6 +1122,21 @@ def datetime_retrieved(start = None, end = None):
 
     return return_list
 
+def check_hash(startH, endH):
+    """
+    Check whether the interval of height that needs to be retrieved are already retrieved in the file .txt
+    :param startH: start height
+    :param endH: end height
+    :return:   - True  : if is not possible to retrieve the sequence required
+               - False : if the sequence is not in the file so is possible to retrieve it
+    """
+    toReturn = False
+    height_list = get_list_from_file("height")
+    for h in height_list:
+        if(int(startH) <= int(h) <= int(endH)):
+            toReturn = True
+    return toReturn
+
 """
 Progress bar -- from @Vladimir Ignatyev
 
@@ -1158,9 +1177,70 @@ def blockchain_info():
 
         list_blockchain_time = datetime_retrieved()
         string_return+=("\nAnalysis in between:\n   " + str(list_blockchain_time[0]) + "\n   " + str(list_blockchain_time[1]))
+
+        # build the interval_string
+        interval_string = blockchain_intervals()
+        string_return+=("\nWith the following intervals " + bcolors.OKGREEN +"|| " + bcolors.ENDC + "height "
+                        + bcolors.OKGREEN + "||" + bcolors.ENDC + " date " + bcolors.OKGREEN
+                        + "||" + bcolors.ENDC +":\n" + interval_string)
     else:
         string_return = "File still doesn't exist. You need to fetch blocks first with -t command.\n" + str(__doc__)
     return string_return
+
+
+def blockchain_intervals():
+    """
+    Deinfe the structure of the blockchain retrieved by displaying the hashes and their intervals taken from the
+    local blockchain
+    :return: a string containing the structure of the blockchain retrieved
+    """
+    interval_string = ""
+
+    height_list = get_list_from_file("height")
+    height_list[:] = [int(x) for x in height_list]
+    epoch_list = get_list_from_file("epoch")
+
+    together = zip(height_list, epoch_list)
+    sorted_together = sorted(together)
+
+    height_list = [x[0] for x in sorted_together]
+    epoch_list = [x[1] for x in sorted_together]
+
+    first = height_list[0]
+    current = first
+
+    i = 0
+    date_start = epoch_list[i]
+    date_start = epoch_datetime(date_start)
+
+    interval_string += bcolors.OKGREEN + "|| " + bcolors.ENDC + '{:>8}'.format(str(first)) + " -- "
+
+    for h in height_list:
+        if(current == h):
+            pass
+        else:
+            last = current - 1
+
+            date_end = epoch_list[i-1]
+            date_end = epoch_datetime(date_end)
+
+            interval_string += '{:>8}'.format(str(last)) + bcolors.OKGREEN + " || " + bcolors.ENDC + str(date_start) \
+                               + " -- " + str(date_end) + bcolors.OKGREEN + " ||\n" + "|| " + bcolors.ENDC \
+                               + '{:>8}'.format(str(h)) + " -- "
+            current = h
+
+            date_start = epoch_list[i]
+            date_start = epoch_datetime(date_start)
+
+        current+=1
+        i += 1
+    date_end = epoch_list[-1]
+    date_end = epoch_datetime(date_end)
+    interval_string += '{:>8}'.format(str(height_list[-1])) + bcolors.OKGREEN + " || " + bcolors.ENDC \
+                       + str(date_start) + " -- " + str(date_end) + bcolors.OKGREEN \
+                       + " ||" + bcolors.ENDC
+    return interval_string
+
 
 def update_blockchain():
     """
