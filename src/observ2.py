@@ -43,8 +43,14 @@ from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
 import json
 
 # ------ GLOBAL ------
-global file_name
-file_name = "blockchain.txt"
+global file_blockchain
+file_blockchain = "blockchain.txt"
+
+global file_info
+file_info = "info.txt"
+
+global n_portions
+n_portions = 3
 # --------------------
 
 def main(argv):
@@ -101,29 +107,18 @@ def main(argv):
                 plot_sequence(True, start_v, end_v)
                 valid_args = True
             if(opt == "-c"):    # compare with older blocks - retrieve blockchain in previous time
-                # todo: how to compare, retrieve and represent these data
-                start_height = int(arg)
-                end_height = int(args[0])
-                blocks = end_height - start_height
-
-                b_array = blockexplorer.get_block_height(start_height)
-                b = b_array[0]
-                epoch = b.time
-                s_time = epoch_datetime(epoch)
-
-                b_array = blockexplorer.get_block_height(end_height)
-                b = b_array[0]
-                hash = b.hash
+                blocks = int(arg)
 
                 # check wheter if a portion of the interval to be retrieved is already in the file
-                in_file = check_hash(start_height, end_height)
+                """in_file = check_hash(start_height, end_height)
                 if(in_file == True):
-                    print (bcolors.WARNING + "Warning: " + bcolors.ENDC +"The protion you are trying to retrieve is already present in the " + file_name)
+                    print (bcolors.WARNING + "Warning: " + bcolors.ENDC +"The protion you are trying to retrieve is already present in the " + file_blockchain)
                 elif(in_file == False):
                     print ("Retreiving " + str(blocks) + " blocks starting from: " + s_time)
-                    get_blockchain(blocks, hash)
-                # todo: only append at the end
-                # todo: review the True and False method on the blockchain
+                    # todo: re-do the get_blockchain with an interval one
+
+                    # get_blockchain(blocks, hash)"""
+                define_intervals(blocks)
                 valid_args = True
 
         if(valid_args == False):
@@ -131,6 +126,69 @@ def main(argv):
     except getopt.GetoptError:
         print (__doc__)
         sys.exit(2)
+
+
+def define_intervals(number_of_blocks):
+    """
+    Retrieves blocks with a certain interval according to how many blocks are present in the blockchain.
+    These intervals are called portions.
+    We set a number of portions = 3
+    :param number_of_blocks:
+    :param hash:
+    :return:
+    """
+
+    # define p = number of blocks per portion
+    # n = number of blocks in the blockchain
+
+    last_block = blockexplorer.get_latest_block()
+    n = last_block.height
+    p = n / n_portions
+
+    start_list, end_list = create_interval_lists()
+
+    # case if the files doesn't exist
+    if (start_list == []):
+        # starting from 0
+        i = 0
+
+        # get the heights and hashes where to start:
+        while (i < n_portions):
+            if(i == 0):
+                # the retrieval starts with the latest block, and then the previous are retrieved as well
+                height_to_start = 1 + number_of_blocks
+                b_array = blockexplorer.get_block_height(height_to_start)
+            else:
+                height_to_start = i*p + number_of_blocks
+                b_array = blockexplorer.get_block_height(height_to_start)
+            b = b_array[0]
+            hash = b.hash
+            epoch = b.time
+            time = epoch_datetime(epoch)
+
+            print "Retrieving " + str(number_of_blocks) + " starting from " + time
+            get_blockchain(number_of_blocks, hash)
+            i += 1
+
+    # case if the files exists already
+    else:
+        # in start_list and end_list are stored all the heights representing the intervals retrieved
+        i = 0
+        # todo: control that the number of blocks is not higher than the portion p
+        if (int(end_list[0]) + number_of_blocks >= p):
+            print (bcolors.WARNING + "WARNING: " + bcolors.ENDC + "Blockchain already up to date!")
+        else:
+            while (i < n_portions):
+                height_to_start = end_list[i] + (number_of_blocks)
+                b_array = blockexplorer.get_block_height(height_to_start)
+                b = b_array[0]
+                hash = b.hash
+                epoch = b.time
+                time = epoch_datetime(epoch)
+
+                print "Retrieving " + str(number_of_blocks) + " blocks starting from " + time
+                get_blockchain(number_of_blocks, hash)
+                i += 1
 
 def plot_sequence(regression, start_v, end_v):
     """
@@ -146,14 +204,14 @@ def plot_sequence(regression, start_v, end_v):
         plot_data("fee_transactions", 7, True, start=start_v, end=end_v)
     else:
         plot_data("time_per_block", 0, start=start_v, end=end_v)
-        plot_data("byte_per_block", 1, start=start_v, end=end_v)
+        """plot_data("byte_per_block", 1, start=start_v, end=end_v)
         plot_data("growth_blockchain", 2, start=start_v, end=end_v)
         plot_data("fee_bandwidth", 3, start=start_v, end=end_v)
         plot_data("bandwidth", 4, start=start_v, end=end_v)
         plot_data("efficiency", 5, start=start_v, end=end_v)
         plot_data("transaction_visibility", 6, start=start_v, end=end_v)
         plot_data("fee_transactions", 7, start=start_v, end=end_v)
-        plot_data("tthroughput", 8, start=start_v, end=end_v)
+        plot_data("tthroughput", 8, start=start_v, end=end_v)"""
 
 # @profile
 def get_blockchain(number_of_blocks, hash = None):
@@ -204,7 +262,7 @@ def get_blockchain(number_of_blocks, hash = None):
             first check the last height, and if the n is bigger than the gap between the last height in the file and
             the height of the current block then don't append
         """
-        if (os.path.isfile(file_name)):
+        if (os.path.isfile(file_blockchain)):
             height_list_in_file = get_list_from_file("height")
             min_height_to_write = int(current_block.height) - int(height_list_in_file[0])
             if (number_of_blocks <= min_height_to_write):
@@ -224,105 +282,110 @@ def get_blockchain(number_of_blocks, hash = None):
             time_in_seconds = get_time_in_seconds(time_to_fetch)
             fetch_time_list.append(time_in_seconds)
 
-            if(error == False):
-                # ---- List creation
-                epoch = current_block.time
-                epoch_list.append(epoch)
+            start_list, end_list = create_interval_lists()
 
-                hash = current_block.hash
-                hash_list.append(hash)
+            if(current_block.height not in end_list):
+                if(error == False):
+                    # ---- List creation
+                    epoch = current_block.time
+                    epoch_list.append(epoch)
 
-                fee = current_block.fee
-                fee_list.append(fee)
+                    hash = current_block.hash
+                    hash_list.append(hash)
 
-                size = current_block.size
-                size_list.append(size)
+                    fee = current_block.fee
+                    fee_list.append(fee)
 
-                height = current_block.height
-                height_list.append(height)
+                    size = current_block.size
+                    size_list.append(size)
 
-                avg_tr = get_avg_transaction_time(current_block, False)
-                avg_transaction_list.append(avg_tr)
+                    height = current_block.height
+                    height_list.append(height)
 
-                block_size = float(size) / 1000000 # -------> calculate read Bandwidth with MB/s
-                bandwidth = block_size / time_in_seconds
-                bandwidth_list.append(bandwidth)
+                    avg_tr = get_avg_transaction_time(current_block, False)
+                    avg_transaction_list.append(avg_tr)
 
-                transactions = current_block.transactions
-                list_transactions.append(len(transactions))
+                    block_size = float(size) / 1000000 # -------> calculate read Bandwidth with MB/s
+                    bandwidth = block_size / time_in_seconds
+                    bandwidth_list.append(bandwidth)
 
-                miner = current_block.relayed_by
-                list_miners.append(miner)
+                    transactions = current_block.transactions
+                    list_transactions.append(len(transactions))
 
-                received_time = current_block.received_time
-                list_received_time.append(received_time)
+                    miner = current_block.relayed_by
+                    list_miners.append(miner)
 
-                # --- creation time list--
-                start_time = datetime.datetime.now() # -------------------------------------------------------------------------
-                prev_block = blockexplorer.get_block(current_block.previous_block)
-                end_time = datetime.datetime.now()  # --------------------------------------------------------------------------
-                prev_epoch_time = prev_block.time
-                current_creation_time = current_block.time - prev_epoch_time
-                # -- check if the creation time is negative
-                if (current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, False, False, current_creation_time)
-                # -------------------------------------------
-                creation_time_list.append(current_creation_time)
-                # ------------------------
+                    received_time = current_block.received_time
+                    list_received_time.append(received_time)
 
-                add_mining_nodes(current_block)
+                    # --- creation time list--
+                    start_time = datetime.datetime.now() # -------------------------------------------------------------------------
+                    prev_block = blockexplorer.get_block(current_block.previous_block)
+                    end_time = datetime.datetime.now()  # --------------------------------------------------------------------------
+                    prev_epoch_time = prev_block.time
+                    current_creation_time = current_block.time - prev_epoch_time
+                    # -- check if the creation time is negative
+                    if (current_creation_time < 0):
+                        current_creation_time = get_creation_time(current_block, prev_block, False, False, current_creation_time)
+                    # -------------------------------------------
+                    creation_time_list.append(current_creation_time)
+                    # ------------------------
 
-                current_block = prev_block
+                    add_mining_nodes(current_block)
 
+                    current_block = prev_block
+
+                else:
+                    epoch = current_block["time"]
+                    epoch_list.append(epoch)
+
+                    hash = current_block["hash"]
+                    hash_list.append(hash)
+
+                    fee = current_block["fee"]
+                    fee_list.append(fee)
+
+                    size = current_block["size"]
+                    size_list.append(size)
+
+                    height = current_block["height"]
+                    height_list.append(height)
+
+                    avg_tr = get_avg_transaction_time(current_block, True)
+                    avg_transaction_list.append(avg_tr)
+
+                    block_size = float(size) / 1000000  # -------> calculate read Bandwidth with MB/s
+                    bandwidth = block_size / time_in_seconds
+                    bandwidth_list.append(bandwidth)
+
+                    transactions = len(current_block["tx"])
+                    list_transactions.append(transactions)
+
+                    miner = current_block["relayed_by"]
+                    list_miners.append(miner)
+
+                    received_time = current_block["received_time"]
+                    list_received_time.append(received_time)
+
+
+                    prev_block = current_block["prev_block"]
+                    start_time = datetime.datetime.now()  # ------------------------------------------------------------------------
+                    prev_block = blockexplorer.get_block(prev_block)
+                    end_time = datetime.datetime.now()  # --------------------------------------------------------------------------
+
+                    prev_epoch_time = prev_block.time
+                    current_creation_time = current_block["time"] - prev_epoch_time
+                    if (current_creation_time < 0):
+                        current_creation_time = get_creation_time(current_block, prev_block, True, True, current_creation_time)
+                    creation_time_list.append(current_creation_time)
+
+                    # add_mining_nodes(current_block)
+
+                    current_block = prev_block
+
+                    error = False
             else:
-                epoch = current_block["time"]
-                epoch_list.append(epoch)
-
-                hash = current_block["hash"]
-                hash_list.append(hash)
-
-                fee = current_block["fee"]
-                fee_list.append(fee)
-
-                size = current_block["size"]
-                size_list.append(size)
-
-                height = current_block["height"]
-                height_list.append(height)
-
-                avg_tr = get_avg_transaction_time(current_block, True)
-                avg_transaction_list.append(avg_tr)
-
-                block_size = float(size) / 1000000  # -------> calculate read Bandwidth with MB/s
-                bandwidth = block_size / time_in_seconds
-                bandwidth_list.append(bandwidth)
-
-                transactions = len(current_block["tx"])
-                list_transactions.append(transactions)
-
-                miner = current_block["relayed_by"]
-                list_miners.append(miner)
-
-                received_time = current_block["received_time"]
-                list_received_time.append(received_time)
-
-
-                prev_block = current_block["prev_block"]
-                start_time = datetime.datetime.now()  # ------------------------------------------------------------------------
-                prev_block = blockexplorer.get_block(prev_block)
-                end_time = datetime.datetime.now()  # --------------------------------------------------------------------------
-
-                prev_epoch_time = prev_block.time
-                current_creation_time = current_block["time"] - prev_epoch_time
-                if (current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, True, True, current_creation_time)
-                creation_time_list.append(current_creation_time)
-
-                # add_mining_nodes(current_block)
-
-                current_block = prev_block
-
-                error = False
+                pass
         except Exception as e:
             # if str(e) == "('The read operation timed out',)":
             # retreive block from the website
@@ -431,13 +494,13 @@ def write_blockchain(to_write_list, append_end):
     printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
                   barLength=50)
     # -----------------------------------
-    if (os.path.isfile(file_name)):
+    if (os.path.isfile(file_blockchain)):
         # file already exists
         # retreive all the hashes check the first and the left in the file
         # add the non existing blocks
 
         if(append_end):
-            with io.FileIO(file_name, "a+") as file:
+            with io.FileIO(file_blockchain, "a+") as file:
                 for i in range(n):
                     # --- WRITE IN FILE ---
                     write_file(to_write_list, file, i)
@@ -459,7 +522,7 @@ def write_blockchain(to_write_list, append_end):
             met_last = False
             first_truncate = False
 
-            with io.FileIO(file_name, "a+") as file:
+            with io.FileIO(file_blockchain, "a+") as file:
                 file.seek(0)
                 existing_lines = file.readlines()
                 file.seek(0)
@@ -519,7 +582,7 @@ def write_blockchain(to_write_list, append_end):
                         # -----------------------------------
                         i = i + 1
     else:
-        with io.FileIO(file_name, "a+") as file:
+        with io.FileIO(file_blockchain, "a+") as file:
             for i in range(n):
                 # ---------- PROGRESS BAR -----------
                 sleep(0.01)
@@ -633,9 +696,9 @@ def get_list_from_file(attribute):
 
     list_to_return = []
 
-    if (os.path.isfile(file_name)):
+    if (os.path.isfile(file_blockchain)):
         # open the file and read in it
-        with open(file_name, "r") as blockchain_file:
+        with open(file_blockchain, "r") as blockchain_file:
             for line in blockchain_file:
                 # regular expression that puts in a list the line just read: ['hash', '<value>']
                 list = line.split(": ")
@@ -767,6 +830,20 @@ defined methods:
     - plot_blockchain(list, str, str)
 """
 
+
+def plot_data_manipulation(data1, data2, data3 = None):
+    """
+    All the common instruction for data manipulation that need to be done according to plot
+    :param data1, data2, data3  : attribute to be retrieved from the blockchain file
+    :return
+    """
+    y_vals, x_vals = get_lists_ordered(data1, data2)
+    x_vals[:] = [float(x) for x in x_vals]
+    y_vals[:] = [float(y) for y in y_vals]
+
+    # todo: CONTINUE HERE!
+
+
 def plot_data(description, plot_number, regression = None, start = None, end = None):
     """
     Get the lists in the file and plots the data according to the description.
@@ -789,15 +866,41 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
     axes = plt.gca()
 
     if(description == "time_per_block"):
-        x_vals = get_list_from_file("creation_time")
+        y_vals, x_vals = get_lists_ordered("creation_time", "epoch")
         x_vals[:] = [float(x) for x in x_vals]
-        x_vals[:] = [x / 60 for x in x_vals]
-        x_vals = x_vals[end:start]
-        plt.plot(x_vals, 'g-', label=("creation time of a block\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])))
+        y_vals[:] = [float(y) for y in y_vals]
+
+        y_vals[:] = [y / 60 for y in y_vals]
+
+        y_vals1 = y_vals
+        y_vals2 = y_vals
+        y_vals3 = y_vals
+
+
+        start_list, end_list = create_interval_lists()
+        interval = end_list[0]
+
+
+        y_vals1 = y_vals[0:interval]
+        x_vals1 = x_vals[0:interval]
+
+        y_vals2 = y_vals[interval+1:interval*2]
+        x_vals2 = x_vals[interval+1:interval*2]
+
+        y_vals3 = y_vals[(interval*2)+1:interval*3]
+        x_vals3 = x_vals[(interval*2)+1:interval*3]
+
+        y_vals = y_vals[end:start]
+
+        plt.plot(y_vals1, 'go', label=(str(epoch_datetime(x_vals1[0])) + "\n" + str(epoch_datetime(x_vals1[-1]))))
+        plt.plot(y_vals2, 'ro', label=(str(epoch_datetime(x_vals2[0])) + "\n" + str(epoch_datetime(x_vals2[-1]))))
+        plt.plot(y_vals3, 'bo', label=(str(epoch_datetime(x_vals3[0])) + "\n" + str(epoch_datetime(x_vals3[-1]))))
+
         plt.legend(loc="best")
-        plt.ylabel("time (min)")
-        plt.xlabel("block number")
-        axes.set_xlim([0, len(x_vals)])
+        plt.ylabel("creation time (min)")
+        plt.xlabel("epoch")
+
+        axes.set_ylim([0, 100])
 
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
@@ -1045,7 +1148,7 @@ def check_blockchain():
     :return: True or False
     """
     check = True
-    if (os.path.isfile(file_name)):
+    if (os.path.isfile(file_blockchain)):
         list = get_list_from_file("size")
         for i in list:
             if ((int(i) > 2000000) or (int(i) < 100)):
@@ -1057,10 +1160,29 @@ def get_number_blocks():
     :return: number of the current blocks saved in the local blockchain - 0 if file doesn't exist
     """
     number = 0
-    if (os.path.isfile(file_name)):
+    if (os.path.isfile(file_blockchain)):
         hash_list = get_list_from_file("hash")
         number = len(hash_list)
     return number
+
+def create_interval_lists():
+    """
+    create lists with integer containing the intervals in the info.txt file
+    :return: start height list and end height list
+    """
+    start_list = []
+    end_list = []
+    if (os.path.isfile(file_info)):
+        with open(file_info, "r") as file:
+            file.seek(0)
+            file_lines = file.readlines()
+
+            for line in file_lines:
+                new_line = line.split("--")
+
+                start_list.append([int(s) for s in new_line[0].split() if s.isdigit()][0])
+                end_list.append([int(s) for s in new_line[1].split() if s.isdigit()][0])
+    return start_list, end_list
 
 def get_earliest_hash():
     """
@@ -1068,7 +1190,7 @@ def get_earliest_hash():
     :return: the earliest hash in the local blockchain file - empty string if file doesn't exist
     """
     earliest_hash = ""
-    if (os.path.isfile(file_name)):
+    if (os.path.isfile(file_blockchain)):
         hash_list = get_list_from_file("hash")
         if (hash_list != False):
             earliest_hash = hash_list[-1]
@@ -1120,6 +1242,34 @@ def datetime_retrieved(start = None, end = None):
 
     return return_list
 
+
+def get_lists_ordered(name1, name2, name3 = None):
+    """
+    orders list of attribute names according to the height
+    :return: lists ordered according to the parameters
+    """
+    height_list = get_list_from_file("height")
+    height_list[:] = [int(x) for x in height_list]
+    list1 = get_list_from_file(name1)
+    list2 = get_list_from_file(name2)
+
+    if(name3 == None):
+        together = zip(height_list, list1, list2)
+        sorted_together = sorted(together)
+
+        list1 = [x[1] for x in sorted_together]
+        list2 = [x[2] for x in sorted_together]
+        return list1, list2
+    else:
+        list3 = get_list_from_file(name3)
+        together = zip(height_list, list1, list2, list3)
+        sorted_together = sorted(together)
+
+        list1 = [x[1] for x in sorted_together]
+        list2 = [x[2] for x in sorted_together]
+        list2 = [x[3] for x in sorted_together]
+        return list1, list2, list3
+
 def check_hash(startH, endH):
     """
     Check whether the interval of height that needs to be retrieved are already retrieved in the file .txt
@@ -1165,7 +1315,7 @@ def blockchain_info():
     :return: string containing the info from the blockchain text file
     """
     string_return = ""
-    if (os.path.isfile(file_name)):
+    if (os.path.isfile(file_blockchain)):
         blockchain_status = check_blockchain()
         if (blockchain_status == True):
             string_return+=(bcolors.OKGREEN + "\nOK -- " + bcolors.ENDC +
@@ -1196,15 +1346,9 @@ def blockchain_intervals():
     """
     interval_string = ""
 
-    height_list = get_list_from_file("height")
+    height_list, epoch_list = get_lists_ordered("height", "epoch")
     height_list[:] = [int(x) for x in height_list]
-    epoch_list = get_list_from_file("epoch")
-
-    together = zip(height_list, epoch_list)
-    sorted_together = sorted(together)
-
-    height_list = [x[0] for x in sorted_together]
-    epoch_list = [x[1] for x in sorted_together]
+    epoch_list[:] = [int(x) for x in epoch_list]
 
     first = height_list[0]
     current = first
@@ -1232,13 +1376,18 @@ def blockchain_intervals():
             date_start = epoch_list[i]
             date_start = epoch_datetime(date_start)
 
-        current+=1
+        current += 1
         i += 1
     date_end = epoch_list[-1]
     date_end = epoch_datetime(date_end)
     interval_string += '{:^8}'.format(str(height_list[-1])) + bcolors.OKGREEN + " || " + bcolors.ENDC \
                        + str(date_start) + " -- " + str(date_end) + bcolors.OKGREEN \
                        + " ||" + bcolors.ENDC + "\n"
+
+    # write all in info.txt file
+    with io.FileIO(file_info, "w+") as file:
+        file.write(interval_string)
+
     return interval_string
 
 
@@ -1248,7 +1397,7 @@ def update_blockchain():
     :return: string with the status
     """
     string_return = None
-    if (os.path.isfile(file_name)):
+    if (os.path.isfile(file_blockchain)):
         # count how many nodes are missing
         height = get_list_from_file("height")
         last_retreived = int(height[0])
