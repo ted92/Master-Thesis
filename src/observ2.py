@@ -57,6 +57,7 @@ color_list = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
 global marker_list
 marker_list = ['o', '-', '*', '^']
+
 # --------------------
 
 def main(argv):
@@ -134,7 +135,7 @@ def main(argv):
         sys.exit(2)
 
 
-def define_intervals(number_of_blocks): # todo: catch exception in this method
+def define_intervals(number_of_blocks):
     """
     Retrieves blocks with a certain interval according to how many blocks are present in the blockchain.
     These intervals are called portions.
@@ -143,7 +144,7 @@ def define_intervals(number_of_blocks): # todo: catch exception in this method
     :param hash:
     :return:
     """
-
+    error = False
     # define p = number of blocks per portion
     # n = number of blocks in the blockchain
 
@@ -152,11 +153,11 @@ def define_intervals(number_of_blocks): # todo: catch exception in this method
     p = n / n_portions
 
     start_list, end_list = create_interval_lists()
-
+    i = 0
     # case if the files doesn't exist
     if (start_list == []):
         # starting from 0
-        i = 0
+
 
         # get the heights and hashes where to start:
         while (i < n_portions):
@@ -172,10 +173,9 @@ def define_intervals(number_of_blocks): # todo: catch exception in this method
                 hash = b.hash
                 epoch = b.time
                 time = epoch_datetime(epoch)
-
-                print "Retrieving " + str(number_of_blocks) + " starting from " + time
-                get_blockchain(number_of_blocks, hash)
                 i += 1
+                print "Retrieving " + str(number_of_blocks) + " starting from " + time
+                get_blockchain(number_of_blocks, error, hash)
             except Exception as e:
                 error = True
                 json_req = urllib2.urlopen(
@@ -184,13 +184,12 @@ def define_intervals(number_of_blocks): # todo: catch exception in this method
                 b = blocks_retrieved["blocks"]
                 block = b[0]
                 height = int(block['height'])
-                get_blockchain(number_of_blocks, height)
-                print "in here"
+                i += 1
+                get_blockchain(number_of_blocks, error, height)
 
     # case if the files exists already
     else:
         # in start_list and end_list are stored all the heights representing the intervals retrieved
-        i = 0
         # todo: control that the number of blocks is not higher than the portion p
         if (int(end_list[0]) + number_of_blocks >= p):
             print (bcolors.WARNING + "WARNING: " + bcolors.ENDC + "Blockchain already up to date!")
@@ -203,10 +202,9 @@ def define_intervals(number_of_blocks): # todo: catch exception in this method
                     hash = b.hash
                     epoch = b.time
                     time = epoch_datetime(epoch)
-
-                    print "Retrieving " + str(number_of_blocks) + " blocks starting from " + time
-                    get_blockchain(number_of_blocks, hash)
                     i += 1
+                    print "Retrieving " + str(number_of_blocks) + " blocks starting from " + time
+                    get_blockchain(number_of_blocks, error, hash)
                 except Exception as e:
                     error = True
                     json_req = urllib2.urlopen(
@@ -215,8 +213,8 @@ def define_intervals(number_of_blocks): # todo: catch exception in this method
                     b = blocks_retrieved["blocks"]
                     block = b[0]
                     height = int(block['height'])
-                    get_blockchain(number_of_blocks, height)
-                    print "in here"
+                    i += 1
+                    get_blockchain(number_of_blocks, error, height)
 
 def plot_sequence(regression,  start_v, end_v):
     """
@@ -242,12 +240,13 @@ def plot_sequence(regression,  start_v, end_v):
         plot_data("tthroughput", 8, start=start_v, end=end_v)"""
 
 # @profile
-def get_blockchain(number_of_blocks, hash = None):
+def get_blockchain(number_of_blocks, error, hash = None):
     """
     it retreives blocks from blockchain starting from the last block if hash is none,
     otherwise start from the block hash given in input
     @params:
      int number_of_blocks: blocks to retrieve
+     bool error: if True data are retrieved in Json if False through the client API
      str hash: hash of the block from where to start the retrieval
     :return: none
     """
@@ -264,16 +263,12 @@ def get_blockchain(number_of_blocks, hash = None):
     list_miners = []
     list_received_time = []
 
-    append_end = False
-    error = False
-
     # -------- PROGRESS BAR -----------
     index_progress_bar = 0
     printProgress(index_progress_bar, number_of_blocks, prefix='Saving Blockchain:', suffix='Complete',
                   barLength=50)
     # ---------------------------------
     try:
-        append_end = True
         last_block = blockexplorer.get_block(hash)
         start_time = datetime.datetime.now()
         current_block = blockexplorer.get_block(last_block.previous_block)
@@ -456,35 +451,16 @@ def get_blockchain(number_of_blocks, hash = None):
     to_write_list = [hash_list, epoch_list, creation_time_list, size_list, fee_list, height_list, bandwidth_list, list_transactions, avg_transaction_list, list_miners, list_received_time]
     # to_write_list[9] = mining_list
     # writing all the data retrieved in the file
-    write_blockchain(to_write_list, append_end)
+
+    write_blockchain(to_write_list)
 
     # check blockchain status
     print blockchain_info()
 
-
 # @profile
-def write_blockchain(to_write_list, append_end):
+def write_blockchain(to_write_list):
     """
-    write in blockchain.txt the blocks retrieved in get_blockchain().
-    Add on the top if the block are newer than the existing one.
-    Append on the bottom if the blocks are older.
-    Do nothing if they are already in the blockchain.
-
-    write a file with:
-    hash
-    epoch
-    creation_time
-    fee
-    size
-    height
-    bandwidth
-    transactions
-    avgttime
-    relayed_by
-    received_time
-
-    @params:
-      list to_write_list: it contains all the lists that need to be written:
+    @param to_write_list        - Required: list to_write_list: it contains all the lists that need to be written:
         [0] hash: hash list
         [1] epoch: epoch list
         [2] creation_time: creation time list
@@ -496,116 +472,25 @@ def write_blockchain(to_write_list, append_end):
         [8] avg_tr_list: list with the average time that a transaction need to be visible in the blockchain in a certain block
         [9] list_miner: list with all the miners for each block
         [10] list_received_time: list with all the received time for each block
-      bool append_end: tells if is an append at the end of the file or at the beginning
-    :return: None
     """
-
     n = len(to_write_list[0])
     # ---------- PROGRESS BAR -----------
     index_progress_bar = 0
     printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
                   barLength=50)
-    # -----------------------------------
-    if (os.path.isfile(file_blockchain)):
-        # file already exists
-        # retreive all the hashes check the first and the left in the file
-        # add the non existing blocks
 
-        if(append_end):
-            with io.FileIO(file_blockchain, "a+") as file:
-                for i in range(n):
-                    # --- WRITE IN FILE ---
-                    write_file(to_write_list, file, i)
-                    # ---------------------
+    with io.FileIO(file_blockchain, "a+") as file:
+        for i in range(n):
+            # --- WRITE IN FILE ---
+            write_file(to_write_list, file, i)
+            # ---------------------
 
-                    # -------- PROGRESS BAR -----------
-                    sleep(0.01)
-                    index_progress_bar += 1
-                    printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
-                                  barLength=50)
-                    # ---------------------------------
-        else:
-            hash_list_in_file = get_list_from_file("hash")
-            first_hash = hash_list_in_file[0]
-
-            elements = len(hash_list_in_file)
-            last_hash = hash_list_in_file[elements-1]
-            met_first = False
-            met_last = False
-            first_truncate = False
-
-            with io.FileIO(file_blockchain, "a+") as file:
-                file.seek(0)
-                existing_lines = file.readlines()
-                file.seek(0)
-                file.truncate()
-                file.seek(0)
-
-                i = 0
-                while (i < n):
-                    if (first_hash == to_write_list[0][i]):
-                        met_first = True
-                    while((met_first == False) and (i < n)):
-                        # append on top
-                        # --- WRITE IN FILE ---
-                        write_file(to_write_list, file, i)
-                        # ---------------------
-
-                        # -------- PROGRESS BAR -----------
-                        sleep(0.01)
-                        index_progress_bar += 1
-                        printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
-                                      barLength=50)
-                        # ---------------------------------
-
-                        i = i + 1
-                        if ((i < n) and (first_hash == to_write_list[0][i])):
-                            met_first = True
-
-                    file.writelines(existing_lines)
-
-
-                    if ((i < n) and (last_hash == to_write_list[0][i])):
-                        met_last = True
-
-                    while((met_last == False) and (i < n)):
-                        # part of the blockchain already present in the file
-                        if (last_hash == to_write_list[0][i]):
-                            met_last = True
-
-                        # ---------- PROGRESS BAR -----------
-                        sleep(0.01)
-                        index_progress_bar += 1
-                        printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
-                                        barLength=50)
-                        # -----------------------------------
-                        i = i + 1
-
-                    # append last elements in the file
-                    while (i < n):
-                        # --- WRITE IN FILE ---
-                        write_file(to_write_list, file, i)
-                        # ---------------------
-                        # ---------- PROGRESS BAR -----------
-                        sleep(0.01)
-                        index_progress_bar += 1
-                        printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
-                                      barLength=50)
-                        # -----------------------------------
-                        i = i + 1
-    else:
-        with io.FileIO(file_blockchain, "a+") as file:
-            for i in range(n):
-                # ---------- PROGRESS BAR -----------
-                sleep(0.01)
-                index_progress_bar += 1
-                printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
-                              barLength=50)
-                # -----------------------------------
-
-                # --- WRITE IN FILE ---
-                write_file(to_write_list, file, i)
-                # ---------------------
+            # -------- PROGRESS BAR -----------
+            sleep(0.01)
+            index_progress_bar += 1
+            printProgress(index_progress_bar, n, prefix='Writing .txt file:', suffix='Complete',
+                          barLength=50)
+            # ---------------------------------
 
 
 def write_file(list_to_write, file, index):
@@ -623,7 +508,7 @@ def write_file(list_to_write, file, index):
         list_to_write[8][index]) + "\nmined_by: " + str(list_to_write[9][index]) + "\nreceived_time: " + str(list_to_write[10][index])+"\n\n")
 
 
-def get_creation_time(currblock, prevblock, isJson, error, currtime):
+def get_creation_time(currblock, prevblock, isJson, error_local, currtime):
     """
     Block that get the creation time, and it considers the possible negative
     creation time due to a time error in the blockchain.
@@ -632,7 +517,7 @@ def get_creation_time(currblock, prevblock, isJson, error, currtime):
     :param currblock: current block to analyze
     :param prevblock: block where to start the search of the ancestor
     :param isJson: bool: if True data must be collected through Json
-    :param error: bool: tells if the block being analyzed is inside an error catch
+    :param error_local: bool: tells if the block being analyzed is inside an error catch
     :return: return the positive creation time for the currblock
     """
     right_ancestor = prevblock
@@ -646,9 +531,9 @@ def get_creation_time(currblock, prevblock, isJson, error, currtime):
             json_req = urllib2.urlopen(
                 "https://blockchain.info/block-index/" + prevblock["prev_block"] + "?format=json").read()
             right_ancestor = json.loads(json_req)
-            if(error == False):
+            if(error_local == False):
                 currtime = currblock.time - right_ancestor["time"]
-            elif (error == True):
+            elif (error_local == True):
                 currtime = currblock["time"] - right_ancestor["time"]
             print "creation time turned positive: " + str(currtime)
     return currtime
@@ -866,10 +751,11 @@ def get_indexes():
 
     return interval_list_start, interval_list_end
 
-def plot_multiple_lists(description, list1, list2, list3 = None):
+def plot_multiple_lists(description, marker, list1, list2, list3 = None):
     """
     method that take care of plotting the data.
     :param description  - Required  :   description of the graph to plot
+    :param marker       - Required  :   marker to plot, could be '-', 'o', '*' ecc...
     :param list1        - Required  :   list with x values to plot
     :param list2        - Required  :   list with epoch to put on lable
     :param list3        - Optional  :   second list with the y values to plot
@@ -895,10 +781,10 @@ def plot_multiple_lists(description, list1, list2, list3 = None):
 
         if(is_x):
             to_plot_3.append(list3[start_interval[i]:end_interval[i]])
-            plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + 'o',
+            plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
         else:
-            plt.plot(to_plot_2[i], color_list[i] + 'o',
+            plt.plot(to_plot_2[i], color_list[i] + marker,
                  label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
         i += 1
 
@@ -931,7 +817,7 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
 
         y_vals[:] = [y / 60 for y in y_vals]
 
-        plot_multiple_lists(description, x_vals, y_vals)
+        plot_multiple_lists(description, marker_list[0], x_vals, y_vals)
 
         plt.legend(loc="best")
         plt.ylabel("creation time (min)")
@@ -947,7 +833,7 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         y_vals[:] = [y / 1000000 for y in y_vals]
         y_vals = y_vals[end:start]
 
-        plot_multiple_lists(description, x_vals, y_vals)
+        plot_multiple_lists(description, marker_list[0], x_vals, y_vals)
 
         plt.legend(loc="best")
         plt.ylabel("block size (Mb)")
@@ -973,7 +859,7 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         y_vals[:] = [float(y) for y in y_vals]
         y_vals = y_vals[end:start]
 
-        plot_multiple_lists(description, x_vals, y_vals)
+        plot_multiple_lists(description, marker_list[1], x_vals, y_vals)
 
         # plt.plot(x_vals, 'c-', label=(
             # "read bandwidth Mb/s\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])), lw=3)
@@ -1194,6 +1080,8 @@ def check_blockchain():
         list = get_list_from_file("size")
         for i in list:
             if ((int(i) > 2000000) or (int(i) < 100)):
+                check = False
+            if (len(list) % n_portions != 0):
                 check = False
     return check
 
@@ -1439,6 +1327,7 @@ def update_blockchain():
     :return: string with the status
     """
     string_return = None
+    error = False
     if (os.path.isfile(file_blockchain)):
         # count how many nodes are missing
         height = get_list_from_file("height")
@@ -1449,7 +1338,7 @@ def update_blockchain():
         if (diff > 0):
             print ("Updating the blockchain (" + str(diff) + " blocks missing)...")
             diff = diff + 1
-            get_blockchain(diff)
+            get_blockchain(diff, error)
         else:
             print ("Blockchain already up to date!")
     else:
