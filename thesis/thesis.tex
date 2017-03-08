@@ -25,6 +25,7 @@
 \usepackage{amsmath}
 \usepgflibrary{arrows}
 \usepackage{listings}
+\usepackage{amssymb}
 
 \usepackage{glossaries}
 
@@ -179,9 +180,63 @@ Miner's profit equation in~\ref{eq:minerprofit} shows the gain of a miner $\lang
 where the hashing cost is represented as follows:
 \begin{equation}
 \label{eq:hashingcost}
-\langle C\rangle = \eta ht.
+\langle C\rangle = \eta hT.
 \end{equation}
+So the hashing cost $\langle C\rangle$ is directly dependent from the miner's individual hash rate, $h$,
+the cost per hash, $\eta$, and the creation time, $T$. Moreover, is important to consider the
+expectation value of a miner's revenue per block, this value is represented with $\langle V\rangle$
+and is equal to the amount he would earn if he won the block multiplied by his probability of
+winning. So the expected revenue would be:
+$\langle V\rangle = (R + M) h/H$,
+where the amount he would earn is the sum of the block reward, $R$, and the transaction fees, $M$.
+His probability of winning, assuming all blocks propagating instantly, is equal to the ration of his hash
+rate, $h$, to the total hash rate of the Bitcoin network, $H$. The problem with this equation is that it
+does not reflect the miner's diminished chances of winning if he chooses to publish a block that propagates
+slowly to the other miners. If a miner finds first a valid block, but his solution is received after most miners
+are working on another, then his block will likely be discarded. This effect is called \emph{orphaning}. The
+equation, considering the orphaning factor, $\mathbb{P}_{orphan}$, is the following:
+\begin{equation}
+\label{eq:expectedrevenue}
+\langle V\rangle = (R + M)\frac{h}{H}(1 - \mathbb{P}_{orphan}).
+\end{equation}
+Where the chance that a block gets orphaned increases with the amount of time it takes the
+block to propagate to the other miners. Indeed, if $\tau$ is the block propagation time, the
+probability of orphaning is defined as:
+\begin{equation}
+\label{eq:orphaning}
+\mathbb{P}_{orphan} = 1 - e^{-\frac{\tau}{T}}.
+\end{equation}
+In conclusion the \emph{miner's profit equation} is defined as:
+\begin{equation}
+\label{eq:minerprofiteq}
+\langle \Pi \rangle = (R + M)\frac{h}{H} e^{-\frac{\tau}{T}} -\eta hT
+\end{equation}
+A \emph{rational miner} selects which transactions to include in his block in a manner that maximizes
+the expectation value of his profit. This selection is explained with the \emph{mempool demand curve}
+and the \emph{block space supply curve}.
 
+\subsection{The Mempool Demand Curve}
+The set of transactions that still need to be approved and included in a block is called \emph{mempool}.
+The mempool set is denoted with $\mathcal{N}$ and the number of transactions contained within it as $n$.
+According to the size limit, a block can select a $b \leq n$ transactions from $\mathcal{N}$ to create a
+new block $\mathcal{B} \subset \mathcal{N}$.
+
+A block first includes transactions with an higher \emph{fee density}. This last, is a ratio between
+the \emph{transaction fee} and the \emph{transaction size}.  To construct the mempool demand
+curve, is necessary first sorting the mempool from greatest fee density to least and then
+associating an index $\{i: 1,2,\dots,n-1,n\}$ with each transaction in the resulting list.
+
+The mempool demand curve will be then a graphical representation of the sum of the fees offered
+by each transaction in this sorted list:
+\begin{equation}
+\label{eq:memdemandcurve}
+M_{demand}(b) \equiv \sum_{i=1}^{b} fee_i,
+\end{equation}
+and the sum of each transaction's size in bytes:
+\begin{equation}
+\label{eq:transactionsize}
+Q(b) \equiv \sum_{i = 1}^{b} size_i.
+\end{equation}
 
 
 \chapter{Technical Background}

@@ -16,6 +16,7 @@ Usage: observ.py -t number
     -r start [end]      : plots the regression and the models in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
     -u                  : updates the local blockchain to the last block created
     -c start end        : retrieves blocks to compare the blockchain in different epoch. The height to be retrieved is given from start and end
+    -d                  : delete info.txt and blockchain.txt if exist
 
 """
 
@@ -41,6 +42,8 @@ import matplotlib.lines as mlines
 import matplotlib.axis as ax
 from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
 import json
+import ast
+import urllib
 
 # ------ GLOBAL ------
 global file_blockchain
@@ -48,6 +51,9 @@ file_blockchain = "blockchain.txt"
 
 global file_info
 file_info = "info.txt"
+
+global file_unconfirmed_tx
+file_unconfirmed_tx = "unconfirmed_tx.txt"
 
 global n_portions
 n_portions = 4
@@ -70,14 +76,14 @@ def main(argv):
         start_v = None
         end_v = None
 
-        opts, args = getopt.getopt(argv, "hiuRPc:p:t:e:r:")
+        opts, args = getopt.getopt(argv, "hiudtRPc:p:e:r:")
         valid_args = False
 
         for opt, arg in opts:
             if(opt == "-t"):    # update on top
-                print ("Adding at the top the latest " + arg + " blocks.")
-                number_of_blocks = int(arg)
-                get_blockchain(number_of_blocks)
+                print ("Checking the unconfirmed transactions.")
+                write_unconfirmed_transactions()
+                plot_mempool_demand_curve()
                 valid_args = True
             if(opt == "-e"):    # append blocks at the end
                 print ("Appending at the end " + arg + " blocks.")
@@ -89,6 +95,17 @@ def main(argv):
                 valid_args = True
                 if (str_update != None):
                     print str_update
+            if(opt == "-d"): #delete info.txt and blockchain.txt
+                valid_args = True
+                try:
+                    os.remove(file_info)
+                    print file_info + " deleted."
+                    os.remove(file_blockchain)
+                    print file_blockchain + " deleted."
+                    os.remove(file_unconfirmed_tx)
+                    print file_unconfirmed_tx + " deleted."
+                except OSError:
+                    pass
             if(opt == "-i"):    # blockchain info
                 print blockchain_info()
                 valid_args = True
@@ -134,6 +151,94 @@ def main(argv):
         print (__doc__)
         sys.exit(2)
 
+def write_unconfirmed_transactions():
+    """
+    Rtrieve the unconfirmed transactions to analyze them, and write a file with all the unconfirmed transactions.
+    return: the unconfirmed transactions
+    """
+    json_req = urllib2.urlopen(
+        "https://blockchain.info/unconfirmed-transactions?format=json").read()
+    json_data = json.loads(json_req)
+    unconfirmed_tr = json_data['txs']
+
+    # write file with all the unconfirmed transactions
+    with io.FileIO(file_unconfirmed_tx, "w") as file:
+        file.write(str(unconfirmed_tr))
+
+
+def plot_mempool_demand_curve():
+    """
+    It calculates the fees for every unconfirmed transaction, retrieved in the unconfirmed_tx.txt file, then it
+    calculates the fees density with fee/size. It orders it in a decrescent order and then plots the cumulate sum of
+    the fees and the sizes following this order in order to get the mempool demand curve.
+    """
+    fees_list = []
+    sizes_list = []
+    fee_density_list = []
+
+
+    if (os.path.isfile(file_unconfirmed_tx)):
+        with io.FileIO(file_unconfirmed_tx, "r") as file:
+            unconfirmed_tx = file.read()
+
+        unconfirmed_tx = ast.literal_eval(unconfirmed_tx)
+
+
+        # calculate total fee for each unconfirmed transaction
+        input_fee = 0
+        output_fee = 0
+
+        for tx in unconfirmed_tx:
+            sizes_list.append(tx['size'])
+            # ===================================== GET THE TOTAL INPUT FEE ==============
+            for input in tx['inputs']:
+                prev_out = input[u'prev_out']
+                input_fee += int(prev_out[u'value'])
+            # ============================================================================
+
+            # ===================================== GET THE TOTAL OUTPUT FEE ==============
+            for output in tx['out']:
+                output_fee += int(output[u'value'])
+            # ============================================================================
+
+            fees_list.append(input_fee - output_fee)
+
+        # create the fee density list to order the other two lists
+        for f, s in zip(fees_list, sizes_list):
+            fee_density_list.append(float(f/float(s)))
+
+
+        together = zip(fee_density_list, sizes_list, fees_list)
+        sorted_together = sorted(together, reverse=True)
+
+        fee_density_list = [x[0] for x in sorted_together]
+        sizes_list = [x[1] for x in sorted_together]
+        fees_list = [x[2] for x in sorted_together]
+
+        # growing lists
+        fees_list = np.cumsum(fees_list)
+        sizes_list = np.cumsum(sizes_list)
+
+        # ============== PLOTTING ===============
+        axes = plt.gca()
+        plt.figure(1)
+        plt.rc('lines', linewidth=3)
+        plt.plot(sizes_list, fees_list, color_list[1] + marker_list[0],
+                 label=("Mempool demand curve"), )
+        plt.legend(loc="best")
+        plt.ylabel("Fees M(B)")
+
+
+
+        plt.xlabel("Block space Q (bytes)")
+        plt.savefig('plot/mempooldemandcurve')
+        # =======================================
+
+        return fees_list
+
+    else:
+        print "File " + file_unconfirmed_tx + " does not exist!"
+        return fees_list
 
 def define_intervals(number_of_blocks):
     """
@@ -231,8 +336,8 @@ def plot_sequence(regression,  start_v, end_v):
     else:
         plot_data("time_per_block", 0, start=start_v, end=end_v)
         plot_data("byte_per_block", 1, start=start_v, end=end_v)
-        """plot_data("growth_blockchain", 2, start=start_v, end=end_v)
-        plot_data("fee_bandwidth", 3, start=start_v, end=end_v)"""
+        """plot_data("growth_blockchain", 2, start=start_v, end=end_v)"""
+        plot_data("fee_bandwidth", 3, start=start_v, end=end_v)
         plot_data("bandwidth", 4, start=start_v, end=end_v)
         """plot_data("efficiency", 5, start=start_v, end=end_v)
         plot_data("transaction_visibility", 6, start=start_v, end=end_v)
@@ -296,6 +401,8 @@ def get_blockchain(number_of_blocks, error, hash = None):
 
             start_list, end_list = create_interval_lists()
 
+            miner = "None"
+
             if(error == False):
                 # ---- List creation
                 epoch = current_block.time
@@ -323,10 +430,16 @@ def get_blockchain(number_of_blocks, error, hash = None):
                 transactions = current_block.transactions
                 list_transactions.append(len(transactions))
 
-                miner = current_block.relayed_by
+                if (error == False):
+                    miner = current_block.relayed_by
+                else:
+                    miner = "None"
                 list_miners.append(miner)
 
-                received_time = current_block.received_time
+                if (error == False):
+                    received_time = current_block.received_time
+                else:
+                    received_time = "None"
                 list_received_time.append(received_time)
 
                 # --- creation time list--
@@ -372,10 +485,16 @@ def get_blockchain(number_of_blocks, error, hash = None):
                 transactions = len(current_block["tx"])
                 list_transactions.append(transactions)
 
-                miner = current_block["relayed_by"]
+                if (error == False):
+                    miner = current_block["relayed_by"]
+                else:
+                    miner = "None"
                 list_miners.append(miner)
 
-                received_time = current_block["received_time"]
+                if (error == False):
+                    received_time = current_block["received_time"]
+                else:
+                    received_time = "None"
                 list_received_time.append(received_time)
 
 
@@ -730,7 +849,7 @@ defined methods:
 
 def get_indexes():
     """
-    get the indexed where the list needs to be splitted
+    get the start and end indexed where the list needs to be splitted
     :return : list with indexes
     """
     start_list, end_list = create_interval_lists()
@@ -1003,22 +1122,26 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
 
     # -----------------------------------------------------------------------------------------------------------------------------
     elif(description == "fee_bandwidth"):
-        x_vals = get_list_from_file("creation_time")
+        x_vals, epoch_vals, y_vals = get_lists_ordered("creation_time", "epoch", "fee")
+
+        epoch_vals[:] = [int(x) for x in epoch_vals]
+
         x_vals[:] = [float(x) for x in x_vals]
         x_vals[:] = [x / 60 for x in x_vals] # in minutes
 
-        y_vals = get_list_from_file("fee")
-        y_vals[:] = [float(x) for x in y_vals]
-        y_vals[:] = [x / 100000000 for x in y_vals] # in BTC
+        y_vals[:] = [float(y) for y in y_vals]
+        y_vals[:] = [y / 100000000 for y in y_vals] # in BTC
 
         x_vals = x_vals[end:start]
         y_vals = y_vals[end:start]
 
-        plt.plot(x_vals, y_vals, 'ro', label=(
-            "fee paid\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])))
+        """plt.plot(x_vals, y_vals, 'ro', label=(
+            "fee paid\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])))"""
+        plot_multiple_lists(description, marker_list[0], epoch_vals, x_vals, y_vals)
+
         plt.ylabel("fee (BTC)")
         plt.xlabel("creation time (min)")
-        axes.set_xlim([0, max(x_vals)])
+        axes.set_xlim([0, 30])
         axes.set_ylim([0, 2.5])
 
         if(regression):
@@ -1197,7 +1320,7 @@ def get_lists_ordered(name1, name2, name3 = None):
 
         list1 = [x[1] for x in sorted_together]
         list2 = [x[2] for x in sorted_together]
-        list2 = [x[3] for x in sorted_together]
+        list3 = [x[3] for x in sorted_together]
         return list1, list2, list3
 
 def check_hash(startH, endH):
