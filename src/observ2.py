@@ -44,6 +44,10 @@ from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
 import json
 import ast
 import urllib
+from scipy import stats
+from scipy.stats import norm
+import math
+import matplotlib as mpl
 
 # ------ GLOBAL ------
 global file_blockchain
@@ -63,6 +67,9 @@ color_list = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
 global marker_list
 marker_list = ['o', '-', '*', '^']
+
+global bitcoin
+bitcoin = u'\u0243'
 
 # --------------------
 
@@ -84,6 +91,10 @@ def main(argv):
                 print ("Checking the unconfirmed transactions.")
                 write_unconfirmed_transactions()
                 plot_mempool_demand_curve()
+
+
+                # BLOCK SPACE SUPPLY CURVE
+
                 valid_args = True
             if(opt == "-e"):    # append blocks at the end
                 print ("Appending at the end " + arg + " blocks.")
@@ -107,6 +118,7 @@ def main(argv):
                 except OSError:
                     pass
             if(opt == "-i"):    # blockchain info
+                test_accuracy()
                 print blockchain_info()
                 valid_args = True
             if(opt == "-h"):    # usage
@@ -133,7 +145,7 @@ def main(argv):
             if(opt == "-c"):    # compare with older blocks - retrieve blockchain in previous time
                 blocks = int(arg)
 
-                # check wheter if a portion of the interval to be retrieved is already in the file
+                # check wheter a portion of the interval to be retrieved is already in the file
                 """in_file = check_hash(start_height, end_height)
                 if(in_file == True):
                     print (bcolors.WARNING + "Warning: " + bcolors.ENDC +"The protion you are trying to retrieve is already present in the " + file_blockchain)
@@ -151,15 +163,218 @@ def main(argv):
         print (__doc__)
         sys.exit(2)
 
+def plot_multiple_lists(description, marker, list1, list2, list3=None, normal=None):
+    """
+    method that take care of plotting the data.
+    :param description  - Required  :   description of the graph to plot
+    :param marker       - Required  :   marker to plot, could be '-', 'o', '*' ecc...
+    :param list1        - Required  :   list with epoch to put on lable
+    :param list2        - Required  :   list with x values to plot
+    :param list3        - Optional  :   second list with the y values to plot
+    :param normal       - Optional  :   tells if a normal curve needs to be plotted, then the data are sorted
+    """
+    if (list3 != None and list3 != []):
+        is_x = True
+    else:
+        is_x = False
+
+    # retrieve the intervals to print
+    start_interval, end_interval = get_indexes()
+
+    # plot the portions
+    to_plot_1 = []
+    to_plot_2 = []
+    to_plot_3 = []
+
+    # create data to plot having a list of a list in to_plot_x and to_plot_y
+    i = 0
+    while (i < n_portions):
+        to_plot_1.append(list1[start_interval[i]:end_interval[i]])
+        to_plot_2.append(list2[start_interval[i]:end_interval[i]])
+
+        if (is_x):
+            to_plot_3.append(list3[start_interval[i]:end_interval[i]])
+
+            # Order lists
+            if (normal==True):
+                together_sorted = sorted(zip(to_plot_2[i], to_plot_3[i]))
+
+                to_plot_2[i][:] = [xv[0] for xv in together_sorted]
+                to_plot_3[i][:] = [yv[1] for yv in together_sorted]
+
+            plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
+                         label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))),
+                         lw = 2)
+        else:
+            plt.plot(to_plot_2[i], color_list[i] + marker,
+                     label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
+        i += 1
+
+    # ACCURACY WITH NORMAL DISTRIBUTION
+def test_accuracy():
+    """
+    Read all the fees from the .txt file and verify the accuracy of them with the difference between the expected
+    value and the real fee value.
+    """
+
+    fee_list, creation_time_list, epoch_list = get_lists_ordered("fee", "creation_time", "epoch")
+
+    fee_list[:] = [float(x) for x in fee_list]
+    fee_list[:] = [x / 100000000 for x in fee_list]  # in BTC
+
+    creation_time_list[:] = [float(x) for x in creation_time_list]
+    creation_time_list[:] = [x / 60 for x in creation_time_list]  # in minutes
+
+    diff_list = []
+    expected_list = []
+
+    i = 0
+    for fee in fee_list:
+        expected = fBg(creation_time_list[i])
+        expected_list.append(expected)
+        diff = fee - expected
+        diff_list.append(diff)
+        i += 1
+    # diff_list.sort()
+
+
+    # ============================== PRECISION ==============================
+    # precision = max_diff - min_diff * 100% / mean(max_diff, min_diff)
+    max_diff = max(diff_list)
+    min_diff = min(diff_list)
+    precision = ((max_diff - min_diff) * 100) / ((max_diff + min_diff) / 2)
+    print "Precision: " + str(precision) + " %"
+
+    # level of precision for each element
+    precision_list = []
+
+    i = 0
+    for exp in expected_list:
+        precision = ((fee_list[i] - exp) * 100) / ((fee_list[i] + exp) / 2)
+        precision_list.append(precision)
+        i += 1
+
+    print np.mean(precision_list)
+
+    # =======================================================================
+
+
+
+    # ============================== ACCURACY ===============================
+    # experimental - true * 100% / true
+
+    accuracy_list = []
+    i = 0
+    print expected_list[0]
+    print fee_list[0]
+    for fee in fee_list:
+        accuracy = (fee - expected_list[i]) * 100 / expected_list[i]
+        i += 1
+        accuracy_list.append(accuracy)
+
+    print np.mean(accuracy_list)
+
+    # =======================================================================
+
+
+    # ================== NORMAL DISTRIBUTION ========================
+    axes = plt.gca()
+
+    # mu = 0
+    # variance = 0.031772
+    mu = np.mean(diff_list)
+    variance = np.var(diff_list)
+    sigma = math.sqrt(variance)
+
+    y_l = norm.pdf(diff_list, mu, sigma)
+    """ myList = ','.join(map(str, diff_list))
+    print myList
+    plt.plot(diff_list)
+    plt.savefig('plot/normal_curve')"""
+    # y_l[:] = [y * 100 for y in y_l]
+
+    plot_multiple_lists("accuracy", marker_list[0], epoch_list, diff_list, y_l, True)
+
+    plt.legend(loc="best")
+
+    axes.set_xlim([min(diff_list), 2])
+
+    plt.xlabel("BTC")
+    plt.ylabel("Percentage %")
+    plt.savefig('plot/accuracy')
+
+    # ===============================================================
+
+# BLOCK SPACE SUPPLY CURVE
+def plot_space_supply(sizes_list):
+    """
+    :param size_list : sizes from the mempool demand curve
+    Plot the block space supply curve considering a block reward R = 12,5 BTC, and a linear growing propagation time
+    T = 600s
+    """
+
+    fees_list = []
+    reward = 12.5
+    creation_time = 600
+
+    for el in sizes_list:
+        tau = propagation_time_function(float(el))
+        supply = reward * (math.exp(tau/600) - 1)
+        fees_list.append(supply)
+
+    # ============== PLOTTING ===============
+    axes = plt.gca()
+    axes.set_ylim([0, max(fees_list)])
+    plt.figure(1)
+    plt.rc('lines', linewidth=3)
+    plt.plot(sizes_list, fees_list, color_list[2] + marker_list[1],
+             label=("$M_{supply}(Q)$"), )
+    plt.legend(loc="best")
+    plt.ylabel("Fees $M(B)$")
+    plt.xlabel("Block space $Q$ (Mb)")
+    plt.savefig('plot/blockspacesupplycurve')
+    # =======================================
+
+
+def propagation_time_function(q):
+    """
+    :param q : block size
+    :return : propagation time value
+    """
+
+    return q * 100
+
+
 def write_unconfirmed_transactions():
     """
     Rtrieve the unconfirmed transactions to analyze them, and write a file with all the unconfirmed transactions.
     return: the unconfirmed transactions
     """
-    json_req = urllib2.urlopen(
-        "https://blockchain.info/unconfirmed-transactions?format=json").read()
-    json_data = json.loads(json_req)
-    unconfirmed_tr = json_data['txs']
+
+    unconfirmed_tr = []
+    max_tr = 2000
+
+    # -------- PROGRESS BAR -----------
+    index_progress_bar = 0
+    printProgress(index_progress_bar, max_tr, prefix='Fetching unconfirmed txs:', suffix='Complete',
+                  barLength=50)
+    # ---------------------------------
+
+    # how many unconfirmed transactions you want to retreive, 10 per time
+    i = 0
+    while i < max_tr:
+        json_req = urllib2.urlopen(
+            "https://blockchain.info/unconfirmed-transactions?format=json").read()
+        json_data = json.loads(json_req)
+        unconfirmed_tr += json_data['txs']
+        time.sleep(2)
+        i += 1
+        # ---------- PROGRESS BAR -----------
+        sleep(0.01)
+        index_progress_bar += 1
+        printProgress(index_progress_bar, max_tr, prefix='Fetching unconfirmed txs:', suffix='Complete',
+                      barLength=50)
+        # -----------------------------------
 
     # write file with all the unconfirmed transactions
     with io.FileIO(file_unconfirmed_tx, "w") as file:
@@ -176,6 +391,8 @@ def plot_mempool_demand_curve():
     sizes_list = []
     fee_density_list = []
 
+    list_hashes_checked = []
+
 
     if (os.path.isfile(file_unconfirmed_tx)):
         with io.FileIO(file_unconfirmed_tx, "r") as file:
@@ -190,18 +407,37 @@ def plot_mempool_demand_curve():
 
         for tx in unconfirmed_tx:
             sizes_list.append(tx['size'])
-            # ===================================== GET THE TOTAL INPUT FEE ==============
-            for input in tx['inputs']:
-                prev_out = input[u'prev_out']
-                input_fee += int(prev_out[u'value'])
-            # ============================================================================
 
-            # ===================================== GET THE TOTAL OUTPUT FEE ==============
-            for output in tx['out']:
-                output_fee += int(output[u'value'])
-            # ============================================================================
+            # append hash already evaluated to avoid double transactions analysis
+            if(tx['hash'] in list_hashes_checked):
+                pass
+            else:
+                list_hashes_checked.append(tx['hash'])
 
-            fees_list.append(input_fee - output_fee)
+                print "HASH: " + tx['hash']
+                # ===================================== GET THE TOTAL INPUT FEE ==============
+                for input in tx['inputs']:
+                    prev_out = input[u'prev_out']
+                    input_fee += int(prev_out[u'value'])
+
+                    print "INPUT: " + str(prev_out[u'value'])
+
+                # ============================================================================
+
+                # ===================================== GET THE TOTAL OUTPUT FEE ==============
+                for output in tx['out']:
+
+                    print "OUTPUT: " + str(output[u'value'])
+
+                    output_fee += int(output[u'value'])
+                # ============================================================================
+
+                fees_list.append(float(input_fee) - float(output_fee))
+                print "FEE: " + str(float(input_fee) - float(output_fee)) + "\n"
+            input_fee = 0
+            output_fee = 0
+
+        print len(list_hashes_checked)
 
         # create the fee density list to order the other two lists
         for f, s in zip(fees_list, sizes_list):
@@ -215,23 +451,27 @@ def plot_mempool_demand_curve():
         sizes_list = [x[1] for x in sorted_together]
         fees_list = [x[2] for x in sorted_together]
 
+        fees_list[:] = [float(x)/100000000 for x in fees_list]
+        sizes_list[:] = [float(x)/1000000 for x in sizes_list]
         # growing lists
         fees_list = np.cumsum(fees_list)
         sizes_list = np.cumsum(sizes_list)
 
+        plot_space_supply(sizes_list)
+
+
         # ============== PLOTTING ===============
         axes = plt.gca()
+        axes.set_ylim([0, max(fees_list) + 10])
+        axes.set_xlim([0, max(sizes_list)])
         plt.figure(1)
         plt.rc('lines', linewidth=3)
-        plt.plot(sizes_list, fees_list, color_list[1] + marker_list[0],
-                 label=("Mempool demand curve"), )
+        plt.plot(sizes_list, fees_list, color_list[1] + marker_list[1],
+                 label=("$M_{demand}(b)$"), )
         plt.legend(loc="best")
-        plt.ylabel("Fees M(B)")
-
-
-
-        plt.xlabel("Block space Q (bytes)")
-        plt.savefig('plot/mempooldemandcurve')
+        plt.ylabel(r"Fees $M(B)$")
+        plt.xlabel("Block space $Q$ (Mb)")
+        plt.savefig('plot/mempooldemandcurve', transparent=True)
         # =======================================
 
         return fees_list
@@ -240,14 +480,14 @@ def plot_mempool_demand_curve():
         print "File " + file_unconfirmed_tx + " does not exist!"
         return fees_list
 
+
+
 def define_intervals(number_of_blocks):
     """
     Retrieves blocks with a certain interval according to how many blocks are present in the blockchain.
     These intervals are called portions.
     We set a number of portions = 3
     :param number_of_blocks:
-    :param hash:
-    :return:
     """
     error = False
     # define p = number of blocks per portion
@@ -263,7 +503,6 @@ def define_intervals(number_of_blocks):
     if (start_list == []):
         # starting from 0
 
-
         # get the heights and hashes where to start:
         while (i < n_portions):
             try:
@@ -272,7 +511,7 @@ def define_intervals(number_of_blocks):
                     height_to_start = 1 + number_of_blocks
                     b_array = blockexplorer.get_block_height(height_to_start)
                 else:
-                    height_to_start = i*p + (number_of_blocks)
+                    height_to_start = (i*p) + number_of_blocks
                     b_array = blockexplorer.get_block_height(height_to_start)
                 b = b_array[0]
                 hash = b.hash
@@ -288,9 +527,9 @@ def define_intervals(number_of_blocks):
                 blocks_retrieved = json.loads(json_req)
                 b = blocks_retrieved["blocks"]
                 block = b[0]
-                height = int(block['height'])
+                hash = int(block['hash'])
                 i += 1
-                get_blockchain(number_of_blocks, error, height)
+                get_blockchain(number_of_blocks, error, hash)
 
     # case if the files exists already
     else:
@@ -301,7 +540,7 @@ def define_intervals(number_of_blocks):
         else:
             while (i < n_portions):
                 try:
-                    height_to_start = end_list[i] + (number_of_blocks) + 1
+                    height_to_start = end_list[i] + number_of_blocks + 1
                     b_array = blockexplorer.get_block_height(height_to_start)
                     b = b_array[0]
                     hash = b.hash
@@ -317,9 +556,9 @@ def define_intervals(number_of_blocks):
                     blocks_retrieved = json.loads(json_req)
                     b = blocks_retrieved["blocks"]
                     block = b[0]
-                    height = int(block['height'])
+                    hash = block['hash']
                     i += 1
-                    get_blockchain(number_of_blocks, error, height)
+                    get_blockchain(number_of_blocks, error, hash)
 
 def plot_sequence(regression,  start_v, end_v):
     """
@@ -381,11 +620,15 @@ def get_blockchain(number_of_blocks, error, hash = None):
 
     except Exception as e:
         error = True
-        start_time = datetime.datetime.now()
         json_req = urllib2.urlopen(
             "https://blockchain.info/block-index/" + str(hash) + "?format=json").read()
-        end_time = datetime.datetime.now()
+        last_block = json.loads(json_req)
+
+        start_time = datetime.datetime.now()
+        json_req = urllib2.urlopen(
+            "https://blockchain.info/block-index/" + str(last_block['prev_block']) + "?format=json").read()
         current_block = json.loads(json_req)
+        end_time = datetime.datetime.now()
 
     for i in range(number_of_blocks):
         try:
@@ -517,8 +760,9 @@ def get_blockchain(number_of_blocks, error, hash = None):
         except Exception as e:
             start_time = datetime.datetime.now()  # -------------------------------------------------------------------------
             if error:
+                print current_block
                 json_req = urllib2.urlopen(
-                    "https://blockchain.info/block-index/" + current_block["prev_block"] + "?format=json").read()
+                    "https://blockchain.info/block-index/" + str(current_block['prev_block']) + "?format=json").read()
                 print "\nhere in true"
                 print e
             else:
@@ -870,43 +1114,6 @@ def get_indexes():
 
     return interval_list_start, interval_list_end
 
-def plot_multiple_lists(description, marker, list1, list2, list3 = None):
-    """
-    method that take care of plotting the data.
-    :param description  - Required  :   description of the graph to plot
-    :param marker       - Required  :   marker to plot, could be '-', 'o', '*' ecc...
-    :param list1        - Required  :   list with x values to plot
-    :param list2        - Required  :   list with epoch to put on lable
-    :param list3        - Optional  :   second list with the y values to plot
-    """
-    if(list3 != None):
-        is_x = True
-    else:
-        is_x = False
-
-    # retrieve the intervals to print
-    start_interval, end_interval = get_indexes()
-
-    # plot the portions
-    to_plot_1 = []
-    to_plot_2 = []
-    to_plot_3 = []
-
-    # create data to plot having a list of a list in to_plot_x and to_plot_y
-    i = 0
-    while (i < n_portions):
-        to_plot_1.append(list1[start_interval[i]:end_interval[i]])
-        to_plot_2.append(list2[start_interval[i]:end_interval[i]])
-
-        if(is_x):
-            to_plot_3.append(list3[start_interval[i]:end_interval[i]])
-            plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
-                     label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
-        else:
-            plt.plot(to_plot_2[i], color_list[i] + marker,
-                 label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
-        i += 1
-
 
 def plot_data(description, plot_number, regression = None, start = None, end = None):
     """
@@ -1137,21 +1344,43 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
 
         """plt.plot(x_vals, y_vals, 'ro', label=(
             "fee paid\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])))"""
-        plot_multiple_lists(description, marker_list[0], epoch_vals, x_vals, y_vals)
+        # plot_multiple_lists(description, marker_list[0], epoch_vals, x_vals, y_vals)
 
         plt.ylabel("fee (BTC)")
         plt.xlabel("creation time (min)")
         axes.set_xlim([0, 30])
-        axes.set_ylim([0, 2.5])
+        axes.set_ylim([0, 0.5])
 
+# TODO: =========================================== IMPLEMENT ========================================
         if(regression):
-            # logarithmic regression
-            newX = np.logspace(0, 2, base=10)
-            popt, pcov = curve_fit(myComplexFunc, x_vals, y_vals)
-            plt.plot(newX, myComplexFunc(newX, *popt), 'g-', label="regression", lw=5)
-            polynomial = np.polyfit(newX, myComplexFunc(newX, *popt), 2)
-            print polynomial
+            start_interval, end_interval = get_indexes()
 
+
+            i = 0
+            while (i < n_portions):
+                # logarithmic regression
+
+                x = x_vals[start_interval[i]:end_interval[i]]
+                y = y_vals[start_interval[i]:end_interval[i]]
+
+                together_sorted = sorted(zip(x, y))
+
+                x = [xv[0] for xv in together_sorted]
+                y = [yv[1] for yv in together_sorted]
+
+                x = np.array(x, dtype=float)  # transform your data in a numpy array of floats
+                y = np.array(y, dtype=float)
+
+                popt, pcov = curve_fit(func, x, y, maxfev=3000)
+
+
+                plt.plot(x, y, color_list[i]+marker_list[0], label="fee paid", markevery=5)
+                plt.plot(x, func(x, *popt), color_list[i]+marker_list[1], label="regression n: " + str(i), lw=5)
+                polynomial = np.polyfit(x, func(x, *popt), 2)
+                print polynomial
+                i += 1
+
+# TODO: ==================================================================================================
         plt.legend(loc="best")
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
@@ -1376,7 +1605,9 @@ def blockchain_info():
                             + '{:4}{}'.format("", str(get_number_blocks())))
         else:
             string_return+=(bcolors.FAIL + "\nFAIL -- " + bcolors.ENDC +
-                            "Blockchain contains errors. Throw the file and make a new one")
+                            "Blockchain contains errors. Wait the end execution. If it still contains "
+                            "error might be good to delete the file with -d command.\n\nNumber of blocks:\n"
+                            + '{:4}{}'.format("", str(get_number_blocks())))
 
         list_blockchain_time = datetime_retrieved()
         string_return+=("\n\nAnalysis in between:\n" + '{:4}{}'.format("", str(list_blockchain_time[0])) + "\n" + '{:4}{}'.format("", str(list_blockchain_time[1])))
@@ -1471,6 +1702,22 @@ def update_blockchain():
 
 def myComplexFunc(x, a, b, c):
     return a * np.power(x, b) + c
+
+def func(x, a, b, c):
+    return a * np.exp(-b * x) + c
+
+def fBg(x):
+    """
+    Function defined in the paper that explains the relation between the fee paid to the miners and the block
+    creation time
+    :param x : creation time
+    :return : the expected fee according to the function generated from the regression
+    """
+    y = - ((1/(10**4))*(x**2)) + ((3/(10**2))*(x)) + 0.3
+    return y
+
+def percentage(part, whole):
+  return 100 * float(part)/float(whole)
 
 class bcolors:
     HEADER = '\033[95m'

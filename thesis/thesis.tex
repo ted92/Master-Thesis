@@ -60,6 +60,27 @@
     {\protect\numberline{\thechapter.\thedefinition}#1}\par%
 }
 
+\def\bitcoin{\leavevmode\rlap{\hskip.5pt-}B}
+
+\def\bitcoinA{%
+	\leavevmode
+	\vtop{\offinterlineskip %\bfseries
+		\setbox0=\hbox{B}%
+		\setbox2=\hbox to\wd0{\hfil\hskip-.03em
+			\vrule height .3ex width .15ex\hskip .08em
+			\vrule height .3ex width .15ex\hfil}
+		\vbox{\copy2\box0}\box2}}
+
+\def\bitcoinB{\leavevmode
+	{\setbox0=\hbox{\textsf{B}}%
+		\dimen0\ht0 \advance\dimen0 0.2ex
+		\ooalign{\hfil \box0\hfil\cr
+			\hfil\vrule height \dimen0 depth.2ex\hfil\cr
+		}%
+	}%
+}
+
+
 
 \begin{document}
 \renewcommand{\bibname}{References}
@@ -197,7 +218,7 @@ are working on another, then his block will likely be discarded. This effect is 
 equation, considering the orphaning factor, $\mathbb{P}_{orphan}$, is the following:
 \begin{equation}
 \label{eq:expectedrevenue}
-\langle V\rangle = (R + M)\frac{h}{H}(1 - \mathbb{P}_{orphan}).
+\langle V\rangle = \left(R + M\right)\frac{h}{H}\left(1 - \mathbb{P}_{orphan}\right).
 \end{equation}
 Where the chance that a block gets orphaned increases with the amount of time it takes the
 block to propagate to the other miners. Indeed, if $\tau$ is the block propagation time, the
@@ -216,6 +237,7 @@ the expectation value of his profit. This selection is explained with the \emph{
 and the \emph{block space supply curve}.
 
 \subsection{The Mempool Demand Curve}
+\label{sec:mempooldemand}
 The set of transactions that still need to be approved and included in a block is called \emph{mempool}.
 The mempool set is denoted with $\mathcal{N}$ and the number of transactions contained within it as $n$.
 According to the size limit, a block can select a $b \leq n$ transactions from $\mathcal{N}$ to create a
@@ -237,8 +259,38 @@ and the sum of each transaction's size in bytes:
 \label{eq:transactionsize}
 Q(b) \equiv \sum_{i = 1}^{b} size_i.
 \end{equation}
+%TODO: Insert graph of the mempool demand curve
 
+\subsection{The Block Space Supply Curve}
+\label{sec:blockspacesupply}
+The size of the block a miner elects to produce controls the fees he attempts to claim, $M(Q)$,
+and the propagation time he chooses to risk, $\tau(Q)$. The block space supply curve represents
+the fees a miner requires to cover the additional cost of supplying block space $Q$. This cost grows
+exponentially with the propagation time. The equation which represents this curve is the
+following:
+\begin{equation}
+\label{eq:blockspacesupply}
+M_{supply}(Q) = R\left(e^{\frac{\Delta \tau (Q)}{T}} - 1\right),
+\end{equation}
+where $\Delta \tau (Q) \equiv \tau(Q) - \tau(0)$. The propagation time ,$\tau$, is just an esteem from
+the propagation delay versus the block size.
 
+\subsection{Maximizing the Miner's Profit}
+To maximize his profit, the miner construct a mempool demand curve and a space supply curve.
+The block size $Q^*$ where the miner's surplus, $M_{demand} - M_{supply}$, is largest represents
+the point of maximum profit. In the Figure\,\ref{fig:mempooldemandcurve} are represented the
+mempool demand curve and the space supply curve, calculated using our analitic system.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/mempooldemandcurve}
+	\caption{Maximizing the profit of a miner evaluating the unconfirmed transactions from the Bitcoin
+	blockchain. Mempool demand, $M_{demand}(b)$, and space supply, $M_{demand}(Q)$, curve are represented
+	with our analytics system, and the block space $Q^*$ for a maximum profit is around $1$\,Mb. There the
+	gap between the two curves is bigger.}
+	\label{fig:mempooldemandcurve}
+\end{figure}
+%TODO: Insert graph of the block space supply curve
 \chapter{Technical Background}
 \label{chap:techback}
 %This chapter will give a detailed explanation about decentralized digital
