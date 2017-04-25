@@ -8,22 +8,18 @@ v2: the order of block retrieval doesn't matter, is possible to retrieve blocks 
 Usage: observ.py -t number
     -h | --help         : usage
     -i                  : gives info of the blockchain retrieved
-    -t number           : adds on top a number of blocks. The blocks retreived will be the most recent ones. If the blockchain growth more than the block requested do -u (update)
-    -e number           : appends blocks at the end of the .txt file. Fetch older blocks starting from the last retrieved
+    -t number           : checks the unconfirmed transactions and plot the mempool demand and space supply curves. Input number for how many new transactions you want to consider, suggested 400-2000.
     -P                  : plots all
     -p start [end]      : plots data in .txt file in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
     -R                  : plots the regression and the models that predict the blockchain
     -r start [end]      : plots the regression and the models in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
     -u                  : updates the local blockchain to the last block created
-    -c start end        : retrieves blocks to compare the blockchain in different epoch. The height to be retrieved is given from start and end
+    -c number           : retrieves blocks to compare the blockchain in different epoch. The height to be retrieved is given from start and end
     -d                  : delete info.txt and blockchain.txt if exist
 
 """
 
 import sys, getopt
-from docopt import docopt
-import io
-from blockchain import blockexplorer
 import numpy as np
 import string
 import re
@@ -31,23 +27,28 @@ import os.path
 import matplotlib.pyplot as plt
 import datetime
 import time
-from time import sleep
-import urllib2
-import matplotlib.patches as mpatches
-from forex_python.converter import CurrencyRates
-from forex_python.bitcoin import BtcConverter
-from scipy.optimize import curve_fit
 import statsmodels.api as sm
 import matplotlib.lines as mlines
 import matplotlib.axis as ax
-from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
+import io
+import urllib2
+import matplotlib.patches as mpatches
 import json
 import ast
 import urllib
-from scipy import stats
-from scipy.stats import norm
 import math
 import matplotlib as mpl
+
+from blockchain import blockexplorer
+from time import sleep
+from forex_python.converter import CurrencyRates
+from forex_python.bitcoin import BtcConverter
+from scipy.optimize import curve_fit
+from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
+from scipy import stats
+from scipy.stats import norm
+from docopt import docopt
+
 
 # ------ GLOBAL ------
 global file_blockchain
@@ -58,6 +59,9 @@ file_info = "info.txt"
 
 global file_unconfirmed_tx
 file_unconfirmed_tx = "unconfirmed_tx.txt"
+
+global file_tx
+file_tx = "transactions.txt"
 
 global n_portions
 n_portions = 4
@@ -71,11 +75,18 @@ marker_list = ['o', '-', '*', '^']
 global bitcoin
 bitcoin = u'\u0243'
 
+global latest_block_url
+latest_block_url = "https://blockchain.info/latestblock"
+
+global unconfirmed_txs_url
+unconfirmed_txs_url = "https://blockchain.info/unconfirmed-transactions?format=json"
+
 # --------------------
 
 def main(argv):
     try:
-        global plot_number
+
+        global plot_number  #todo: move to the global part
         plot_number = 0
         args_list = sys.argv
         args_size = len(sys.argv)
@@ -83,23 +94,16 @@ def main(argv):
         start_v = None
         end_v = None
 
-        opts, args = getopt.getopt(argv, "hiudtRPc:p:e:r:")
+        opts, args = getopt.getopt(argv, "hiudRPt:c:p:r:")
         valid_args = False
 
         for opt, arg in opts:
-            if(opt == "-t"):    # update on top
+            if(opt == "-t"):    # check unconfirmed transaction for the mempool demand and supply curve
                 print ("Checking the unconfirmed transactions.")
-                write_unconfirmed_transactions()
-                plot_mempool_demand_curve()
-
-
+                fetch_unconfirmed_transactions(int(arg))
+                plot_demand_supply_curve()
                 # BLOCK SPACE SUPPLY CURVE
 
-                valid_args = True
-            if(opt == "-e"):    # append blocks at the end
-                print ("Appending at the end " + arg + " blocks.")
-                number_of_blocks = int(arg)
-                get_blockchain(number_of_blocks, earliest_hash)
                 valid_args = True
             if(opt == "-u"):    # update with the missing blocks
                 str_update = update_blockchain()
@@ -144,16 +148,6 @@ def main(argv):
                 valid_args = True
             if(opt == "-c"):    # compare with older blocks - retrieve blockchain in previous time
                 blocks = int(arg)
-
-                # check wheter a portion of the interval to be retrieved is already in the file
-                """in_file = check_hash(start_height, end_height)
-                if(in_file == True):
-                    print (bcolors.WARNING + "Warning: " + bcolors.ENDC +"The protion you are trying to retrieve is already present in the " + file_blockchain)
-                elif(in_file == False):
-                    print ("Retreiving " + str(blocks) + " blocks starting from: " + s_time)
-                    # todo: re-do the get_blockchain with an interval one
-
-                    # get_blockchain(blocks, hash)"""
                 define_intervals(blocks)
                 valid_args = True
 
@@ -163,9 +157,9 @@ def main(argv):
         print (__doc__)
         sys.exit(2)
 
-def plot_multiple_lists(description, marker, list1, list2, list3=None, normal=None):
+def plot_multiple_lists(description, marker, list1, list2, list3 = None, normal = None):
     """
-    method that take care of plotting the data.
+    plots list1, list2 and list3
     :param description  - Required  :   description of the graph to plot
     :param marker       - Required  :   marker to plot, could be '-', 'o', '*' ecc...
     :param list1        - Required  :   list with epoch to put on lable
@@ -210,11 +204,10 @@ def plot_multiple_lists(description, marker, list1, list2, list3=None, normal=No
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
         i += 1
 
-    # ACCURACY WITH NORMAL DISTRIBUTION
+# ACCURACY WITH NORMAL DISTRIBUTION
 def test_accuracy():
     """
-    Read all the fees from the .txt file and verify the accuracy of them with the difference between the expected
-    value and the real fee value.
+    Verify the accuracy of the function fBg(x) by comparing fees having a certain creation time
     """
 
     fee_list, creation_time_list, epoch_list = get_lists_ordered("fee", "creation_time", "epoch")
@@ -345,47 +338,114 @@ def propagation_time_function(q):
     return q * 100
 
 
-def write_unconfirmed_transactions():
+def fetch_unconfirmed_transactions(max_tr):
     """
+    it fetches the new unconfirmed transactions according to a limit defined from max_tr
+    :param max_tr : number of iterations to retrieve the unconfirmed transactions
     Rtrieve the unconfirmed transactions to analyze them, and write a file with all the unconfirmed transactions.
     return: the unconfirmed transactions
     """
 
     unconfirmed_tr = []
-    max_tr = 2000
 
     # -------- PROGRESS BAR -----------
     index_progress_bar = 0
-    printProgress(index_progress_bar, max_tr, prefix='Fetching unconfirmed txs:', suffix='Complete',
+    printProgress(index_progress_bar, max_tr, prefix='Fetching unconfirmed Txs:', suffix='Complete',
                   barLength=50)
     # ---------------------------------
 
     # how many unconfirmed transactions you want to retreive, 10 per time
     i = 0
     while i < max_tr:
-        json_req = urllib2.urlopen(
-            "https://blockchain.info/unconfirmed-transactions?format=json").read()
-        json_data = json.loads(json_req)
+        json_data = get_json_request(unconfirmed_txs_url)
         unconfirmed_tr += json_data['txs']
         time.sleep(2)
         i += 1
         # ---------- PROGRESS BAR -----------
         sleep(0.01)
         index_progress_bar += 1
-        printProgress(index_progress_bar, max_tr, prefix='Fetching unconfirmed txs:', suffix='Complete',
+        printProgress(index_progress_bar, max_tr, prefix='Fetching unconfirmed Txs:', suffix='Complete',
                       barLength=50)
         # -----------------------------------
 
     # write file with all the unconfirmed transactions
     with io.FileIO(file_unconfirmed_tx, "w") as file:
         file.write(str(unconfirmed_tr))
+    print "file " + file_unconfirmed_tx + " saved."
 
 
-def plot_mempool_demand_curve():
+def calculate_transactions_fee(txs, epoch = None):
     """
-    It calculates the fees for every unconfirmed transaction, retrieved in the unconfirmed_tx.txt file, then it
-    calculates the fees density with fee/size. It orders it in a decrescent order and then plots the cumulate sum of
-    the fees and the sizes following this order in order to get the mempool demand curve.
+    given a json list of transactions, it produces the input and output fee list for each transaction in txs, plus the
+    size list of each transation
+    :param txs: list of transactions in json format
+    :param epoch: Optional if the transaction has been approved it represents the epoch of the block in which
+    this transaction is
+    :return: input, output, fee, approval time and size list
+    """
+    # calculate total fee for each unconfirmed transaction
+    input_fee = 0
+    output_fee = 0
+
+    in_list = []
+    out_list = []
+    fees_list = []
+    sizes_list = []
+
+    list_hashes_checked = []
+    approval_time_list = []
+
+    for tx in txs:
+        try:
+            sizes_list.append(tx['size'])
+            # print "HASH: " + tx['hash']
+
+
+            # consider a transaction only one time
+            if (tx['hash'] in list_hashes_checked):
+                pass
+            else:
+                list_hashes_checked.append(tx['hash'])
+                # ===================================== GET THE TOTAL INPUT FEE ==============
+                for input in tx['inputs']:
+                    prev_out = input[u'prev_out']
+                    input_fee += int(prev_out[u'value'])
+
+                    # print "INPUT: " + str(prev_out[u'value'])
+                in_list.append(input_fee)
+                # ============================================================================
+
+                # ===================================== GET THE TOTAL OUTPUT FEE ==============
+                for output in tx['out']:
+                    # print "OUTPUT: " + str(output[u'value'])
+
+                    output_fee += int(output[u'value'])
+                out_list.append(output_fee)
+                # ============================================================================
+
+                fees_list.append(float(input_fee) - float(output_fee))
+                # print "FEE: " + str(float(input_fee) - float(output_fee))
+                # print "APPROVAL TIME: " + str(approval_time) + "\n"
+            input_fee = 0
+            output_fee = 0
+
+
+            # if the transactions are already approved -- calculate the approval time
+            if(epoch != None):
+                epoch_tx = t['time']
+
+                approval_time = epoch - epoch_tx
+                approval_time_list.append(approval_time)
+
+        except KeyError:
+            pass
+    return in_list, out_list, fees_list, sizes_list, approval_time_list
+
+def plot_demand_supply_curve():
+    """
+    It plots the mempool demand and supply curve. It retrievs the unconfirmed txs in the unconfirmed_tx.txt file,
+    then it calculates the fees density with fee/size. It orders it in a decrescent order and then
+    plots the cumulate sum of the fees and the sizes following this order in order to get the mempool demand curve.
     """
     fees_list = []
     sizes_list = []
@@ -399,51 +459,14 @@ def plot_mempool_demand_curve():
             unconfirmed_tx = file.read()
 
         unconfirmed_tx = ast.literal_eval(unconfirmed_tx)
+        _, _, fees_list, sizes_list, _, = calculate_transactions_fee(unconfirmed_tx)
 
-
-        # calculate total fee for each unconfirmed transaction
-        input_fee = 0
-        output_fee = 0
-
-        for tx in unconfirmed_tx:
-            sizes_list.append(tx['size'])
-
-            # append hash already evaluated to avoid double transactions analysis
-            if(tx['hash'] in list_hashes_checked):
-                pass
-            else:
-                list_hashes_checked.append(tx['hash'])
-
-                print "HASH: " + tx['hash']
-                # ===================================== GET THE TOTAL INPUT FEE ==============
-                for input in tx['inputs']:
-                    prev_out = input[u'prev_out']
-                    input_fee += int(prev_out[u'value'])
-
-                    print "INPUT: " + str(prev_out[u'value'])
-
-                # ============================================================================
-
-                # ===================================== GET THE TOTAL OUTPUT FEE ==============
-                for output in tx['out']:
-
-                    print "OUTPUT: " + str(output[u'value'])
-
-                    output_fee += int(output[u'value'])
-                # ============================================================================
-
-                fees_list.append(float(input_fee) - float(output_fee))
-                print "FEE: " + str(float(input_fee) - float(output_fee)) + "\n"
-            input_fee = 0
-            output_fee = 0
-
-        print len(list_hashes_checked)
-
+        # ================== MEMPOOL DEMAND CURVE ==================
         # create the fee density list to order the other two lists
         for f, s in zip(fees_list, sizes_list):
             fee_density_list.append(float(f/float(s)))
 
-
+        # order according to the fee_density_list
         together = zip(fee_density_list, sizes_list, fees_list)
         sorted_together = sorted(together, reverse=True)
 
@@ -451,16 +474,26 @@ def plot_mempool_demand_curve():
         sizes_list = [x[1] for x in sorted_together]
         fees_list = [x[2] for x in sorted_together]
 
-        fees_list[:] = [float(x)/100000000 for x in fees_list]
-        sizes_list[:] = [float(x)/1000000 for x in sizes_list]
+        fees_list[:] = [float(x)/100000000 for x in fees_list] # in BTC
+        sizes_list[:] = [float(x)/1000000 for x in sizes_list] # IN Mb
         # growing lists
         fees_list = np.cumsum(fees_list)
         sizes_list = np.cumsum(sizes_list)
 
-        plot_space_supply(sizes_list)
+        # ================== BLOCK SPACE SUPPLY CURVE ==================
+        cost_list = []
+        reward = 12.5   # current reward per each block in BTC
+        creation_time = 600 # assuming 10 minutes of creation time
+
+        for el in sizes_list:
+            tau = propagation_time_function(float(el))
+            # formula from Rizun's Paper
+            supply = reward * (math.exp(tau / creation_time) - 1)
+            cost_list.append(supply)
 
 
-        # ============== PLOTTING ===============
+
+        # ================== PLOTTING ==================
         axes = plt.gca()
         axes.set_ylim([0, max(fees_list) + 10])
         axes.set_xlim([0, max(sizes_list)])
@@ -468,33 +501,43 @@ def plot_mempool_demand_curve():
         plt.rc('lines', linewidth=3)
         plt.plot(sizes_list, fees_list, color_list[1] + marker_list[1],
                  label=("$M_{demand}(b)$"), )
+        plt.plot(sizes_list, cost_list, color_list[2] + marker_list[1],
+                 label=("$M_{supply}(Q)$"), )
         plt.legend(loc="best")
         plt.ylabel(r"Fees $M(B)$")
         plt.xlabel("Block space $Q$ (Mb)")
-        plt.savefig('plot/mempooldemandcurve', transparent=True)
+        plt.savefig('plot/demandsupplycurve', transparent=True)
         # =======================================
-
-        return fees_list
 
     else:
         print "File " + file_unconfirmed_tx + " does not exist!"
-        return fees_list
 
+
+def get_json_request(url):
+    """
+    Read the url and load it with json.
+    :param url: str, url where to get the json data
+    :return: str, the data requested in json format
+    """
+    json_req = urllib2.urlopen(url).read()
+    request = json.loads(json_req)
+
+    return request
 
 
 def define_intervals(number_of_blocks):
     """
     Retrieves blocks with a certain interval according to how many blocks are present in the blockchain.
     These intervals are called portions.
-    We set a number of portions = 3
+    We set a number of portions = 4
     :param number_of_blocks:
     """
     error = False
     # define p = number of blocks per portion
     # n = number of blocks in the blockchain
 
-    last_block = blockexplorer.get_latest_block()
-    n = last_block.height
+    last_block = get_json_request(latest_block_url)
+    n = int(last_block['height'])
     p = n / n_portions
 
     start_list, end_list = create_interval_lists()
@@ -505,31 +548,20 @@ def define_intervals(number_of_blocks):
 
         # get the heights and hashes where to start:
         while (i < n_portions):
-            try:
-                if(i == 0):
-                    # the retrieval starts with the latest block, and then the previous are retrieved as well
-                    height_to_start = 1 + number_of_blocks
-                    b_array = blockexplorer.get_block_height(height_to_start)
-                else:
-                    height_to_start = (i*p) + number_of_blocks
-                    b_array = blockexplorer.get_block_height(height_to_start)
-                b = b_array[0]
-                hash = b.hash
-                epoch = b.time
-                time = epoch_datetime(epoch)
-                i += 1
-                print "Retrieving " + str(number_of_blocks) + " starting from " + time
-                get_blockchain(number_of_blocks, error, hash)
-            except Exception as e:
-                error = True
-                json_req = urllib2.urlopen(
-                    "https://blockchain.info/block-height/" + str(height_to_start) + "?format=json").read()
-                blocks_retrieved = json.loads(json_req)
-                b = blocks_retrieved["blocks"]
-                block = b[0]
-                hash = int(block['hash'])
-                i += 1
-                get_blockchain(number_of_blocks, error, hash)
+            if(i == 0):
+                # the retrieval starts with the latest block, and then the previous are retrieved as well
+                height_to_start = 1 + number_of_blocks
+            else:
+                height_to_start = (i*p) + number_of_blocks
+            b_array = get_json_request("https://blockchain.info/block-height/" + str(height_to_start) + "?format=json")
+            blocks = b_array['blocks']
+            b = blocks[0]
+            hash = b['hash']
+            epoch = b['time']
+            time = epoch_datetime(int(epoch))
+            i += 1
+            print "Retrieving " + str(number_of_blocks) + " starting from " + time
+            get_blockchain(number_of_blocks, error, hash)
 
     # case if the files exists already
     else:
@@ -539,26 +571,17 @@ def define_intervals(number_of_blocks):
             print (bcolors.WARNING + "WARNING: " + bcolors.ENDC + "Blockchain already up to date!")
         else:
             while (i < n_portions):
-                try:
-                    height_to_start = end_list[i] + number_of_blocks + 1
-                    b_array = blockexplorer.get_block_height(height_to_start)
-                    b = b_array[0]
-                    hash = b.hash
-                    epoch = b.time
-                    time = epoch_datetime(epoch)
-                    i += 1
-                    print "Retrieving " + str(number_of_blocks) + " blocks starting from " + time
-                    get_blockchain(number_of_blocks, error, hash)
-                except Exception as e:
-                    error = True
-                    json_req = urllib2.urlopen(
-                        "https://blockchain.info/block-height/" + str(height_to_start) + "?format=json").read()
-                    blocks_retrieved = json.loads(json_req)
-                    b = blocks_retrieved["blocks"]
-                    block = b[0]
-                    hash = block['hash']
-                    i += 1
-                    get_blockchain(number_of_blocks, error, hash)
+                height_to_start = end_list[i] + number_of_blocks + 1
+                b_array = get_json_request(
+                    "https://blockchain.info/block-height/" + str(height_to_start) + "?format=json")
+                blocks = b_array['blocks']
+                b = blocks[0]
+                hash = b['hash']
+                epoch = b['time']
+                time = epoch_datetime(int(epoch))
+                i += 1
+                print "Retrieving " + str(number_of_blocks) + " blocks starting from " + time
+                get_blockchain(number_of_blocks, error, hash)
 
 def plot_sequence(regression,  start_v, end_v):
     """
@@ -584,14 +607,14 @@ def plot_sequence(regression,  start_v, end_v):
         plot_data("tthroughput", 8, start=start_v, end=end_v)"""
 
 # @profile
-def get_blockchain(number_of_blocks, error, hash = None):
+def get_blockchain(number_of_blocks, error, hash):
+    # todo: remove the parameter 'error'
     """
-    it retreives blocks from blockchain starting from the last block if hash is none,
-    otherwise start from the block hash given in input
-    @params:
-     int number_of_blocks: blocks to retrieve
-     bool error: if True data are retrieved in Json if False through the client API
-     str hash: hash of the block from where to start the retrieval
+    it retreives blocks from blockchain, given an hash where to start.
+
+    :param number_of_blocks: int, blocks to retrieve
+    :param error: boolean, if True data are retrieved in Json if False through the client API
+    :param hash: str, hash of the block from where to start the retrieval
     :return: none
     """
     fetch_time_list = []
@@ -612,207 +635,83 @@ def get_blockchain(number_of_blocks, error, hash = None):
     printProgress(index_progress_bar, number_of_blocks, prefix='Saving Blockchain:', suffix='Complete',
                   barLength=50)
     # ---------------------------------
-    try:
-        last_block = blockexplorer.get_block(hash)
-        start_time = datetime.datetime.now()
-        current_block = blockexplorer.get_block(last_block.previous_block)
-        end_time = datetime.datetime.now()
 
-    except Exception as e:
-        error = True
-        json_req = urllib2.urlopen(
-            "https://blockchain.info/block-index/" + str(hash) + "?format=json").read()
-        last_block = json.loads(json_req)
 
-        start_time = datetime.datetime.now()
-        json_req = urllib2.urlopen(
-            "https://blockchain.info/block-index/" + str(last_block['prev_block']) + "?format=json").read()
-        current_block = json.loads(json_req)
-        end_time = datetime.datetime.now()
+    # ================== RETRIEVE BLOCKS ==================
+    # retrieve blocks using json data from blockchain.info API
+    last_block = get_json_request(latest_block_url)
+    height_latest_block = last_block['height']
+
+    start_time = datetime.datetime.now()
+    current_block_request = get_json_request("https://blockchain.info/block-height/" + str(height_latest_block) + "?format=json")
+    end_time = datetime.datetime.now()
+
+    current_block_array = current_block_request['blocks']
+    current_block = current_block_array[0]
 
     for i in range(number_of_blocks):
-        try:
-            # ---------- PROGRESS BAR -----------
-            sleep(0.01)
-            index_progress_bar += 1
-            printProgress(index_progress_bar, number_of_blocks, prefix='Saving Blockchain:', suffix='Complete', barLength=50)
-            # -----------------------------------
+        # ---------- PROGRESS BAR -----------
+        sleep(0.01)
+        index_progress_bar += 1
+        printProgress(index_progress_bar, number_of_blocks, prefix='Saving Blockchain:', suffix='Complete',
+                      barLength=50)
+        # -----------------------------------
+        time_to_fetch = end_time - start_time
+        time_in_seconds = get_time_in_seconds(time_to_fetch)
+        fetch_time_list.append(time_in_seconds)
 
-            time_to_fetch = end_time - start_time
-            time_in_seconds = get_time_in_seconds(time_to_fetch)
-            fetch_time_list.append(time_in_seconds)
+        start_list, end_list = create_interval_lists()
 
-            start_list, end_list = create_interval_lists()
+        miner = "None"
 
-            miner = "None"
+        epoch = current_block["time"]
+        epoch_list.append(epoch)
 
-            if(error == False):
-                # ---- List creation
-                epoch = current_block.time
-                epoch_list.append(epoch)
+        hash = current_block["hash"]
+        hash_list.append(hash)
 
-                hash = current_block.hash
-                hash_list.append(hash)
+        fee = current_block["fee"]
+        fee_list.append(fee)
 
-                fee = current_block.fee
-                fee_list.append(fee)
+        size = current_block["size"]
+        size_list.append(size)
 
-                size = current_block.size
-                size_list.append(size)
+        height = current_block["height"]
+        height_list.append(height)
 
-                height = current_block.height
-                height_list.append(height)
+        avg_tr = get_avg_transaction_time(current_block, True)
+        avg_transaction_list.append(avg_tr)
 
-                avg_tr = get_avg_transaction_time(current_block, False)
-                avg_transaction_list.append(avg_tr)
+        block_size = float(size) / 1000000  # -------> calculate read Bandwidth with MB/s
+        bandwidth = block_size / time_in_seconds
+        bandwidth_list.append(bandwidth)
 
-                block_size = float(size) / 1000000 # -------> calculate read Bandwidth with MB/s
-                bandwidth = block_size / time_in_seconds
-                bandwidth_list.append(bandwidth)
+        transactions = len(current_block["tx"])
+        list_transactions.append(transactions)
 
-                transactions = current_block.transactions
-                list_transactions.append(len(transactions))
+        miner = current_block["relayed_by"]
+        list_miners.append(miner)
 
-                if (error == False):
-                    miner = current_block.relayed_by
-                else:
-                    miner = "None"
-                list_miners.append(miner)
+        received_time = current_block["received_time"]
+        list_received_time.append(received_time)
 
-                if (error == False):
-                    received_time = current_block.received_time
-                else:
-                    received_time = "None"
-                list_received_time.append(received_time)
+        hash_prev_block = current_block["prev_block"]
 
-                # --- creation time list--
-                start_time = datetime.datetime.now() # -------------------------------------------------------------------------
-                prev_block = blockexplorer.get_block(current_block.previous_block)
-                end_time = datetime.datetime.now()  # --------------------------------------------------------------------------
-                prev_epoch_time = prev_block.time
-                current_creation_time = current_block.time - prev_epoch_time
-                # -- check if the creation time is negative
-                """if (current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, False, False, current_creation_time)"""
-                # -------------------------------------------
-                creation_time_list.append(current_creation_time)
-                # ------------------------
+        start_time = datetime.datetime.now()  # ------------------------------------------------------------------------
+        prev_block = get_json_request("https://blockchain.info/block-index/" + str(hash_prev_block) + "?format=json")
+        end_time = datetime.datetime.now()  # --------------------------------------------------------------------------
 
-                add_mining_nodes(current_block)
+        prev_epoch_time = prev_block['time']
+        current_creation_time = int(current_block['time']) - int(prev_epoch_time)
+        creation_time_list.append(current_creation_time)
 
-                current_block = prev_block
+        # add_mining_nodes(current_block)
 
-            else:
-                epoch = current_block["time"]
-                epoch_list.append(epoch)
-
-                hash = current_block["hash"]
-                hash_list.append(hash)
-
-                fee = current_block["fee"]
-                fee_list.append(fee)
-
-                size = current_block["size"]
-                size_list.append(size)
-
-                height = current_block["height"]
-                height_list.append(height)
-
-                avg_tr = get_avg_transaction_time(current_block, True)
-                avg_transaction_list.append(avg_tr)
-
-                block_size = float(size) / 1000000  # -------> calculate read Bandwidth with MB/s
-                bandwidth = block_size / time_in_seconds
-                bandwidth_list.append(bandwidth)
-
-                transactions = len(current_block["tx"])
-                list_transactions.append(transactions)
-
-                if (error == False):
-                    miner = current_block["relayed_by"]
-                else:
-                    miner = "None"
-                list_miners.append(miner)
-
-                if (error == False):
-                    received_time = current_block["received_time"]
-                else:
-                    received_time = "None"
-                list_received_time.append(received_time)
-
-
-                prev_block = current_block["prev_block"]
-                start_time = datetime.datetime.now()  # ------------------------------------------------------------------------
-                prev_block = blockexplorer.get_block(prev_block)
-                end_time = datetime.datetime.now()  # --------------------------------------------------------------------------
-
-                prev_epoch_time = prev_block.time
-                current_creation_time = current_block["time"] - prev_epoch_time
-                """if (current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, True, True, current_creation_time)"""
-                creation_time_list.append(current_creation_time)
-
-                # add_mining_nodes(current_block)
-
-                current_block = prev_block
-
-                error = False
-        except Exception as e:
-            start_time = datetime.datetime.now()  # -------------------------------------------------------------------------
-            if error:
-                print current_block
-                json_req = urllib2.urlopen(
-                    "https://blockchain.info/block-index/" + str(current_block['prev_block']) + "?format=json").read()
-                print "\nhere in true"
-                print e
-            else:
-                json_req = urllib2.urlopen(
-                "https://blockchain.info/block-index/" + current_block.previous_block + "?format=json").read()
-                print "\nhere in false"
-                print e
-            end_time = datetime.datetime.now()  # ---------------------------------------------------------------------------
-
-            prev_block = json.loads(json_req)
-            prev_epoch_time = prev_block["time"]
-
-            if error:
-                current_creation_time = current_block["time"] - prev_epoch_time
-                """if(current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, True, True, current_creation_time)"""
-            else:
-                current_creation_time = current_block.time - prev_epoch_time
-                """if (current_creation_time < 0):
-                    current_creation_time = get_creation_time(current_block, prev_block, True, False, current_creation_time)"""
-            creation_time_list.append(current_creation_time)
-
-            # add_mining_nodes(current_block)
-
-            current_block = prev_block
-
-            error = True
-
-        """except KeyError:
-            # retreive block from the website
-            # -- URL
-            start_time = datetime.datetime.now()  # -------------------------------------------------------------------------
-            json_req = urllib2.urlopen(
-                "https://blockchain.info/block-index/" + current_block.previous_block + "?format=json").read()
-            end_time = datetime.datetime.now()  # ---------------------------------------------------------------------------
-
-            prev_block = json.loads(json_req)
-            prev_epoch_time = prev_block["time"]
-            current_creation_time = current_block.time - prev_epoch_time
-            creation_time_list.append(current_creation_time)
-
-            # add_mining_nodes(current_block)
-
-            current_block = prev_block
-
-            error = True"""
-            # ------
+        current_block = prev_block
 
     to_write_list = [hash_list, epoch_list, creation_time_list, size_list, fee_list, height_list, bandwidth_list, list_transactions, avg_transaction_list, list_miners, list_received_time]
-    # to_write_list[9] = mining_list
+
+
     # writing all the data retrieved in the file
 
     write_blockchain(to_write_list)
@@ -891,9 +790,7 @@ def get_creation_time(currblock, prevblock, isJson, error_local, currtime):
             print "creation time turned positive: " + str(currtime)
     elif (isJson == True):
         while (currtime < 0):
-            json_req = urllib2.urlopen(
-                "https://blockchain.info/block-index/" + prevblock["prev_block"] + "?format=json").read()
-            right_ancestor = json.loads(json_req)
+            right_ancestor = get_json_request("https://blockchain.info/block-index/" + prevblock["prev_block"] + "?format=json")
             if(error_local == False):
                 currtime = currblock.time - right_ancestor["time"]
             elif (error_local == True):
