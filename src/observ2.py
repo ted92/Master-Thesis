@@ -15,7 +15,7 @@ Usage: observ.py -t number
     -r start [end]      : plots the regression and the models in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
     -u                  : updates the local blockchain to the last block created
     -c number           : retrieves blocks to compare the blockchain in different epoch. The height to be retrieved is given from start and end
-    -d                  : delete info.txt and blockchain.txt if exist
+    -d                  : delete info.txt, blockchain.txt and unconfirmed_tx.txt if exist
 
 """
 
@@ -80,6 +80,9 @@ latest_block_url = "https://blockchain.info/latestblock"
 
 global unconfirmed_txs_url
 unconfirmed_txs_url = "https://blockchain.info/unconfirmed-transactions?format=json"
+
+global block_hash_url
+block_hash_url = "https://blockchain.info/rawblock/"
 
 # --------------------
 
@@ -550,7 +553,7 @@ def define_intervals(number_of_blocks):
         while (i < n_portions):
             if(i == 0):
                 # the retrieval starts with the latest block, and then the previous are retrieved as well
-                height_to_start = 1 + number_of_blocks
+                height_to_start = number_of_blocks
             else:
                 height_to_start = (i*p) + number_of_blocks
             b_array = get_json_request("https://blockchain.info/block-height/" + str(height_to_start) + "?format=json")
@@ -571,7 +574,7 @@ def define_intervals(number_of_blocks):
             print (bcolors.WARNING + "WARNING: " + bcolors.ENDC + "Blockchain already up to date!")
         else:
             while (i < n_portions):
-                height_to_start = end_list[i] + number_of_blocks + 1
+                height_to_start = end_list[i] + number_of_blocks
                 b_array = get_json_request(
                     "https://blockchain.info/block-height/" + str(height_to_start) + "?format=json")
                 blocks = b_array['blocks']
@@ -639,15 +642,11 @@ def get_blockchain(number_of_blocks, error, hash):
 
     # ================== RETRIEVE BLOCKS ==================
     # retrieve blocks using json data from blockchain.info API
-    last_block = get_json_request(latest_block_url)
-    height_latest_block = last_block['height']
 
     start_time = datetime.datetime.now()
-    current_block_request = get_json_request("https://blockchain.info/block-height/" + str(height_latest_block) + "?format=json")
+    current_block = get_json_request(block_hash_url + hash)
     end_time = datetime.datetime.now()
 
-    current_block_array = current_block_request['blocks']
-    current_block = current_block_array[0]
 
     for i in range(number_of_blocks):
         # ---------- PROGRESS BAR -----------
@@ -664,19 +663,19 @@ def get_blockchain(number_of_blocks, error, hash):
 
         miner = "None"
 
-        epoch = current_block["time"]
+        epoch = current_block['time']
         epoch_list.append(epoch)
 
-        hash = current_block["hash"]
+        hash = current_block['hash']
         hash_list.append(hash)
 
-        fee = current_block["fee"]
+        fee = current_block['fee']
         fee_list.append(fee)
 
-        size = current_block["size"]
+        size = current_block['size']
         size_list.append(size)
 
-        height = current_block["height"]
+        height = current_block['height']
         height_list.append(height)
 
         avg_tr = get_avg_transaction_time(current_block, True)
@@ -686,16 +685,10 @@ def get_blockchain(number_of_blocks, error, hash):
         bandwidth = block_size / time_in_seconds
         bandwidth_list.append(bandwidth)
 
-        transactions = len(current_block["tx"])
+        transactions = len(current_block['tx'])
         list_transactions.append(transactions)
 
-        miner = current_block["relayed_by"]
-        list_miners.append(miner)
-
-        received_time = current_block["received_time"]
-        list_received_time.append(received_time)
-
-        hash_prev_block = current_block["prev_block"]
+        hash_prev_block = current_block['prev_block']
 
         start_time = datetime.datetime.now()  # ------------------------------------------------------------------------
         prev_block = get_json_request("https://blockchain.info/block-index/" + str(hash_prev_block) + "?format=json")
@@ -704,6 +697,14 @@ def get_blockchain(number_of_blocks, error, hash):
         prev_epoch_time = prev_block['time']
         current_creation_time = int(current_block['time']) - int(prev_epoch_time)
         creation_time_list.append(current_creation_time)
+
+        # todo: relayed by and received by give 'KeyError'
+        # miner = current_block['relayed_by']
+        list_miners.append(miner)
+
+        # received_time = current_block['received_time']
+        received_time = epoch
+        list_received_time.append(received_time)
 
         # add_mining_nodes(current_block)
 
