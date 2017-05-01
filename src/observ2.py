@@ -8,12 +8,10 @@ v2: the order of block retrieval doesn't matter, is possible to retrieve blocks 
 Usage: observ.py -t number
     -h | --help         : usage
     -i                  : gives info of the blockchain retrieved
-    -t number           : checks the unconfirmed transactions and plot the mempool demand and space supply curves. Input number for how many new transactions you want to consider, suggested 400-2000.
-    -P                  : plots all
-    -p start [end]      : plots data in .txt file in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
-    -R                  : plots the regression and the models that predict the blockchain
-    -r start [end]      : plots the regression and the models in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
-    -u                  : updates the local blockchain to the last block created
+    -t number           : checks the unconfirmed transactions and plot the mempool demand and space supply curves. Input number for how many new transactions you want to consider, [400-2000].
+    -T                  : generates the plot regarding the approval time according to the fee paid for each transaction.
+    -p                  : plots data in .txt file.
+    -r                  : plots the regression and the models that predict the blockchain
     -c number           : retrieves blocks to compare the blockchain in different epoch. The height to be retrieved is given from start and end
     -d                  : delete info.txt, blockchain.txt and unconfirmed_tx.txt if exist
 
@@ -38,6 +36,7 @@ import ast
 import urllib
 import math
 import matplotlib as mpl
+import matplotlib.ticker
 
 from blockchain import blockexplorer
 from time import sleep
@@ -48,6 +47,7 @@ from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
 from scipy import stats
 from scipy.stats import norm
 from docopt import docopt
+from matplotlib.ticker import FormatStrFormatter
 
 
 # ------ GLOBAL ------
@@ -97,7 +97,7 @@ def main(argv):
         start_v = None
         end_v = None
 
-        opts, args = getopt.getopt(argv, "hiudRPt:c:p:r:")
+        opts, args = getopt.getopt(argv, "Thiprdt:c:")
         valid_args = False
 
         for opt, arg in opts:
@@ -108,45 +108,28 @@ def main(argv):
                 # BLOCK SPACE SUPPLY CURVE
 
                 valid_args = True
-            if(opt == "-u"):    # update with the missing blocks
-                str_update = update_blockchain()
+
+            if(opt == "-T"):
+                # analyse transactions in transactions.txt
+                plot_tx_visibility()
                 valid_args = True
-                if (str_update != None):
-                    print str_update
             if(opt == "-d"): #delete info.txt and blockchain.txt
                 valid_args = True
-                try:
-                    os.remove(file_info)
-                    print file_info + " deleted."
-                    os.remove(file_blockchain)
-                    print file_blockchain + " deleted."
-                    os.remove(file_unconfirmed_tx)
-                    print file_unconfirmed_tx + " deleted."
-                except OSError:
-                    pass
+                delete_file(file_info)
+                delete_file(file_blockchain)
+                delete_file(file_unconfirmed_tx)
+                delete_file(file_tx)
             if(opt == "-i"):    # blockchain info
-                test_accuracy()
+                # test_accuracy()
                 print blockchain_info()
                 valid_args = True
             if(opt == "-h"):    # usage
                 print (__doc__)
                 valid_args = True
-            if(opt == "-P"):    # plot only
+            if(opt == "-p"):    # plot only
                 plot_sequence(False, start_v, end_v)
                 valid_args = True
-            if(opt == "-p"):    # plot
-                end_v = int(arg)
-                if(args):
-                    start_v = int(args[0])
-                plot_sequence(False, start_v, end_v)
-                valid_args = True
-            if (opt == "-R"):  # regression only
-                plot_sequence(True, start_v, end_v)
-                valid_args = True
-            if (opt == "-r"):  # plot regression with start and end
-                end_v = int(arg)
-                if (args):
-                    start_v = int(args[0])
+            if (opt == "-r"):  # regression only
                 plot_sequence(True, start_v, end_v)
                 valid_args = True
             if(opt == "-c"):    # compare with older blocks - retrieve blockchain in previous time
@@ -160,15 +143,16 @@ def main(argv):
         print (__doc__)
         sys.exit(2)
 
-def plot_multiple_lists(description, marker, list1, list2, list3 = None, normal = None):
+def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, normal = None, alternative_intervals = None, cumulate = None):
     """
-    plots list1, list2 and list3
-    :param description  - Required  :   description of the graph to plot
-    :param marker       - Required  :   marker to plot, could be '-', 'o', '*' ecc...
-    :param list1        - Required  :   list with epoch to put on lable
-    :param list2        - Required  :   list with x values to plot
-    :param list3        - Optional  :   second list with the y values to plot
-    :param normal       - Optional  :   tells if a normal curve needs to be plotted, then the data are sorted
+    plots list2 and list3
+    :param description              - Required  :   description of the graph to plot
+    :param marker                   - Required  :   marker to plot, could be '-', 'o', '*' ecc...
+    :param epoch_list               - Required  :   list with epoch to put on label
+    :param list2                    - Required  :   list with x values to plot
+    :param list3                    - Optional  :   second list with the y values to plot
+    :param normal                   - Optional  :   tells if a normal curve needs to be plotted, then the data are sorted
+    :param alternative_intervals    - Optional  :   if there are other intervals, like in the transactions ones
     """
     if (list3 != None and list3 != []):
         is_x = True
@@ -176,6 +160,12 @@ def plot_multiple_lists(description, marker, list1, list2, list3 = None, normal 
         is_x = False
 
     # retrieve the intervals to print
+    if (alternative_intervals == None):
+        start_interval_tr, end_interval_tr = get_indexes()
+    else:
+        start_interval_tr = alternative_intervals[0]
+        end_interval_tr = alternative_intervals[1]
+
     start_interval, end_interval = get_indexes()
 
     # plot the portions
@@ -183,14 +173,26 @@ def plot_multiple_lists(description, marker, list1, list2, list3 = None, normal 
     to_plot_2 = []
     to_plot_3 = []
 
+    list_to_plot1 = []
+    list_to_plot2 = []
     # create data to plot having a list of a list in to_plot_x and to_plot_y
     i = 0
     while (i < n_portions):
-        to_plot_1.append(list1[start_interval[i]:end_interval[i]])
-        to_plot_2.append(list2[start_interval[i]:end_interval[i]])
+        if (cumulate == True):
+            # create growing lists
+            # x - time
+            # y - size
+            list_to_plot2 = create_growing_time_list(list2[start_interval_tr[i]:end_interval_tr[i]])
+            list_to_plot3 = create_growing_size_list(list3[start_interval_tr[i]:end_interval_tr[i]])
+        else:
+            list_to_plot2 = list2[start_interval_tr[i]:end_interval_tr[i]]
 
-        if (is_x):
-            to_plot_3.append(list3[start_interval[i]:end_interval[i]])
+        to_plot_1.append(epoch_list[start_interval[i]:end_interval[i]])
+        to_plot_2.append(list_to_plot2)
+
+        if ((is_x) and (cumulate == None)):
+            list_to_plot3 = list3[start_interval_tr[i]:end_interval_tr[i]]
+            to_plot_3.append(list_to_plot3)
 
             # Order lists
             if (normal==True):
@@ -202,6 +204,11 @@ def plot_multiple_lists(description, marker, list1, list2, list3 = None, normal 
             plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
                          label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))),
                          lw = 2)
+        elif(cumulate == True):
+            to_plot_3.append(list_to_plot3)
+            plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
+                     label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))),
+                     lw=2)
         else:
             plt.plot(to_plot_2[i], color_list[i] + marker,
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
@@ -301,36 +308,145 @@ def test_accuracy():
 
     # ===============================================================
 
-# BLOCK SPACE SUPPLY CURVE
-def plot_space_supply(sizes_list):
+def plot_tx_visibility():
     """
-    :param size_list : sizes from the mempool demand curve
-    Plot the block space supply curve considering a block reward R = 12,5 BTC, and a linear growing propagation time
-    T = 600s
+    Read the transactions.txt file and plot the relation between the fee paid and the transaction visibility
+    :return:
     """
 
-    fees_list = []
-    reward = 12.5
-    creation_time = 600
+    epoch_list = []
+    fee_list = []
+    size_list = []
+    approval_time_list = []
 
-    for el in sizes_list:
-        tau = propagation_time_function(float(el))
-        supply = reward * (math.exp(tau/600) - 1)
-        fees_list.append(supply)
 
-    # ============== PLOTTING ===============
-    axes = plt.gca()
-    axes.set_ylim([0, max(fees_list)])
-    plt.figure(1)
-    plt.rc('lines', linewidth=3)
-    plt.plot(sizes_list, fees_list, color_list[2] + marker_list[1],
-             label=("$M_{supply}(Q)$"), )
-    plt.legend(loc="best")
-    plt.ylabel("Fees $M(B)$")
-    plt.xlabel("Block space $Q$ (Mb)")
-    plt.savefig('plot/blockspacesupplycurve')
-    # =======================================
+    epoch_list_from_info = get_list_from_file("epoch")
+    epoch_list_from_info[:] = [float(x) for x in epoch_list_from_info]
+    epoch_list_from_info.sort()
 
+    # the file transactions.txt contains the transactions in each block and the epoch for that block at the end
+    if (os.path.isfile(file_tx)):
+        with io.FileIO(file_tx, "r") as file:
+            file.seek(0)
+            txs = file.read()
+
+        list_txs = txs.split("\n")
+        list_txs.pop()
+
+        #todo: write all the progress bar in a method
+        # -------- PROGRESS BAR -----------
+        index_progress_bar = 0
+        printProgress(index_progress_bar, (len(list_txs)), prefix='Reading ' + file_tx + ':', suffix='Complete',
+                      barLength=50)
+        # ---------------------------------
+        # delete the epoch from the list just retrieved
+        i = 0
+        for el in list_txs:
+            epoch_list.append(list_txs[i+1])
+            list_txs.remove(list_txs[i+1])
+            i += 1
+
+            # ---------- PROGRESS BAR -----------
+            sleep(0.01)
+            index_progress_bar += 1
+            printProgress(index_progress_bar, (len(list_txs)) + (len(epoch_list)), prefix='Reading file "' + file_tx + '":',
+                          suffix='Complete',
+                          barLength=50)
+            # -----------------------------------
+
+        """for t, e in zip(list_txs, epoch_list):
+            print str(re.findall("u'hash': u'(.+?)'", t)) + "\n\n" +str(e) + "\n\n\n\n"
+            """
+
+        list_txs[:] = [ast.literal_eval(t) for t in list_txs]
+
+        # create indexing to plot the transactions visibility with the temporal graph -- divided into n portions
+        total_blocks = len(epoch_list)
+        one_portion = total_blocks / n_portions
+        indexes_start_list = []
+        indexes_end_list = []
+        number_of_transactions_each_epoch = []
+        sum = 0
+
+        index = 1
+        for i in range(len(epoch_list)):
+            # ---------- PROGRESS BAR -----------
+            sleep(0.01)
+            index_progress_bar += 1
+            printProgress(index_progress_bar, (len(list_txs))+(len(epoch_list)), prefix='Reading file "' + file_tx + '":',
+                          suffix='Complete',
+                          barLength=50)
+            # -----------------------------------
+            list_txs[i].pop(0)      # remove the first transaction of each block since it is only the reward
+            _, _, temp_fee_list, temp_size_list, temp_approval_time_list, = calculate_transactions_fee(list_txs[i], int(epoch_list[i]))
+            # print len(temp_approval_time_list)    # how many transaction per block
+            sum += len(temp_approval_time_list)
+            fee_list.extend(temp_fee_list)
+            size_list.extend(temp_size_list)
+            approval_time_list.extend(temp_approval_time_list)
+            if (index % one_portion == 0):  # changed epoch
+                number_of_transactions_each_epoch.append(sum)
+                sum = 0
+            index += 1
+        print number_of_transactions_each_epoch   # list containing how many transactions per each portion
+
+        # define transactions intevals
+        for i in range(n_portions):
+            if (i == 0):
+                indexes_start_list.append(0)
+                indexes_end_list.append(indexes_start_list[i] + number_of_transactions_each_epoch[i])
+            else:
+                indexes_start_list.append(indexes_end_list[i-1] + 1)
+                indexes_end_list.append(indexes_start_list[i] - 1 + number_of_transactions_each_epoch[i])
+
+        indexes = []
+        print indexes_start_list    # list containing the start indexes to plot the different portion in the graph
+        print indexes_end_list      # list containing the end indexes to plot the different portion in the graph
+        indexes.append(indexes_start_list)
+        indexes.append(indexes_end_list)
+
+        # plot data
+        c = CurrencyRates()
+        b = BtcConverter()
+
+        one_usd = b.get_latest_price('USD')
+        axes = plt.gca()
+
+        y_vals = fee_list
+        y_vals[:] = [float(x) for x in y_vals]
+        y_vals[:] = [x / 100000000 for x in y_vals]  # in BTC
+        y_vals[:] = [x * one_usd for x in y_vals]  # in USD
+
+        x_vals = approval_time_list
+        print len(x_vals)
+        x_vals[:] = [float(x) for x in x_vals]
+        x_vals[:] = [x / 60 for x in x_vals]  # in minutes
+
+        together = zip(x_vals, y_vals)
+        sorted_together = sorted(together)
+        x_vals = [x[0] for x in sorted_together]
+        y_vals = [x[1] for x in sorted_together]
+
+
+        plot_multiple_lists("transaction visibility", marker_list[0], epoch_list_from_info, x_vals, y_vals, alternative_intervals=indexes)
+        plt.yscale('log', nonposy='clip')
+        plt.xscale('log', nonposy='clip')
+
+        axes.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
+        axes.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        # axes.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        # axes.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+        axes.set_xlim([0, 5000])
+        axes.set_ylim([0, 200])
+        plt.ylabel("$\overline{T_p}$ (USD)")
+        plt.xlabel("transaction visibility (min)")
+        plt.legend(loc="best")
+        plt.savefig('plot/fee-approvaltime')
+        print("plot fee-approvaltime.png created")
+
+    else:
+        print "file " + file_tx + " still doesn't exist. Fetch some blocks with -c command first!"
 
 def propagation_time_function(q):
     """
@@ -384,7 +500,7 @@ def calculate_transactions_fee(txs, epoch = None):
     :param txs: list of transactions in json format
     :param epoch: Optional if the transaction has been approved it represents the epoch of the block in which
     this transaction is
-    :return: input, output, fee, approval time and size list
+    :return: input, output, fee, size and approval time list
     """
     # calculate total fee for each unconfirmed transaction
     input_fee = 0
@@ -398,6 +514,7 @@ def calculate_transactions_fee(txs, epoch = None):
     list_hashes_checked = []
     approval_time_list = []
 
+    i = 0
     for tx in txs:
         try:
             sizes_list.append(tx['size'])
@@ -435,12 +552,13 @@ def calculate_transactions_fee(txs, epoch = None):
 
             # if the transactions are already approved -- calculate the approval time
             if(epoch != None):
-                epoch_tx = t['time']
+                epoch_tx = tx['time']
 
-                approval_time = epoch - epoch_tx
+                approval_time = float(epoch) - float(epoch_tx)
                 approval_time_list.append(approval_time)
 
-        except KeyError:
+        except KeyError as e:
+            print e
             pass
     return in_list, out_list, fees_list, sizes_list, approval_time_list
 
@@ -601,8 +719,8 @@ def plot_sequence(regression,  start_v, end_v):
     else:
         plot_data("time_per_block", 0, start=start_v, end=end_v)
         plot_data("byte_per_block", 1, start=start_v, end=end_v)
-        """plot_data("growth_blockchain", 2, start=start_v, end=end_v)"""
-        plot_data("fee_bandwidth", 3, start=start_v, end=end_v)
+        plot_data("growth_blockchain", 2, start=start_v, end=end_v)
+        """plot_data("fee_bandwidth", 3, start=start_v, end=end_v)"""
         plot_data("bandwidth", 4, start=start_v, end=end_v)
         """plot_data("efficiency", 5, start=start_v, end=end_v)
         plot_data("transaction_visibility", 6, start=start_v, end=end_v)
@@ -659,7 +777,7 @@ def get_blockchain(number_of_blocks, error, hash):
         time_in_seconds = get_time_in_seconds(time_to_fetch)
         fetch_time_list.append(time_in_seconds)
 
-        start_list, end_list = create_interval_lists()
+        # start_list, end_list = create_interval_lists()
 
         miner = "None"
 
@@ -708,7 +826,18 @@ def get_blockchain(number_of_blocks, error, hash):
 
         # add_mining_nodes(current_block)
 
+        txs = current_block['tx']
+        # write transactions in file transactions.txt
+
+        # todo: analyze the file and get the json
+        with io.FileIO(file_tx, "a+") as file:
+            file.write(str(txs))
+            file.write("\n" + str(current_block['time']) + "\n")
+
+
         current_block = prev_block
+
+
 
     to_write_list = [hash_list, epoch_list, creation_time_list, size_list, fee_list, height_list, bandwidth_list, list_transactions, avg_transaction_list, list_miners, list_received_time]
 
@@ -805,7 +934,7 @@ def create_growing_time_list(time_list):
     given a time list with the creation time for each block, this method creates a new list containing the growing time
     every time a block is created.
     :param list time_list: a list with the creation time of all the blocks retrieved
-    :return: list containig the growing time
+    :return: list containig the growing time in hours
     """
     # create growing time list
     reversed_time_list = time_list[::-1]
@@ -898,12 +1027,12 @@ def get_avg_transaction_time(block, json):
     """
 
     if(json == True):
-        block_time = float(block["time"])
-        tx = block["tx"]
+        block_time = float(block['time'])
+        tx = block['tx']
 
         t_sum = 0
         for t in tx:
-            approval_time = block_time - float(t["time"])
+            approval_time = block_time - int(t['time'])
             t_sum = t_sum + approval_time
 
         average_per_block = t_sum / len(tx)
@@ -1098,18 +1227,13 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
     elif(description == "growth_blockchain"):
-        time_list = get_list_from_file("creation_time")
-        time_list[:] = [float(x) for x in time_list]
+        epoch_vals, x_vals, y_vals = get_lists_ordered("epoch", "creation_time", "size")
 
-        size_list = get_list_from_file("size")
-        size_list[:] = [float(x) for x in size_list]
+        x_vals[:] = [float(x) for x in x_vals]
+        # x_vals[:] = [x / (60 * 60) for x in x_vals]  # in hours
 
-        size_list = size_list[end:start]
-        time_list = time_list[end:start]
-
-        x_vals = create_growing_time_list(time_list)
-        y_vals = create_growing_size_list(size_list)
-
+        y_vals[:] = [float(x) for x in y_vals]
+        y_vals[:] = [y / 1000000000 for y in y_vals]  # in GB
         """# ---- get the exact data
         elements = len(y_vals)
         last_size = float(y_vals[elements-1])
@@ -1122,11 +1246,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         print  last_time
 
         # ------------"""
-        x_vals[:] = [float(x) for x in x_vals]
-        x_vals[:] = [x / 60*60 for x in x_vals] # in hours
-
-        y_vals[:] = [float(y) for y in y_vals]
-        y_vals[:] = [y / 1000000000 for y in y_vals] # in GB
 
         plt.ylabel("size (GB)")
         plt.xlabel("time (h)")
@@ -1137,7 +1256,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
             last_el = x_vals[el - 1]
 
             # ---- get the predicted date time --------
-            epoch_list = get_list_from_file("epoch")
             epoch_list = epoch_list[end:start]
             last_epoch = int(epoch_list[0])
             # add the hours to that epoch
@@ -1154,11 +1272,16 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
             polynomial = np.polyfit(newX, myComplexFunc(newX, *popt), 2)
             print polynomial
 
-        plt.plot(x_vals, y_vals, 'ro', label=(
-            "growth retrieved\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])),
-                 markevery=(len(x_vals) + 100) / 100)
-        plt.legend(loc="best")
 
+        plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals, cumulate=True)
+        # plt.plot(x_vals, y_vals, 'ro', label=(
+        #    "growth retrieved\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])),
+        #         markevery=(len(x_vals) + 100) / 100)
+        plt.legend(loc="best")
+        plt.yscale('log', nonposy='clip')
+        plt.xscale('log', nonposy='clip')
+        axes.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
+        axes.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
     elif(description == "transaction_visibility"):
@@ -1573,31 +1696,6 @@ def blockchain_intervals():
     return interval_string
 
 
-def update_blockchain():
-    """
-    update the local blockchain retrieving the latest blocks that are missing
-    :return: string with the status
-    """
-    string_return = None
-    error = False
-    if (os.path.isfile(file_blockchain)):
-        # count how many nodes are missing
-        height = get_list_from_file("height")
-        last_retreived = int(height[0])
-        current_block = blockexplorer.get_latest_block()
-        last_total = int(current_block.height)
-        diff = last_total - last_retreived
-        if (diff > 0):
-            print ("Updating the blockchain (" + str(diff) + " blocks missing)...")
-            diff = diff + 1
-            get_blockchain(diff, error)
-        else:
-            print ("Blockchain already up to date!")
-    else:
-        string_return = "File still doesn't exist. You need to fetch blocks first with -t command.\n" + str(__doc__)
-    return string_return
-
-
 def myComplexFunc(x, a, b, c):
     return a * np.power(x, b) + c
 
@@ -1613,6 +1711,19 @@ def fBg(x):
     """
     y = - ((1/(10**4))*(x**2)) + ((3/(10**2))*(x)) + 0.3
     return y
+
+def delete_file(file):
+    """
+    delete a file from the directory
+    :param file: str, name of the file to be deleted
+
+    """
+    try:
+        os.remove(file)
+        print file + " deleted."
+    except OSError:
+        pass
+
 
 def percentage(part, whole):
   return 100 * float(part)/float(whole)
