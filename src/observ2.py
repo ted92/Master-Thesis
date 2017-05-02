@@ -8,12 +8,13 @@ v2: the order of block retrieval doesn't matter, is possible to retrieve blocks 
 Usage: observ.py -t number
     -h | --help         : usage
     -i                  : gives info of the blockchain retrieved
-    -t number           : checks the unconfirmed transactions and plot the mempool demand and space supply curves. Input number for how many new transactions you want to consider, [400-2000].
-    -T                  : generates the plot regarding the approval time according to the fee paid for each transaction.
-    -p                  : plots data in .txt file.
-    -r                  : plots the regression and the models that predict the blockchain
+    -t number           : checks the unconfirmed transactions and plot the mempool demand and space supply curves. Input number for how many new transactions you want to consider, [400-2000]
+    -T                  : generates the plot regarding the approval time according to the fee paid for each transaction
+    -p                  : plots data in .txt files
+    -r                  : revores the .txt files previously backed up
     -c number           : retrieves blocks to compare the blockchain in different epoch. The height to be retrieved is given from start and end
     -d                  : delete info.txt, blockchain.txt and unconfirmed_tx.txt if exist
+    -b                  : backup of info, blockchain and transactions file
 
 """
 
@@ -48,6 +49,7 @@ from scipy import stats
 from scipy.stats import norm
 from docopt import docopt
 from matplotlib.ticker import FormatStrFormatter
+from shutil import copyfile
 
 
 # ------ GLOBAL ------
@@ -88,7 +90,6 @@ block_hash_url = "https://blockchain.info/rawblock/"
 
 def main(argv):
     try:
-
         global plot_number  #todo: move to the global part
         plot_number = 0
         args_list = sys.argv
@@ -97,7 +98,7 @@ def main(argv):
         start_v = None
         end_v = None
 
-        opts, args = getopt.getopt(argv, "Thiprdt:c:")
+        opts, args = getopt.getopt(argv, "Thipbrdt:c:")
         valid_args = False
 
         for opt, arg in opts:
@@ -106,9 +107,15 @@ def main(argv):
                 fetch_unconfirmed_transactions(int(arg))
                 plot_demand_supply_curve()
                 # BLOCK SPACE SUPPLY CURVE
-
                 valid_args = True
-
+            if(opt == '-recover'):
+                print "recover"
+            if(opt == "-b"):    # backup of txt files
+                print "Backup of .txt files."
+                copyFiles(file_tx, "bu_"+file_tx)
+                copyFiles(file_blockchain, "bu_"+file_blockchain)
+                copyFiles(file_info, "bu_"+file_info)
+                valid_args = True
             if(opt == "-T"):
                 # analyse transactions in transactions.txt
                 plot_tx_visibility()
@@ -129,9 +136,14 @@ def main(argv):
             if(opt == "-p"):    # plot only
                 plot_sequence(False, start_v, end_v)
                 valid_args = True
-            if (opt == "-r"):  # regression only
-                plot_sequence(True, start_v, end_v)
+            if (opt == "-r"):  # recover txt files
+                print "Recovering .txt files."
+                copyFiles("bu_" + file_tx, file_tx)
+                copyFiles("bu_" + file_blockchain, file_blockchain)
+                copyFiles("bu_" + file_info, file_info)
                 valid_args = True
+                """plot_sequence(True, start_v, end_v)
+                valid_args = True"""
             if(opt == "-c"):    # compare with older blocks - retrieve blockchain in previous time
                 blocks = int(arg)
                 define_intervals(blocks)
@@ -154,6 +166,7 @@ def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, no
     :param normal                   - Optional  :   tells if a normal curve needs to be plotted, then the data are sorted
     :param alternative_intervals    - Optional  :   if there are other intervals, like in the transactions ones
     """
+    #todo: RE ORGANIZE THIS METHOD WITH THE INTERPOLATION AS WELL
     if (list3 != None and list3 != []):
         is_x = True
     else:
@@ -204,11 +217,18 @@ def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, no
             plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
                          label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))),
                          lw = 2)
+            x_new, y_new = polynomial_interpolation(to_plot_2[i], to_plot_3[i], 2)
+            plt.plot(x_new, y_new, color_list[i] + '-',
+                     lw=2)
         elif(cumulate == True):
             to_plot_3.append(list_to_plot3)
             plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))),
                      lw=2)
+            x_new, y_new = polynomial_interpolation(to_plot_2[i], to_plot_3[i], 1)
+            plt.plot(x_new, y_new, color_list[i] + '-',
+                     lw=2)
+
         else:
             plt.plot(to_plot_2[i], color_list[i] + marker,
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
@@ -425,16 +445,14 @@ def plot_tx_visibility():
 
 
         plot_multiple_lists("transaction visibility", marker_list[0], epoch_list_from_info, x_vals, y_vals, alternative_intervals=indexes)
-        plt.yscale('log', nonposy='clip')
-        plt.xscale('log', nonposy='clip')
+        # plt.yscale('log', nonposy='clip')
+        # plt.xscale('log', nonposy='clip')
 
-        axes.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
-        axes.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-        # axes.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        # axes.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        # axes.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
+        # axes.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 
-        axes.set_xlim([0, 5000])
-        axes.set_ylim([0, 200])
+        axes.set_xlim([0, 100])
+        axes.set_ylim([0, 20])
         plt.ylabel("$\overline{T_p}$ (USD)")
         plt.xlabel("transaction visibility (min)")
         plt.legend(loc="best")
@@ -627,6 +645,31 @@ def plot_demand_supply_curve():
     else:
         print "File " + file_unconfirmed_tx + " does not exist!"
 
+
+def polynomial_interpolation(x, y, degree=2):
+    """
+    given two lists of data it generates two new lists containing the functions interpolated
+    :param  x       :   x values of the data to interpolate
+    :param  y       :   y values of the data to interpolate
+    :param  degree  : degree of the function to get
+    """
+    # order lists
+    together = zip(x, y)
+    sorted_together = sorted(together)
+
+    x_vals = [el[0] for el in sorted_together]
+    y_vals = [el[1] for el in sorted_together]
+
+    # calculate polynomial
+    z = np.polyfit(x_vals, y_vals, degree)
+    f = np.poly1d(z)
+
+    print f
+
+    x_new = np.linspace(x_vals[0], x_vals[-1], len(x_vals))
+    y_new = f(x_new)
+
+    return x_new, y_new
 
 def get_json_request(url):
     """
@@ -1243,7 +1286,7 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         plt.xlabel("time (h)")
         # axes.set_xlim([0, max(x_vals)])
 
-        if(regression):
+        """if(regression):
             el = len(x_vals)
             last_el = x_vals[el - 1]
 
@@ -1262,13 +1305,10 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
             lim = axes.get_ylim()
             axes.set_ylim([0, lim[1]])
             polynomial = np.polyfit(newX, myComplexFunc(newX, *popt), 2)
-            print polynomial
+            print polynomial"""
 
 
         plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals, cumulate=True)
-        # plt.plot(x_vals, y_vals, 'ro', label=(
-        #    "growth retrieved\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])),
-        #         markevery=(len(x_vals) + 100) / 100)
         plt.legend(loc="best")
         plt.yscale('log', nonposy='clip')
         plt.xscale('log', nonposy='clip')
@@ -1704,6 +1744,28 @@ def blockchain_intervals():
     return interval_string
 
 
+def copyFiles(source, destination):
+    """
+    copies the source file in destination to have a backup
+    :param source       :   file to copy
+    :param destination  :   destination file
+    """
+    if (os.path.isfile(source)):
+        copyfile(source, destination)
+        print ("file " + source + " copied in " + destination)
+
+def delete_file(file):
+    """
+    delete a file from the directory
+    :param file: str, name of the file to be deleted
+
+    """
+    try:
+        os.remove(file)
+        print file + " deleted."
+    except OSError:
+        pass
+
 def myComplexFunc(x, a, b, c):
     return a * np.power(x, b) + c
 
@@ -1719,18 +1781,6 @@ def fBg(x):
     """
     y = - ((1/(10**4))*(x**2)) + ((3/(10**2))*(x)) + 0.3
     return y
-
-def delete_file(file):
-    """
-    delete a file from the directory
-    :param file: str, name of the file to be deleted
-
-    """
-    try:
-        os.remove(file)
-        print file + " deleted."
-    except OSError:
-        pass
 
 
 def percentage(part, whole):
