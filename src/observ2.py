@@ -12,7 +12,8 @@ Usage: observ.py -t number
     -T                  : generates the plot regarding the approval time according to the fee paid for each transaction
     -p                  : plots data in .txt files
     -r                  : revores the .txt files previously backed up
-    -c number           : retrieves blocks to compare the blockchain in different epoch. The height to be retrieved is given from start and end
+    -c number           : retrieves blocks to compare the blockchain in different epoch. number is the number of blocks to be retrieved
+    -C number           : same as -c but it will save also all the transactions for each block in transactions.txt file. IMPORTANT: use it only one time for the retrieval, otherwise transactions won't be ordered. You can print the results with -T command
     -d                  : delete info.txt, blockchain.txt and unconfirmed_tx.txt if exist
     -b                  : backup of info, blockchain and transactions file
 
@@ -98,7 +99,7 @@ def main(argv):
         start_v = None
         end_v = None
 
-        opts, args = getopt.getopt(argv, "Thipbrdt:c:")
+        opts, args = getopt.getopt(argv, "Thipbrdt:c:C:")
         valid_args = False
 
         for opt, arg in opts:
@@ -148,6 +149,10 @@ def main(argv):
                 blocks = int(arg)
                 define_intervals(blocks)
                 valid_args = True
+            if (opt == "-C"):
+                blocks = int(arg)
+                define_intervals(blocks, True)
+                valid_args = True
 
         if(valid_args == False):
             print (__doc__)
@@ -155,15 +160,14 @@ def main(argv):
         print (__doc__)
         sys.exit(2)
 
-def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, normal = None, alternative_intervals = None, cumulate = None):
+def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, alternative_intervals = None):
     """
-    plots list2 and list3
+    receive lists to be plotted, list2 and list3. They are given as a list ready to be plotted already.
     :param description              - Required  :   description of the graph to plot
     :param marker                   - Required  :   marker to plot, could be '-', 'o', '*' ecc...
     :param epoch_list               - Required  :   list with epoch to put on label
     :param list2                    - Required  :   list with x values to plot
     :param list3                    - Optional  :   second list with the y values to plot
-    :param normal                   - Optional  :   tells if a normal curve needs to be plotted, then the data are sorted
     :param alternative_intervals    - Optional  :   if there are other intervals, like in the transactions ones
     """
     #todo: RE ORGANIZE THIS METHOD WITH THE INTERPOLATION AS WELL
@@ -173,22 +177,38 @@ def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, no
         is_x = False
 
     # retrieve the intervals to print
+    start_interval, end_interval = get_indexes(epoch_list)
     if (alternative_intervals == None):
         start_interval_tr, end_interval_tr = get_indexes()
     else:
         start_interval_tr = alternative_intervals[0]
         end_interval_tr = alternative_intervals[1]
 
-    start_interval, end_interval = get_indexes()
-
-    # plot the portions
+    # list to plot the n portions
     to_plot_1 = []
     to_plot_2 = []
     to_plot_3 = []
 
-    list_to_plot1 = []
-    list_to_plot2 = []
-    # create data to plot having a list of a list in to_plot_x and to_plot_y
+    i = 0
+    while (i < n_portions):
+        to_plot_1.append(epoch_list[start_interval[i]:end_interval[i]])
+        to_plot_2.append(list2[start_interval_tr[i]:end_interval_tr[i]])
+        if(is_x):
+            to_plot_3.append(list3[start_interval_tr[i]:end_interval_tr[i]])
+            # order before printing - order according to x_vals (list2)
+            together_sorted = sorted(zip(to_plot_2[i], to_plot_3[i]))
+
+            to_plot_2[i][:] = [xv[0] for xv in together_sorted]
+            to_plot_3[i][:] = [yv[1] for yv in together_sorted]
+
+            plt.plot(list2[start_interval_tr[i]:end_interval_tr[i]], list3[start_interval_tr[i]:end_interval_tr[i]], color_list[i] + marker,
+                     label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
+        else:
+            plt.plot(list2[start_interval_tr[i]:end_interval_tr[i]], color_list[i] + marker,
+                 label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
+        i += 1
+
+    """ OLD VERSION"# create data to plot having a list of a list in to_plot_x and to_plot_y
     i = 0
     while (i < n_portions):
         if (cumulate == True):
@@ -220,7 +240,7 @@ def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, no
             x_new, y_new = polynomial_interpolation(to_plot_2[i], to_plot_3[i], 2)
             plt.plot(x_new, y_new, color_list[i] + '-',
                      lw=2)
-        elif(cumulate == True):
+        if(cumulate == True):
             to_plot_3.append(list_to_plot3)
             plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))),
@@ -228,11 +248,11 @@ def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, no
             x_new, y_new = polynomial_interpolation(to_plot_2[i], to_plot_3[i], 1)
             plt.plot(x_new, y_new, color_list[i] + '-',
                      lw=2)
-
         else:
             plt.plot(to_plot_2[i], color_list[i] + marker,
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
         i += 1
+        """
 
 # ACCURACY WITH NORMAL DISTRIBUTION
 def test_accuracy():
@@ -316,7 +336,11 @@ def test_accuracy():
     plt.savefig('plot/normal_curve')"""
     # y_l[:] = [y * 100 for y in y_l]
 
-    plot_multiple_lists("accuracy", marker_list[0], epoch_list, diff_list, y_l, True)
+    together_sorted = sorted(zip(epoch_list, diff_list, y_l))
+
+    diff_list[:] = [xv[1] for xv in together_sorted]
+    y_l[:] = [yv[2] for yv in together_sorted]
+    plot_multiple_lists("accuracy", marker_list[0], epoch_list, diff_list, y_l)
 
     plt.legend(loc="best")
 
@@ -353,7 +377,6 @@ def plot_tx_visibility():
         list_txs = txs.split("\n")
         list_txs.pop()
 
-        #todo: write all the progress bar in a method
         # -------- PROGRESS BAR -----------
         index_progress_bar = 0
         prefix = 'Reading ' + file_tx + ':'
@@ -366,16 +389,10 @@ def plot_tx_visibility():
             epoch_list.append(list_txs[i+1])
             list_txs.remove(list_txs[i+1])
             i += 1
-
             # ---------- PROGRESS BAR -----------
             index_progress_bar += 1
             progressBar(index_progress_bar, prefix, (len(list_txs)) + (len(epoch_list)))
             # -----------------------------------
-
-        """for t, e in zip(list_txs, epoch_list):
-            print str(re.findall("u'hash': u'(.+?)'", t)) + "\n\n" +str(e) + "\n\n\n\n"
-            """
-
         list_txs[:] = [ast.literal_eval(t) for t in list_txs]
 
         # create indexing to plot the transactions visibility with the temporal graph -- divided into n portions
@@ -394,7 +411,7 @@ def plot_tx_visibility():
             # -----------------------------------
 
             list_txs[i].pop(0)      # remove the first transaction of each block since it is only the reward
-            _, _, temp_fee_list, temp_size_list, temp_approval_time_list, = calculate_transactions_fee(list_txs[i], int(epoch_list[i]))
+            _, _, temp_fee_list, temp_size_list, temp_approval_time_list = calculate_transactions_fee(list_txs[i], int(epoch_list[i]))
             # print len(temp_approval_time_list)    # how many transaction per block
             sum += len(temp_approval_time_list)
             fee_list.extend(temp_fee_list)
@@ -431,20 +448,24 @@ def plot_tx_visibility():
         y_vals = fee_list
         y_vals[:] = [float(x) for x in y_vals]
         y_vals[:] = [x / 100000000 for x in y_vals]  # in BTC
-        y_vals[:] = [x * one_usd for x in y_vals]  # in USD
+        # y_vals[:] = [x * one_usd for x in y_vals]  # in USD
 
         x_vals = approval_time_list
         print len(x_vals)
         x_vals[:] = [float(x) for x in x_vals]
         x_vals[:] = [x / 60 for x in x_vals]  # in minutes
 
-        together = zip(x_vals, y_vals)
-        sorted_together = sorted(together)
-        x_vals = [x[0] for x in sorted_together]
-        y_vals = [x[1] for x in sorted_together]
+        # together = zip(x_vals, y_vals)
+        # sorted_together = sorted(together)
 
+        # x_vals = [x[0] for x in sorted_together]
+        # y_vals = [x[1] for x in sorted_together]
 
-        plot_multiple_lists("transaction visibility", marker_list[0], epoch_list_from_info, x_vals, y_vals, alternative_intervals=indexes)
+        epoch_list[:] = [int(x) for x in epoch_list]
+        epoch_list.sort()
+        plot_multiple_lists("transaction visibility", marker_list[0], epoch_list, x_vals, y_vals, alternative_intervals=indexes)
+
+        # LOG SCALE
         # plt.yscale('log', nonposy='clip')
         # plt.xscale('log', nonposy='clip')
 
@@ -452,8 +473,8 @@ def plot_tx_visibility():
         # axes.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 
         axes.set_xlim([0, 100])
-        axes.set_ylim([0, 20])
-        plt.ylabel("$\overline{T_p}$ (USD)")
+        axes.set_ylim([0, 0.02])
+        plt.ylabel("$\overline{T_p}$ (BTC)")
         plt.xlabel("transaction visibility (min)")
         plt.legend(loc="best")
         plt.savefig('plot/fee-approvaltime')
@@ -512,7 +533,7 @@ def calculate_transactions_fee(txs, epoch = None):
     :param txs: list of transactions in json format
     :param epoch: Optional if the transaction has been approved it represents the epoch of the block in which
     this transaction is
-    :return: input, output, fee, size and approval time list
+    :return: input, output, fee, size, approval time list
     """
     # calculate total fee for each unconfirmed transaction
     input_fee = 0
@@ -522,6 +543,7 @@ def calculate_transactions_fee(txs, epoch = None):
     out_list = []
     fees_list = []
     sizes_list = []
+
 
     list_hashes_checked = []
     approval_time_list = []
@@ -683,12 +705,13 @@ def get_json_request(url):
     return request
 
 
-def define_intervals(number_of_blocks):
+def define_intervals(number_of_blocks, save_txs = False):
     """
     Retrieves blocks with a certain interval according to how many blocks are present in the blockchain.
     These intervals are called portions.
     We set a number of portions = 4
-    :param number_of_blocks:
+    :param number_of_blocks
+    :param save_txs: if True save also the transactions, False by default, saving transactions is expensive in terms of memory
     """
     error = False
     # define p = number of blocks per portion
@@ -719,7 +742,7 @@ def define_intervals(number_of_blocks):
             time = epoch_datetime(int(epoch))
             i += 1
             print "Retrieving " + str(number_of_blocks) + " starting from " + time
-            get_blockchain(number_of_blocks, error, hash)
+            get_blockchain(number_of_blocks, error, hash, save_txs)
 
     # case if the files exists already
     else:
@@ -765,7 +788,7 @@ def plot_sequence(regression,  start_v, end_v):
         plot_data("tthroughput", 8, start=start_v, end=end_v)"""
 
 # @profile
-def get_blockchain(number_of_blocks, error, hash):
+def get_blockchain(number_of_blocks, error, hash, save_txs = False):
     # todo: remove the parameter 'error'
     """
     it retreives blocks from blockchain, given an hash where to start.
@@ -773,6 +796,7 @@ def get_blockchain(number_of_blocks, error, hash):
     :param number_of_blocks: int, blocks to retrieve
     :param error: boolean, if True data are retrieved in Json if False through the client API
     :param hash: str, hash of the block from where to start the retrieval
+    :param save_txs: if True save also the transactions, False by default, saving transactions is expensive in terms of memory
     :return: none
     """
     fetch_time_list = []
@@ -862,13 +886,12 @@ def get_blockchain(number_of_blocks, error, hash):
 
         # add_mining_nodes(current_block)
 
-        txs = current_block['tx']
+        if(save_txs == True):
+            txs = current_block['tx']
         # write transactions in file transactions.txt
-
-        # todo: analyze the file and get the json
-        with io.FileIO(file_tx, "a+") as file:
-            file.write(str(txs))
-            file.write("\n" + str(current_block['time']) + "\n")
+            with io.FileIO(file_tx, "a+") as file:
+                file.write(str(txs))
+                file.write("\n" + str(current_block['time']) + "\n")
 
 
         current_block = prev_block
@@ -1153,28 +1176,30 @@ defined methods:
 """
 
 
-def get_indexes():
+def get_indexes(list = []):
     """
     get the start and end indexed where the list needs to be splitted
     :return : list with indexes
     """
-    start_list, end_list = create_interval_lists()
     interval_list_start = []
     interval_list_end = []
+    if(list != []):
+        l = len(list)
+    else:
+        l = len(get_list_from_file("height"))
 
-    interval = end_list[0]
+    portion = l / n_portions
 
     i = 0
+    start = 0
+    end = int(portion)
     while (i < n_portions):
-        if (i == 0):
-            interval_list_start.append(0)
-            interval_list_end.append(interval)
-        else:
-            interval_list_start.append((i*interval)+1)
-            interval_list_end.append(interval*(i+1))
-        i += 1
+        interval_list_start.append(start)
+        interval_list_end.append(end)
 
-    return interval_list_start, interval_list_end
+        start = end
+        end = start + portion
+        i += 1
 
 
 def plot_data(description, plot_number, regression = None, start = None, end = None):
@@ -1269,21 +1294,10 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
 
         y_vals[:] = [float(x) for x in y_vals]
         y_vals[:] = [y / 1000000000 for y in y_vals]  # in GB
-        """# ---- get the exact data
-        elements = len(y_vals)
-        last_size = float(y_vals[elements-1])
-
-        last_size = last_size/1000000
-        print last_size
-
-        elements = len(x_vals)
-        last_time = float(x_vals[elements-1])
-        print  last_time
-
-        # ------------"""
 
         plt.ylabel("size (GB)")
         plt.xlabel("time (h)")
+        # plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals, cumulate=True)
         # axes.set_xlim([0, max(x_vals)])
 
         """if(regression):
@@ -1307,8 +1321,31 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
             polynomial = np.polyfit(newX, myComplexFunc(newX, *popt), 2)
             print polynomial"""
 
+        # split the list in epoch and create a growing size and time list
+        start, end = get_indexes()
+        i = 0
+        size_lists = []
+        time_lists = []
+        size = []
+        time = []
 
-        plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals, cumulate=True)
+        while (i < n_portions):
+            size_lists.append(y_vals[start[i]:end[i]])
+            time_lists.append(x_vals[start[i]:end[i]])
+
+            # create growing size lists
+            size_lists[i] = create_growing_size_list(size_lists[i])
+            time_lists[i] = create_growing_time_list(time_lists[i])
+            size.extend(size_lists[i])
+            time.extend(time_lists[i])
+
+            size.pop()  # pop last element because of the 0 at the beginning
+            time.pop()
+            i += 1
+
+        x_vals = time
+        y_vals = size
+        plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals)
         plt.legend(loc="best")
         plt.yscale('log', nonposy='clip')
         plt.xscale('log', nonposy='clip')
