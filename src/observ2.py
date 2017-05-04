@@ -96,8 +96,6 @@ def main(argv):
         args_list = sys.argv
         args_size = len(sys.argv)
         earliest_hash = get_earliest_hash()
-        start_v = None
-        end_v = None
 
         opts, args = getopt.getopt(argv, "Thipbrdt:c:C:")
         valid_args = False
@@ -109,8 +107,6 @@ def main(argv):
                 plot_demand_supply_curve()
                 # BLOCK SPACE SUPPLY CURVE
                 valid_args = True
-            if(opt == '-recover'):
-                print "recover"
             if(opt == "-b"):    # backup of txt files
                 print "Backup of .txt files."
                 copyFiles(file_tx, "bu_"+file_tx)
@@ -135,7 +131,7 @@ def main(argv):
                 print (__doc__)
                 valid_args = True
             if(opt == "-p"):    # plot only
-                plot_sequence(False, start_v, end_v)
+                plot_sequence()
                 valid_args = True
             if (opt == "-r"):  # recover txt files
                 print "Recovering .txt files."
@@ -143,8 +139,6 @@ def main(argv):
                 copyFiles("bu_" + file_blockchain, file_blockchain)
                 copyFiles("bu_" + file_info, file_info)
                 valid_args = True
-                """plot_sequence(True, start_v, end_v)
-                valid_args = True"""
             if(opt == "-c"):    # compare with older blocks - retrieve blockchain in previous time
                 blocks = int(arg)
                 define_intervals(blocks)
@@ -160,7 +154,7 @@ def main(argv):
         print (__doc__)
         sys.exit(2)
 
-def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, alternative_intervals = None):
+def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, alternative_intervals = None, regression = None):
     """
     receive lists to be plotted, list2 and list3. They are given as a list ready to be plotted already.
     :param description              - Required  :   description of the graph to plot
@@ -169,6 +163,8 @@ def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, al
     :param list2                    - Required  :   list with x values to plot
     :param list3                    - Optional  :   second list with the y values to plot
     :param alternative_intervals    - Optional  :   if there are other intervals, like in the transactions ones
+    :param regression               - Optional  :   array containing:   0: description
+                                                                        1: degree
     """
     #todo: RE ORGANIZE THIS METHOD WITH THE INTERPOLATION AS WELL
     if (list3 != None and list3 != []):
@@ -203,56 +199,14 @@ def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, al
 
             plt.plot(list2[start_interval_tr[i]:end_interval_tr[i]], list3[start_interval_tr[i]:end_interval_tr[i]], color_list[i] + marker,
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
+            if(regression != None):
+                new_x, new_y = polynomial_interpolation(regression[0], list2[start_interval_tr[i]:end_interval_tr[i]], list3[start_interval_tr[i]:end_interval_tr[i]], regression[1])
+                plt.plot(new_x, new_y, color_list[i]+marker_list[1], label=regression[0], lw=4)
         else:
             plt.plot(list2[start_interval_tr[i]:end_interval_tr[i]], color_list[i] + marker,
                  label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
         i += 1
 
-    """ OLD VERSION"# create data to plot having a list of a list in to_plot_x and to_plot_y
-    i = 0
-    while (i < n_portions):
-        if (cumulate == True):
-            # create growing lists
-            # x - time
-            # y - size
-            list_to_plot2 = create_growing_time_list(list2[start_interval_tr[i]:end_interval_tr[i]])
-            list_to_plot3 = create_growing_size_list(list3[start_interval_tr[i]:end_interval_tr[i]])
-        else:
-            list_to_plot2 = list2[start_interval_tr[i]:end_interval_tr[i]]
-
-        to_plot_1.append(epoch_list[start_interval[i]:end_interval[i]])
-        to_plot_2.append(list_to_plot2)
-
-        if ((is_x) and (cumulate == None)):
-            list_to_plot3 = list3[start_interval_tr[i]:end_interval_tr[i]]
-            to_plot_3.append(list_to_plot3)
-
-            # Order lists
-            if (normal==True):
-                together_sorted = sorted(zip(to_plot_2[i], to_plot_3[i]))
-
-                to_plot_2[i][:] = [xv[0] for xv in together_sorted]
-                to_plot_3[i][:] = [yv[1] for yv in together_sorted]
-
-            plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
-                         label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))),
-                         lw = 2)
-            x_new, y_new = polynomial_interpolation(to_plot_2[i], to_plot_3[i], 2)
-            plt.plot(x_new, y_new, color_list[i] + '-',
-                     lw=2)
-        if(cumulate == True):
-            to_plot_3.append(list_to_plot3)
-            plt.plot(to_plot_2[i], to_plot_3[i], color_list[i] + marker,
-                     label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))),
-                     lw=2)
-            x_new, y_new = polynomial_interpolation(to_plot_2[i], to_plot_3[i], 1)
-            plt.plot(x_new, y_new, color_list[i] + '-',
-                     lw=2)
-        else:
-            plt.plot(to_plot_2[i], color_list[i] + marker,
-                     label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
-        i += 1
-        """
 
 # ACCURACY WITH NORMAL DISTRIBUTION
 def test_accuracy():
@@ -668,12 +622,14 @@ def plot_demand_supply_curve():
         print "File " + file_unconfirmed_tx + " does not exist!"
 
 
-def polynomial_interpolation(x, y, degree=2):
+def polynomial_interpolation(description, x, y, degree=2):
     """
     given two lists of data it generates two new lists containing the functions interpolated
-    :param  x       :   x values of the data to interpolate
-    :param  y       :   y values of the data to interpolate
-    :param  degree  : degree of the function to get
+    :param  description :   description of the function
+    :param  x           :   x values of the data to interpolate
+    :param  y           :   y values of the data to interpolate
+    :param  degree      : degree of the function to get
+    :return             : x and y values to be plotted. Interpolated values.
     """
     # order lists
     together = zip(x, y)
@@ -686,7 +642,9 @@ def polynomial_interpolation(x, y, degree=2):
     z = np.polyfit(x_vals, y_vals, degree)
     f = np.poly1d(z)
 
+    print description + ": "
     print f
+    print "\n"
 
     x_new = np.linspace(x_vals[0], x_vals[-1], len(x_vals))
     y_new = f(x_new)
@@ -764,28 +722,20 @@ def define_intervals(number_of_blocks, save_txs = False):
                 print "Retrieving " + str(number_of_blocks) + " blocks starting from " + time
                 get_blockchain(number_of_blocks, error, hash)
 
-def plot_sequence(regression,  start_v, end_v):
+def plot_sequence():
     """
-    @params:
-      bool regression: if "-r" or "-R" is True, false otherwise
-      int start_v: start value where the blockchain will be plotted
-      int end_v: end value where the blockchain will be plotted
-    :return:
+
     """
-    if(regression):
-        plot_data("growth_blockchain", 2, True, start=start_v, end=end_v)
-        plot_data("fee_bandwidth", 3, True, start=start_v, end=end_v)
-        plot_data("fee_transactions", 7, True, start=start_v, end=end_v)
-    else:
-        plot_data("time_per_block", 0, start=start_v, end=end_v)
-        plot_data("byte_per_block", 1, start=start_v, end=end_v)
-        plot_data("growth_blockchain", 2, start=start_v, end=end_v)
-        """plot_data("fee_bandwidth", 3, start=start_v, end=end_v)"""
-        plot_data("bandwidth", 4, start=start_v, end=end_v)
-        """plot_data("efficiency", 5, start=start_v, end=end_v)
-        plot_data("transaction_visibility", 6, start=start_v, end=end_v)
-        plot_data("fee_transactions", 7, start=start_v, end=end_v)
-        plot_data("tthroughput", 8, start=start_v, end=end_v)"""
+
+    plot_data("time_per_block", 0)
+    plot_data("byte_per_block", 1)
+    plot_data("growth_blockchain", 2)
+    plot_data("fee_bandwidth", 3)
+    plot_data("bandwidth", 4)
+    """plot_data("efficiency", 5)
+    plot_data("fee_transactions", 7)
+    plot_data("transaction_visibility", 6)
+    plot_data("tthroughput", 8)"""
 
 # @profile
 def get_blockchain(number_of_blocks, error, hash, save_txs = False):
@@ -1200,9 +1150,10 @@ def get_indexes(list = []):
         start = end
         end = start + portion
         i += 1
+    return interval_list_start, interval_list_end
 
 
-def plot_data(description, plot_number, regression = None, start = None, end = None):
+def plot_data(description, plot_number):
     """
     Get the lists in the file and plots the data according to the description.
     :param description  - Required  : describe the type of plot created, it might be:
@@ -1214,14 +1165,14 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         efficiency
         fee_bandwidth
     :param plot_number  - Required  : number of the plot to be plotted and saved (progressive number)
-    :param regression   - Optional  : write a regression on the plot generated
-    :param start        - Optional  : block number where the plot starts
-    :param end          - Optional  : block number where the plot ends
     """
-    list_blockchain_time = datetime_retrieved(start, end)
     plt.figure(plot_number)
     plt.rc('lines', linewidth=1)
     axes = plt.gca()
+    axes.spines['right'].set_visible(False)
+    axes.spines['top'].set_visible(False)
+    axes.xaxis.set_ticks_position('bottom')
+    axes.yaxis.set_ticks_position('left')
 
     if(description == "time_per_block"): # shows the creation time for each block
         y_vals, x_vals = get_lists_ordered("creation_time", "epoch")
@@ -1229,7 +1180,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         y_vals[:] = [float(y) for y in y_vals]
 
         y_vals[:] = [y / 60 for y in y_vals]
-
         plot_multiple_lists(description, marker_list[0], x_vals, y_vals)
 
         plt.legend(loc="best")
@@ -1244,7 +1194,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         y_vals, x_vals = get_lists_ordered("size", "epoch")
         y_vals[:] = [float(i) for i in y_vals]
         y_vals[:] = [y / 1000000 for y in y_vals]
-        y_vals = y_vals[end:start]
 
         plot_multiple_lists(description, marker_list[0], x_vals, y_vals)
 
@@ -1270,7 +1219,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
     elif(description == "bandwidth"): # shows the read bandwidth of the blockchain -- how much time to retrieve data
         y_vals, x_vals = get_lists_ordered("bandwidth", "epoch")
         y_vals[:] = [float(y) for y in y_vals]
-        y_vals = y_vals[end:start]
 
         plot_multiple_lists(description, marker_list[1], x_vals, y_vals)
 
@@ -1300,27 +1248,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         # plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals, cumulate=True)
         # axes.set_xlim([0, max(x_vals)])
 
-        """if(regression):
-            el = len(x_vals)
-            last_el = x_vals[el - 1]
-
-            # ---- get the predicted date time --------
-            epoch_list = epoch_list[end:start]
-            last_epoch = int(epoch_list[0])
-            # add the hours to that epoch
-            sec_to_add = (last_el*3) * 60 * 60
-            last_epoch = last_epoch + sec_to_add
-            prediction_date = epoch_datetime(last_epoch)
-            # -----------------------------------------
-
-            newX = np.linspace(0, last_el * 3)
-            popt, pcov = curve_fit(myComplexFunc, x_vals, y_vals)
-            plt.plot(newX, myComplexFunc(newX, *popt), 'g-', label=("prediction until\n" + str(prediction_date)), lw=3)
-            lim = axes.get_ylim()
-            axes.set_ylim([0, lim[1]])
-            polynomial = np.polyfit(newX, myComplexFunc(newX, *popt), 2)
-            print polynomial"""
-
         # split the list in epoch and create a growing size and time list
         start, end = get_indexes()
         i = 0
@@ -1345,19 +1272,21 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
 
         x_vals = time
         y_vals = size
-        plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals)
+        regression = []
+        regression.append("growth regression")
+        regression.append(2)
+        plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals, regression=regression)
         plt.legend(loc="best")
-        plt.yscale('log', nonposy='clip')
-        plt.xscale('log', nonposy='clip')
-        axes.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
-        axes.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        # plt.yscale('log', nonposy='clip')
+        # plt.xscale('log', nonposy='clip')
+        # axes.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
+        # axes.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
     elif(description == "transaction_visibility"):
         x_vals = get_list_from_file("avgttime")
         x_vals[:] = [float(x) for x in x_vals]
         x_vals[:] = [x / 60 for x in x_vals]    # in minutes
-        x_vals = x_vals[end:start]
         plt.plot(x_vals, 'b-', label=(
         "avg transaction visibility per block\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])))
         plt.legend(loc="best")
@@ -1371,10 +1300,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         x_vals_size = get_list_from_file("size")
         x_vals_time = get_list_from_file("creation_time")
         x_vals_tr = get_list_from_file("transactions")
-
-        x_vals_size = x_vals_size[end:start]
-        x_vals_time = x_vals_time[end:start]
-        x_vals_tr = x_vals_tr[end:start]
 
         x_vals_size[:] = [float(x) for x in x_vals_size]
         x_vals_size[:] = [x / 1000 for x in x_vals_size]
@@ -1394,11 +1319,9 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
     # ------------------------- TO IMPLEMENT THROUGHPUT -------------------------
     elif(description == "tthroughput"):
         x_vals = get_list_from_file("creation_time")
-        x_vals[:] = x_vals[end:start]
         x_vals[:] = [float(x) for x in x_vals]
 
         y_vals = get_list_from_file("transactions")
-        y_vals[:] = y_vals[end:start]
         y_vals[:] = (float(x) for x in y_vals)
 
         to_plot = []
@@ -1419,7 +1342,7 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
 
     # -----------------------------------------------------------------------------------------------------------------------------
     elif(description == "fee_bandwidth"):
-        x_vals, epoch_vals, y_vals = get_lists_ordered("creation_time", "epoch", "fee")
+        epoch_vals, x_vals, y_vals = get_lists_ordered("epoch", "creation_time", "fee")
 
         epoch_vals[:] = [int(x) for x in epoch_vals]
 
@@ -1429,48 +1352,16 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         y_vals[:] = [float(y) for y in y_vals]
         y_vals[:] = [y / 100000000 for y in y_vals] # in BTC
 
-        x_vals = x_vals[end:start]
-        y_vals = y_vals[end:start]
+        regression = []
+        regression.append("$f_{Bg}(x)$")
+        regression.append(2)
+        plot_multiple_lists(description, marker_list[0], epoch_vals, x_vals, y_vals, regression=regression)
 
-        """plt.plot(x_vals, y_vals, 'ro', label=(
-            "fee paid\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])))"""
-        # plot_multiple_lists(description, marker_list[0], epoch_vals, x_vals, y_vals)
-
-        plt.ylabel("fee (BTC)")
+        plt.ylabel("fee $(BTC)$")
         plt.xlabel("creation time (min)")
         axes.set_xlim([0, 30])
         axes.set_ylim([0, 0.5])
 
-# TODO: =========================================== IMPLEMENT ========================================
-        if(regression):
-            start_interval, end_interval = get_indexes()
-
-
-            i = 0
-            while (i < n_portions):
-                # logarithmic regression
-
-                x = x_vals[start_interval[i]:end_interval[i]]
-                y = y_vals[start_interval[i]:end_interval[i]]
-
-                together_sorted = sorted(zip(x, y))
-
-                x = [xv[0] for xv in together_sorted]
-                y = [yv[1] for yv in together_sorted]
-
-                x = np.array(x, dtype=float)  # transform your data in a numpy array of floats
-                y = np.array(y, dtype=float)
-
-                popt, pcov = curve_fit(func, x, y, maxfev=3000)
-
-
-                plt.plot(x, y, color_list[i]+marker_list[0], label="fee paid", markevery=5)
-                plt.plot(x, func(x, *popt), color_list[i]+marker_list[1], label="regression n: " + str(i), lw=5)
-                polynomial = np.polyfit(x, func(x, *popt), 2)
-                print polynomial
-                i += 1
-
-# TODO: ==================================================================================================
         plt.legend(loc="best")
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
@@ -1487,9 +1378,6 @@ def plot_data(description, plot_number, regression = None, start = None, end = N
         num_tr = get_list_from_file("transactions")
         num_tr[:] = [float(x) for x in num_tr]
         x_vals[:] = [x / y for x,y in zip(x_vals, num_tr)]
-
-        x_vals = x_vals[end:start]
-        y_vals = y_vals[end:start]
 
         plt.plot(x_vals, y_vals, 'ro', label=(
             "transaction visibility\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])))
