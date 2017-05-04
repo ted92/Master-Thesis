@@ -200,12 +200,57 @@ def plot_multiple_lists(description, marker, epoch_list, list2, list3 = None, al
             plt.plot(list2[start_interval_tr[i]:end_interval_tr[i]], list3[start_interval_tr[i]:end_interval_tr[i]], color_list[i] + marker,
                      label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
             if(regression != None):
-                new_x, new_y = polynomial_interpolation(regression[0], list2[start_interval_tr[i]:end_interval_tr[i]], list3[start_interval_tr[i]:end_interval_tr[i]], regression[1])
-                plt.plot(new_x, new_y, color_list[i]+marker_list[1], label=regression[0], lw=4)
+                new_x, new_y, f = polynomial_interpolation(regression[0], list2[start_interval_tr[i]:end_interval_tr[i]], list3[start_interval_tr[i]:end_interval_tr[i]], regression[1])
+                # todo: create a function that manipulates f
+                f = from_f_to_math(f)
+                plt.plot(new_x, new_y, color_list[i]+marker_list[1], label="$" + f + "$", lw=4)
         else:
             plt.plot(list2[start_interval_tr[i]:end_interval_tr[i]], color_list[i] + marker,
                  label=(str(epoch_datetime(to_plot_1[i][0])) + "\n" + str(epoch_datetime(to_plot_1[i][-1]))))
         i += 1
+    plt.legend(loc="best", prop={'size': 8})
+
+
+def from_f_to_math(f):
+    """
+    :param f    :   get a string containing the function interpolated
+    :return     :   return a math string ready to be plotted
+    """
+    f = str(f)
+    new_f = ""
+    powers = []
+    exp_coeff = []
+    # array containing  [0]: powers
+    #                   [1]: function
+    array_f = f.split("\n")
+
+    coefficients = array_f[1].split("x")
+    for c in coefficients:
+        exp_coeff.append(c.split("e"))
+
+    # changing coefficients
+    i = 0
+    for el in coefficients:
+        if (len(exp_coeff[i])>1):   # there is e^smth
+            new_coeff = exp_coeff[i][0] + "*10^{" + exp_coeff[i][1] +"}"
+            coefficients[i] = new_coeff
+        i += 1
+    exponentials = array_f[0].split(" ")
+    for ex in exponentials:
+        if(ex != ""):
+            powers.append(ex)
+    powers.append('1')
+
+    i = 0
+    for el in powers:
+        new_f += coefficients[i]
+        new_f += 'x^'
+        new_f += el
+        i += 1
+    new_f += coefficients[-1]
+    return new_f
+
+
 
 
 # ACCURACY WITH NORMAL DISTRIBUTION
@@ -629,7 +674,7 @@ def polynomial_interpolation(description, x, y, degree=2):
     :param  x           :   x values of the data to interpolate
     :param  y           :   y values of the data to interpolate
     :param  degree      : degree of the function to get
-    :return             : x and y values to be plotted. Interpolated values.
+    :return             : x and y values to be plotted. Interpolated values. f is the function to write in the plot.
     """
     # order lists
     together = zip(x, y)
@@ -649,7 +694,7 @@ def polynomial_interpolation(description, x, y, degree=2):
     x_new = np.linspace(x_vals[0], x_vals[-1], len(x_vals))
     y_new = f(x_new)
 
-    return x_new, y_new
+    return x_new, y_new, f
 
 def get_json_request(url):
     """
@@ -1182,7 +1227,6 @@ def plot_data(description, plot_number):
         y_vals[:] = [y / 60 for y in y_vals]
         plot_multiple_lists(description, marker_list[0], x_vals, y_vals)
 
-        plt.legend(loc="best")
         plt.ylabel("creation time (min)")
         plt.xlabel("epoch")
         axes.set_ylim([0, 40])
@@ -1197,7 +1241,6 @@ def plot_data(description, plot_number):
 
         plot_multiple_lists(description, marker_list[0], x_vals, y_vals)
 
-        plt.legend(loc="best")
         plt.ylabel("block size (Mb)")
         plt.xlabel("block number")
         axes.set_xlim([0, len(x_vals)/n_portions])
@@ -1225,7 +1268,6 @@ def plot_data(description, plot_number):
         # plt.plot(x_vals, 'c-', label=(
             # "read bandwidth Mb/s\n" + str(list_blockchain_time[0]) + "\n" + str(list_blockchain_time[1])), lw=3)
 
-        plt.legend(loc="best")
         plt.ylabel("read bandwidth (Mb/s)")
         plt.xlabel("block number")
         axes.set_xlim([0, len(y_vals)/n_portions])
@@ -1276,7 +1318,6 @@ def plot_data(description, plot_number):
         regression.append("growth regression")
         regression.append(2)
         plot_multiple_lists("growth blockchain", marker_list[0], epoch_vals, x_vals, y_vals, regression=regression)
-        plt.legend(loc="best")
         # plt.yscale('log', nonposy='clip')
         # plt.xscale('log', nonposy='clip')
         # axes.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
@@ -1362,7 +1403,6 @@ def plot_data(description, plot_number):
         axes.set_xlim([0, 30])
         axes.set_ylim([0, 0.5])
 
-        plt.legend(loc="best")
         plt.savefig('plot/' + description + '(' + str(len(x_vals)) + ')')
         print("plot " + description + ".png created")
     elif(description == "fee_transactions"):
