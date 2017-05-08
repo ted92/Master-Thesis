@@ -103,8 +103,13 @@ def main(argv):
         for opt, arg in opts:
             if(opt == "-t"):    # check unconfirmed transaction for the mempool demand and supply curve
                 print ("Checking the unconfirmed transactions.")
+                start = datetime.datetime.now()
                 fetch_unconfirmed_transactions(int(arg))
-                plot_demand_supply_curve()
+                end = datetime.datetime.now()
+
+                time = end - start
+                time = get_time_in_seconds(time)
+                plot_demand_supply_curve(time)
                 # BLOCK SPACE SUPPLY CURVE
                 valid_args = True
             if(opt == "-b"):    # backup of txt files
@@ -444,15 +449,15 @@ def plot_tx_visibility():
         one_usd = b.get_latest_price('USD')
         axes = plt.gca()
 
-        y_vals = fee_list
-        y_vals[:] = [float(x) for x in y_vals]
-        y_vals[:] = [x / 100000000 for x in y_vals]  # in BTC
+        x_vals = fee_list
+        x_vals[:] = [float(x) for x in x_vals]
+        x_vals[:] = [x / 100000000 for x in x_vals]  # in BTC
         # y_vals[:] = [x * one_usd for x in y_vals]  # in USD
 
-        x_vals = approval_time_list
-        print len(x_vals)
-        x_vals[:] = [float(x) for x in x_vals]
-        x_vals[:] = [x / 60 for x in x_vals]  # in minutes
+        y_vals = approval_time_list
+        print len(y_vals)
+        y_vals[:] = [float(x) for x in y_vals]
+        y_vals[:] = [x / 60 for x in y_vals]  # in minutes
 
         # together = zip(x_vals, y_vals)
         # sorted_together = sorted(together)
@@ -471,10 +476,10 @@ def plot_tx_visibility():
         # axes.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
         # axes.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 
-        axes.set_xlim([0, 100])
-        axes.set_ylim([0, 0.02])
-        plt.ylabel("$\overline{T_p}$ (BTC)")
-        plt.xlabel("transaction visibility (min)")
+        axes.set_ylim([0, 100])
+        axes.set_xlim([0, 0.02])
+        plt.xlabel("$t_f$ (BTC)")
+        plt.ylabel("$f_{t_f}(x)$ available bandwidth (min)")
         plt.legend(loc="best")
         plt.savefig('plot/fee-approvaltime')
         print("plot fee-approvaltime.png created")
@@ -487,8 +492,8 @@ def propagation_time_function(q):
     :param q : block size
     :return : propagation time value
     """
-
-    return q * 100
+    to_return = math.exp(q*1.5)
+    return to_return
 
 
 def fetch_unconfirmed_transactions(max_tr):
@@ -510,14 +515,17 @@ def fetch_unconfirmed_transactions(max_tr):
     # how many unconfirmed transactions you want to retreive, 10 per time
     i = 0
     while i < max_tr:
-        json_data = get_json_request(unconfirmed_txs_url)
-        unconfirmed_tr += json_data['txs']
-        time.sleep(2)
-        i += 1
-        # ---------- PROGRESS BAR -----------
-        index_progress_bar += 1
-        progressBar(index_progress_bar, prefix, max_tr)
-        # -----------------------------------
+        try:
+            json_data = get_json_request(unconfirmed_txs_url)
+            unconfirmed_tr += json_data['txs']
+            time.sleep(1.5)
+            i += 1
+            # ---------- PROGRESS BAR -----------
+            index_progress_bar += 1
+            progressBar(index_progress_bar, prefix, max_tr)
+            # -----------------------------------
+        except Exception as e:
+            pass
 
     # write file with all the unconfirmed transactions
     with io.FileIO(file_unconfirmed_tx, "w") as file:
@@ -595,21 +603,20 @@ def calculate_transactions_fee(txs, epoch = None):
             pass
     return in_list, out_list, fees_list, sizes_list, approval_time_list
 
-def plot_demand_supply_curve():
+def plot_demand_supply_curve(time):
     """
     It plots the mempool demand and supply curve. It retrievs the unconfirmed txs in the unconfirmed_tx.txt file,
     then it calculates the fees density with fee/size. It orders it in a decrescent order and then
     plots the cumulate sum of the fees and the sizes following this order in order to get the mempool demand curve.
+    :param time :   time, in second, taken checking the mempool
     """
     fees_list = []
     sizes_list = []
     fee_density_list = []
 
-    list_hashes_checked = []
-
-
     if (os.path.isfile(file_unconfirmed_tx)):
         with io.FileIO(file_unconfirmed_tx, "r") as file:
+            file.seek(0)
             unconfirmed_tx = file.read()
 
         unconfirmed_tx = ast.literal_eval(unconfirmed_tx)
@@ -646,10 +653,27 @@ def plot_demand_supply_curve():
             cost_list.append(supply)
 
 
+        # find the point of maximization of the profit
+        max_l = []
+        x_list_max = []
+        i = 0
+        max_v = 0
+        for fee in fees_list:
+            val = fee - cost_list[i]
+            max_l.append(val)
+            if (max_v < val):
+                max_v = val
+                maximized_space = sizes_list[i]
+            i += 1
 
+        for i in range(len(max_l)):
+            x_list_max.append(maximized_space)
+
+        int(time)
+        time_min = int(time / 60)
         # ================== PLOTTING ==================
         axes = plt.gca()
-        axes.set_ylim([0, max(fees_list) + 10])
+        axes.set_ylim([0, max(fees_list) + 1])
         axes.set_xlim([0, max(sizes_list)])
         plt.figure(1)
         plt.rc('lines', linewidth=3)
@@ -657,10 +681,13 @@ def plot_demand_supply_curve():
                  label=("$M_{demand}(b)$"), )
         plt.plot(sizes_list, cost_list, color_list[2] + marker_list[1],
                  label=("$M_{supply}(Q)$"), )
-        plt.legend(loc="best")
+        plt.plot(x_list_max, list(range(len(fees_list))), color_list[3] + marker_list[1],
+                 label=("$Q^*$ for " + str(time_min) + " minutes"))
+        plt.legend(loc="best", prop={'size': 8})
         plt.ylabel(r"Fees $M(B)$")
         plt.xlabel("Block space $Q$ (Mb)")
         plt.savefig('plot/demandsupplycurve', transparent=True)
+        print "plot demandsupplycurve.pdf created"
         # =======================================
 
     else:
