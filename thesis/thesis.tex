@@ -87,7 +87,7 @@
 %:-------------------------- Frontpage ------------------------
 
 % \title{Understanding Digital Currencies and Blockchain}
-\title{Master Thesis title}
+\title{Trading Network Performance for Cash in the Bitcoin Blockchain}
 \subtitle{subtitle}			% Optional
 \author{Enrico Tedeschi}
 \thesisfaculty{Faculty of Science and Technology \\ Department of Computer Science}
@@ -125,6 +125,53 @@
 \mainmatter
 \chapter{Introduction}
 \label{chap:introduction}
+%TODO: INSERT: Bitcoin has the unintuitive property that while the ownership of money is implicitly anonymous, its flow is globally visible\,\cite{Meiklejohn:2013}.
+
+%TODO: give a short example of previous work, what they did and show that this problem has relevance for this field! works might be: Rizun one, Bohme (longitudinal study of bitcoin transaction fees) and On scaling decentralized blockchain system.
+Blockchain technology opens up to usages in several important sectors
+such as trading, file storage, and identity management.
+This technology is widely used in decentralized digital
+currencies, and at the present, the most common
+are Bitcoin\,(2008) and Ethereum\,(2013), but many more are emerging. 
+
+Blockchains essentially implements a distributed consensus protocols that enable a set of untrusted processes to agree on the content of an append only data structures. 
+These ledgers are divided into blocks and linked together in sequence by hashes. 
+They facilitate transactions between consenting individuals who would otherwise have no means to trust each other and deal with geographical separation and interfacing difficulties 
+This technology promises a highly resilient and communication substrate where messages are kept potentially for a long time.
+
+Nonetheless, decentralized digital currencies also have some side effects.
+The most relevant is \emph{scalability}, due to the steady growth of the
+blockchain. It should be also considered that
+decentralized cryptocurrencies operate in open (or permissionless) networks
+in which the ledger of data could be manipulated from arbitrary adversaries and
+according also to the paper from University of Singapore\,\cite{Luu:2016}
+security of smart contracts has not received much attention yet. And since the
+only part not protected from cryptography is the \emph{order of transactions}\,\cite{ethereum_white_paper},
+an attacker would try to convince the network that a transaction
+occurred earlier than another one to gain money.
+The security bugs in smart contracts are classified as \emph{Transaction-Ordering Dependence},
+\emph{Timestamp Dependence}, \emph{Mishandled Exceptions}
+and \emph{Reentrancy Vulnerability}\,\cite{Luu:2016}.
+
+
+Scalability and network performances are urgent concern in existing Blockchain-based cryptocurrencies~\cite{croman2016}.
+It is true that Bitcoin has lower fees than centralized currency schemes, but these properties come at a performance and scalability cost. 
+According to \cite{ethereum_white_paper}, if Bitcoin would
+have the same amount of transactions of a VISA circuit, its blockchain would grow
+about $1$\,MB per 3 seconds.
+Centralized schemes, like VISA are immediate, while having a
+throughput of $2,000$\,transactions/sec
+up to $56,000$\,transactions/sec\,\cite{croman2016}.
+In this thesis we presents some of our observation of the performance of the
+Bitcoin blockchain.  We provide detailed insights and analysis on how
+Bitcoin's characteristics have changed over time, and provide an
+updated model describing how the Bitcoin blockchain will grow. 
+We analyse the correlation between the fee paid to the miner and block
+creation time, the time it takes for a transaction to 
+be visible in the whole network.  
+Three different models are proposed to describe how applications
+best can spend money to improve network charactertics,
+this affects average bandwidth available to an application. 
 
 \section{Problem Statement}
 \label{sec:probdefinition}
@@ -159,19 +206,23 @@
 %possible development of this project and conclusions of the overall work.
 
 %TODO: PREVIOUS WORK -- WORKING ON THIS CHAPTER
-\chapter{Related Works}
+\chapter{Related Works - SotA}
 \label{chap:prev_works}
+Scalability and analysis on the blockchain has been taken into consideration
+by many researchers in the past years.
 This chapter summarizes the most relevant papers or works that talks about Bitcoin,
 decentralized cryptocurrencies, concepts behind them and statistical analysis on the
-blockchain. In a previous paper that we wrote~\cite{Tedeschi:2016:PBB}, we enhanced the
+blockchain. In a previous paper that we wrote\,\cite{Tedeschi:2016:PBB}, we enhanced the
 importance of paying for having a certain bandwidth in the Bitcoin network. A paper
-from Peter~R.~Rizun~\cite{Rizun:2015:blocksizelimit}, explains how a rational Bitcoin
+from Peter~R.~Rizun\,\cite{Rizun:2015:blocksizelimit}, explains how a rational Bitcoin
 miner should select transactions from his node mempool, when creating a new block,
 in order to maximize his profit. Analysis on the blockchain in matter of
-scalability is showed in the Position Paper of Kyle Croman~\cite{croman2016}, they
+scalability is showed in the Position Paper of Kyle Croman\,\cite{croman2016}, they
 analyze how fundamental bottlenecks in Bitcoin limit the ability of its current peer-to-peer
 overlay network to support substantially higher throughputs and lower latencies. We are
 going to test the throughput as well, comparing it with the one showed in this paper.
+Furthermore, to fully understand how is possible to make money out of the blockchain and mining,
+in necessary to have a view of how \emph{VISA}\,\cite{visa} makes money as well.
 
 \section{A Transaction Fee Market Exists Without a Block Size Limit}
 \label{sec:rizun}
@@ -292,6 +343,7 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 \end{figure}
 %TODO: Insert graph of the block space supply curve
 \chapter{Technical Background}
+%TODO: We refrain from explaining Bitcoin and its terminology in detail and refer the reader to existing high-level (thr rconomics of digital currencies, bitcoin, journal of economics prospective) or technical\,\cite{ethereum},\,\cite{bitcoinmining},\,\cite{bitcoin_blockchain},\,\cite{Rizun:2015:blocksizelimit},\,\cite{Nakamoto_bitcoin},\,\cite{ethereum_white_paper}.
 \label{chap:techback}
 %This chapter will give a detailed explanation about decentralized digital
 %currencies, explaining all the main concepts and key words that you should know when
@@ -327,6 +379,11 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 
 \section{Blockchain Data Sources}
 \label{sec:apis}
+%TODO: talk about how and from where data were collected. blockchain.info, json etc.. which kind of data were collected and why. Use maybe coindesk.com for the avg USD bitcoin price.
+
+%TODO: Talk about the time range selected and why. Read "a longitudinal study of bitcoin transaction fees" the section Data and Methods
+
+%TODO: As Michael Bowles\,\cite{bowles2015MLIP} says machine learning data sets are most commonly arranged with columns corresponding to a single attribute and rows corresponding to a single observation.
 %There are many websites that observe and make analysis on the existing blockchains. The most
 %popular websites for Bitcoin and Ethereum blockchain analysis are \url{blockchain.info}\,\cite{bitcoin_blockchain}
 %for Bitcoin, \url{etherscan.io}\,\cite{ethereum_bc_analysis} and \url{etherchain.org}\,\cite{ethereum_blockchain}
@@ -1066,7 +1123,8 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 \cite{tradeblock}, \cite{ethereum_website}, \cite{Larman:2004:AUP},
 \cite{Aho:1992:FCS}, \cite{matplotlib}, \cite{croman2016}, \cite{DBLP:journals/corr/EyalGSR15},
 \cite{Hildebrand:1987:INA}, \cite{mining_hw}, \cite{hashing_rate}, \cite{bitnodes}, \cite{Rizun:2015:blocksizelimit}
-\cite{linearize}, \cite{Tedeschi:2016:PBB}, \cite{Donnelly2015BNSB}, \cite{RePEc:gat:wpaper:1407}.
+\cite{linearize}, \cite{Tedeschi:2016:PBB}, \cite{Donnelly2015BNSB}, \cite{RePEc:gat:wpaper:1407},
+\cite{visa}, \cite{DBLP:journals/corr/BartolettiBLP17}, \cite{Moser2015}.
 
 
 \bibliographystyle{plain}

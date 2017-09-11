@@ -41,3 +41,4 @@
 **/src/plot/
 **/src/old_plots/
 src/*txt
+src/*tsv
