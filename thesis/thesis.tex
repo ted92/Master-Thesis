@@ -26,6 +26,7 @@
 \usepgflibrary{arrows}
 \usepackage{listings}
 \usepackage{amssymb}
+\usepackage{enumitem}  
 
 \usepackage{glossaries}
 
@@ -128,6 +129,8 @@
 %TODO: INSERT: Bitcoin has the unintuitive property that while the ownership of money is implicitly anonymous, its flow is globally visible\,\cite{Meiklejohn:2013}.
 
 %TODO: give a short example of previous work, what they did and show that this problem has relevance for this field! works might be: Rizun one, Bohme (longitudinal study of bitcoin transaction fees) and On scaling decentralized blockchain system.
+
+%TODO: Another question we asked ourself for the data is how the various attributes relate to one another, and a quick way to get an idea of pair-wise relationship is to cross-plot the attributes and later interpolate the results.
 Blockchain technology opens up to usages in several important sectors
 such as trading, file storage, and identity management.
 This technology is widely used in decentralized digital
@@ -175,6 +178,7 @@ this affects average bandwidth available to an application.
 
 \section{Problem Statement}
 \label{sec:probdefinition}
+%TODO: One of the most recent debate on Bitcoin blockchain is wether the block size $Q$ should be increased or not. Rizun\,\cite{Rizun:2015:blocksizelimit} in his paper explained how challenging might be the increment of the block size and it defines an optimal size of~$\sim$\,$1$\,Mb. Anyway there are arguments in favor of increasing the block size, we analyzed these arguments and discuss whether and where is conveninet to increase the $Q$. Pros: More transactions per second, higher throughput. Less fees. Cons: miner won't get enough fee. Higher (exponential) risk of orphaning.
 
 %TODO: Sentences:
 % You can't build something that works without having a certain level of centralization, there always should
@@ -343,8 +347,91 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 \end{figure}
 %TODO: Insert graph of the block space supply curve
 \chapter{Technical Background}
-%TODO: We refrain from explaining Bitcoin and its terminology in detail and refer the reader to existing high-level (thr rconomics of digital currencies, bitcoin, journal of economics prospective) or technical\,\cite{ethereum},\,\cite{bitcoinmining},\,\cite{bitcoin_blockchain},\,\cite{Rizun:2015:blocksizelimit},\,\cite{Nakamoto_bitcoin},\,\cite{ethereum_white_paper}.
 \label{chap:techback}
+%TODO: We refrain from explaining Bitcoin and its terminology in detail and refer the reader to existing high-level (thr rconomics of digital currencies, bitcoin, journal of economics prospective) or technical\,\cite{ethereum},\,\cite{bitcoinmining},\,\cite{bitcoin_blockchain},\,\cite{Rizun:2015:blocksizelimit},\,\cite{Nakamoto_bitcoin},\,\cite{ethereum_white_paper}.
+
+%TODO: MACHINE LEARNING SECTION
+%TODO: The degree of correlation between two attributes can be quantified using Pearson's correlation coefficient. Pearson's correlation coefficient is defined for two equal length vectors $u$ and $v$ \cite{bowles2015machine}:
+%\begin{align}
+%u &= \begin{bmatrix}
+%u_{1} \\
+%u_{2} \\
+%\vdots \\
+%u_{n}
+%\end{bmatrix} &
+%v &= \begin{bmatrix}
+%v_{1}\\
+%v_{2}\\
+%\vdots\\
+%v_{n}
+%\end{bmatrix}
+%\end{align}
+%First subtract the mean value of $u$ from all the elements of $u$, and the same with $v$, then we generate $\Delta{u}$ and $\Delta{v}$ as follows:
+%\[
+%\overline{u} = avg(u)
+%\]
+%\[
+%\overline{v} = avg(v)
+%\]
+%\begin{align}
+%\Delta{u} &=\begin{bmatrix}
+%u_{1} - \overline{u}\\
+%u_{2} - \overline{u}\\
+%\vdots\\
+%u_{n} - \overline{u}
+%\end{bmatrix} &
+%\Delta{v} &=\begin{bmatrix}
+%v_{1} - \overline{v}\\
+%v_{2} - \overline{v}\\
+%\vdots\\
+%v_{n} - \overline{v}
+%\end{bmatrix} 
+%\end{align}
+
+%TODO: ... continues pearson's correlation: The Pearson's correlation between $u$ and $v$ is defined in \ref{eq:pearson}:
+%\begin{equation}
+%\label{eq:pearson}
+%corr(u,v) = \frac{\Delta{u^{T}} * \Delta{v}}{\sqrt{(\Delta{u^{T}}*\Delta{u})*(\Delta{v^{T}}*\Delta{v})}}
+%\end{equation}
+
+%TODO: Working with huge amount of data, with different attributes having all different values it might be useful to transform them with a function in a range of values such as $(0,1)$. This function is defined in Eq.\,\ref{eq:logit} and is called \emph{logit transform}.
+%\begin{equation}
+%\label{eq:logit}
+%\text{\emph{logit transform}}(x) = \frac{1}{(1 + e^{-x})}
+%\end{equation}
+
+%TODO: Training and predicting models involves different types of variables:
+%\begin{description}[leftmargin=!, labelwidth=\widthof{\bfseries --Target variables-- }]
+%	\item[Target variables:] the variable that you are attempting to predict, represented with $Y$;
+%	\item[Predictors:] variables that you can use to make the prediction, represented with $X$.
+%\end{description}
+%\begin{align}
+%X &=\begin{bmatrix}
+%x_{11} & x_{12}  & \dots & x_{1n}\\
+%x_{21} & x_{22} & \dots & x_{2n}\\
+%\vdots & \vdots & & \vdots\\
+%x_{m1} & x_{m2} & \dots & x_{mn}
+%\end{bmatrix} &
+%Y &=\begin{bmatrix}
+%y_{1}\\
+%y_{2}\\
+%\vdots\\
+%y_{m}
+%\end{bmatrix} 
+%\end{align}
+%TODO: When the targets are real numbers, the problem of training those data is called \emph{regression problem}. If the targets are two-valued the problem is called \emph{binary classification problem}. We need to predict then every $y_i \in Y$ using every row $x_i \in X$ and evaluate the performance of our predictions. Good performance means using the attributes $x_i$ to generate a prediction that is \emph{close} to $y_i$. For a regression problem where $y_i$ is a real number, performance is measured in terms like the \gls{mse}\,(Eq.\ref{eq:mse}) or the \gls{mae}\,(Eq. \ref{eq:mae})\,\cite{bowles2015machine}.
+%
+%\begin{equation}
+%\label{eq:mse}
+%\text{\gls{mse}} = \frac{1}{m}\sum_{i=1}^{m}{(y_i - \text{\emph{pred}}(x_i))^2}
+%\end{equation}
+%
+%\begin{equation}
+%\label{eq:mae}
+%\text{\gls{mae}} = \frac{1}{m}\sum_{i=1}^{m}{|(y_i - \text{\emph{pred}}(x_i))|}
+%\end{equation}
+%TODO: If the problem is a classification problem, then other measure of performance must be used. One of the most used is the \emph{misclassification error}.
+
 %This chapter will give a detailed explanation about decentralized digital
 %currencies, explaining all the main concepts and key words that you should know when
 %you read about cryptocurrency. 	The differences between centralized
@@ -379,11 +466,23 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 
 \section{Blockchain Data Sources}
 \label{sec:apis}
+
+%TODO: ============ RETRIEVING DATA =============
+%TODO: The instability of the the connection and the \gls{api}'s given from Bitcoin, collecting data was extremely difficult and time consuming. We analyzed and collected data from #DATE to #DATE with more than # blocks and # transactions
+
 %TODO: talk about how and from where data were collected. blockchain.info, json etc.. which kind of data were collected and why. Use maybe coindesk.com for the avg USD bitcoin price.
 
 %TODO: Talk about the time range selected and why. Read "a longitudinal study of bitcoin transaction fees" the section Data and Methods
 
-%TODO: As Michael Bowles\,\cite{bowles2015MLIP} says machine learning data sets are most commonly arranged with columns corresponding to a single attribute and rows corresponding to a single observation.
+%TODO: =========== ORGANIZING DATA ==============
+%TODO: The Pandas package makes it possible to read data into a specialized data structure called a \emph{data frame}\,\cite{pandas}.
+%TODO: As Michael Bowles\,\cite{bowles2015MLIP} says, you can think of a data frame as a table or matrix-like structure oriented with a row representing a single case or observation and columns representing particular attributes. We decided to use a data frame structure and not a matrix one becuase even though the data frame structure is matrix-like, its elements in various columns may be of different types. For statistical problems, the matrix is too confining because statistical samples typically have a mix of different types, plus, Pandas package makes it possible to automate the steps of calculating mean, variance, and quantiles offers and a nice and smooth control over your data. Our dataset contains both, numeric and categorical (or factors) variables.
+%TODO: Structure in the way the data are stored might need to be factored into your approach for doing subsequential sampling. This is the reason why we stored transactions ordered by block and each block ordered by height/epoch, in that way we have the data set ordered by block creation with all its transactions in it and it will be much easier to make analysis or sampling data following a cronological order.
+
+%TODO: ============= VISUALIZING DATA ============
+%TODO: Once data are gathered and the dataset is created, the first step is to determine the outliers.
+%TODO: How to deal with outliers? We can segregate them out and train on them as a separate class
+%TODO: Dealing with categorical attributes, as the number of attributes grows, the complexity of dealing with them mounts, also, most of binary tree algorithms, which are the basis for ensamble methods, have a cutoff on how many categories they can handle\,\cite{bowles2015MLIP}. Random Forest package written by Breiman and Cutler has a cutoff of 32 categories\,\cite{Breiman:2001:RF}.
 %There are many websites that observe and make analysis on the existing blockchains. The most
 %popular websites for Bitcoin and Ethereum blockchain analysis are \url{blockchain.info}\,\cite{bitcoin_blockchain}
 %for Bitcoin, \url{etherscan.io}\,\cite{ethereum_bc_analysis} and \url{etherchain.org}\,\cite{ethereum_blockchain}
@@ -668,6 +767,13 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 
 \chapter{Blockchain Observations}
 \label{chap:evaluation}
+%TODO: Our observations could be miners oriented or epoch oriented. Analyzing categorical data such as mining pools we could determine which ones are more effective than others and why a block should most likely be mined by a certain mining pool rather than another. Studying the epoch instead, gave us useful informations about the changes and the development of the blockchain during time.
+
+%TODO: In our studies, we focused on finding any correlation between attributes using heat map with \emph{seaborn}\,\cite{michael_waskom_seaborn}. If the heat map chart shows any possible correlation then we study the degree of correlation between two attributes, $corr(u,v)$, which can be quantified using Pearson's correlation coefficient showed in Eq.\,\ref{eq:pearson}. However, calculating the correlations and printing them or drawing cross-plots works fine for few correlations, but it is difficult to get a grasp of a large table of numbers, and it is difficult to squeeze all the cross plots onto a page if the problem has a large number of attributes. For that reason we use a heat map with Pearson's correlation coefficient for pairs of attributes arranged into a matrix where the $m_{ij}$ entry is the correlation between the $i^{th}$ attribute and the $j^{th}$ attribute.
+
+%TODO: The next step wants to get some ideas about the relationship among the attributes and between attributes and labels including also categorical attributes.
+
+%TODO: To get values in $(0,1)$ the logit function in Eq.\,\ref{eq:logit} is applied to our data.
 %In this chapter we present observations of the Bitcoin blockchain captured by the
 %analytics system outlined in Chapter~\ref{chap:expsetup}. 
 %To evaluate our problem definition in Chapter~\ref{sec:probdefinition}, we focus on consideration related to 
@@ -1124,7 +1230,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 \cite{Aho:1992:FCS}, \cite{matplotlib}, \cite{croman2016}, \cite{DBLP:journals/corr/EyalGSR15},
 \cite{Hildebrand:1987:INA}, \cite{mining_hw}, \cite{hashing_rate}, \cite{bitnodes}, \cite{Rizun:2015:blocksizelimit}
 \cite{linearize}, \cite{Tedeschi:2016:PBB}, \cite{Donnelly2015BNSB}, \cite{RePEc:gat:wpaper:1407},
-\cite{visa}, \cite{DBLP:journals/corr/BartolettiBLP17}, \cite{Moser2015}.
+\cite{visa}, \cite{DBLP:journals/corr/BartolettiBLP17}, \cite{Moser2015}, \cite{pandas}, \cite{michael_waskom_seaborn}.
 
 
 \bibliographystyle{plain}
@@ -1144,6 +1250,41 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 		stores the part of the blockchain it needs.
 		\item[satoshi:] Unit of the Bitcoin currency. 100,000,000 satoshi are 1 BTC (Bitcoin).
 	\end{description}
+
+\chapter{List of Symbols}
+
+\begin{description}[leftmargin=!, labelwidth=\widthof{\bfseries $M_{demand}(b)$ }]
+	\setlength\itemsep{1em}
+	\item [$t_B$] transaction approved in a block $B$.
+	\item [$t_{in}$] transaction input in bitcoin (\bitcoin). All the money sent.
+	\item [$t_{ou}$] transaction output (\bitcoin). All the money received.
+	\item [$t_{f}$] transaction fee (\bitcoin). $t_{in} - t_{ou}$.
+	\item [$t_q$] transaction size, in bytes.
+	\item [$t_l$] commit latency of a single transaction. $B_{epoch} - t_{epoch}$.
+	\item [$\mathcal{T}$] expected block interval time~($\sim$\,$10$\,min)
+	\item [$\mathbb{P}_{orphan}$] probability that given a block is orphaned.
+	\item [$\tau$] block solution propagation time, we consider a $\tau = 10$\,
+	seconds according to Decker\,\cite{Decker2013IPBN}.
+	\item [$\eta$] cost per hash.
+	\item [$\langle \Pi \rangle$] expectation value of a miner’s profit per block.
+	\item [$\langle V\rangle$] expectation value of a miner’s revenue per block.
+	\item [$\langle C\rangle$] expectation value of a miner's hashing cost per block.
+	\item [$R$] block reward, currently at 12.5 \bitcoin.
+	\item [$h$] miner's individual hash rate.
+	\item [$H$] total hash rate of Bitcoin network.
+	\item [$Q$] block size or block space in bytes.
+	\item [$Q^*$] the block size that maximizes the miner’s expected profit.
+	\item [$\rho$] fee density, or the price per byte for block space.
+	\item [$M$] money, bitcoin (\bitcoin).
+	\item [$M_{demand}(b)$] partial sum of the $b$ transaction fees
+	in mempool in order of descending fee density.
+	\item [$M_{supply}(Q)$] miner’s cost due to orphaning to produce a certain block size $Q$.
+	\item [$\mathcal{N}$] the set of transactions in a miner’s mempool.
+	\item [$n$] number of transactions in a miner’s mempool.
+	\item [$B$] single block.
+	\item [$B_t$] transaction root that links to every transaction in a block $B$.
+\end{description}
+
 	\chapter{Listing}
 	\label{app:listing}
 	\begin{lstlisting}[numbers=left,frame=single,caption={Smart contract transaction code in Ethereum.}]

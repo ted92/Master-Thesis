@@ -40,7 +40,10 @@ import matplotlib.cm as cm
 import csv
 import javabridge
 import subprocess as sub
+import requests
 
+from lxml import html
+from lxml import etree
 from scipy.stats import spearmanr
 from matplotlib.colors import LogNorm
 from blockchain import blockexplorer
@@ -59,13 +62,14 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 from sklearn import linear_model
 from sklearn.metrics import *
+from pandas.tools.plotting import parallel_coordinates
 
 # ------ GLOBAL ------
 global txs_dataset
 txs_dataset = "transaction_dataframe.tsv"
 
 global file_name_old
-file_name = "blockchain_new.txt"
+file_name_old = "blockchain_new.txt"
 
 global file_name
 file_name = "blockchain_for_txs.txt"
@@ -285,6 +289,7 @@ def read_txs_file():
         block_epoch = get_list_from_file('epoch')
         block_txs = get_list_from_file('transactions')
         block_hash = get_list_from_file('hash')
+        block_relayedby = get_list_from_file('mined_by')
 
 
         b_s = []
@@ -293,6 +298,7 @@ def read_txs_file():
         b_ep = []
         b_t = []
         b_hash = []
+        b_rel = []
 
         i = 0
         counter = 0
@@ -304,6 +310,7 @@ def read_txs_file():
                 b_ep.append(block_epoch[counter])
                 b_t.append(block_txs[counter])
                 b_hash.append(block_hash[counter])
+                b_rel.append(block_relayedby[counter])
                 i += 1
             else:
                 counter += 1
@@ -313,6 +320,7 @@ def read_txs_file():
                 b_ep.append(block_epoch[counter])
                 b_t.append(block_txs[counter])
                 b_hash.append(block_hash[counter])
+                b_rel.append(block_relayedby[counter])
                 i += 1
 
         if (os.path.isfile(txs_dataset)):
@@ -325,7 +333,7 @@ def read_txs_file():
                 [('t_ha', hash_tx), ('t_in', input), ('t_ou', output), ('t_f', fee_list), ('t_q', size_list),
                  ('t_%', f_percentile), ('t_l', approval_time_list),
                  ('Q', b_s), ('B_T', b_ct), ('B_he', b_h), ('B_ep', b_ep), ('B_t', b_t),
-                 ('B_h', b_hash)])
+                 ('B_h', b_hash), ('B_mi', b_rel)])
 
             # merge old and new
             new_df = pd.concat([old_df, new_df])
@@ -337,12 +345,50 @@ def read_txs_file():
                 [('t_ha', hash_tx), ('t_in', input), ('t_ou', output), ('t_f', fee_list), ('t_q', size_list),
                  ('t_%', f_percentile), ('t_l', approval_time_list),
                  ('Q', b_s), ('B_T', b_ct), ('B_he', b_h), ('B_ep', b_ep), ('B_t', b_t),
-                 ('B_h', b_hash)])
+                 ('B_h', b_hash), ('B_mi', b_rel)])
 
 
-        new_df.to_csv('transaction_dataframe.tsv', sep='\t')
+        new_df.to_csv(txs_dataset, sep='\t')
 
 
+def satoshi_bitcoin(sat):
+    """
+    get a value in satoshi, convert it in BTC
+    :param sat:
+    :return:
+    """
+    bitcoin = float(sat) / 100000000
+    return bitcoin
+
+def byte_megabyte(b):
+    """
+    get a value in byte, convert in megabyte
+    :param b:
+    :return:
+    """
+
+    megabyte = float(b) / 1000000
+    return megabyte
+
+def sec_minutes(s):
+    """
+    get a value in seconds convert it in minutes
+    :param s:
+    :return:
+    """
+
+    min = float(s) / 60
+    return min
+
+def sec_hours(s):
+    """
+    get a value in seconds convert it in hours
+    :param s:
+    :return:
+    """
+
+    h = float(s) / (60 * 60)
+    return h
 
 def get_blockchain_growth():
     """
@@ -720,8 +766,83 @@ def plot(miner=1):
     y_vals[:] = [x/(3600) for x in y_vals]   # in hours
     """
 
+
+
     #plt.plot(y_vals, "ro", label="% of fee paid")
-    df = pd.DataFrame.from_csv(txs_dataset, sep='\t')
+    df = pd.DataFrame.from_csv('transaction_dataframe_0.tsv', sep='\t')
+
+
+    # -------- HEAT MAP ----------
+    # sns.heatmap(df.corr(), annot=True, fmt=".2f")
+
+
+
+    # ----------- BOX PLOT -----------
+    # df.plot.box()
+    # --------------------------------
+
+
+    # -------- NUMBER OF MINERS pie chart
+    """
+    miners = df['B_mi'].value_counts() # count miners
+    print miners
+    # other minor miners
+    miners.index = miners.index.to_series().replace({'Eobot': 'Others'})
+    miners.index = miners.index.to_series().replace({'P2Pool': 'Others'})
+    miners.index = miners.index.to_series().replace({'HAOZHUZHU': 'Others'})
+    miners.index = miners.index.to_series().replace({'BitMinter': 'Others'})
+    miners.index = miners.index.to_series().replace({'PHash.IO': 'Others'})
+    miners.index = miners.index.to_series().replace({'Bitcoin India': 'Others'})
+    miners.index = miners.index.to_series().replace({'ConnectBTC': 'Others'})
+    miners.index = miners.index.to_series().replace({'xbtc.exx.com&bw.com': 'Others'})
+    miners.index = miners.index.to_series().replace({'shawnp0wers': 'Others'})
+    miners.index = miners.index.to_series().replace({'GoGreenLight': 'Others'})
+    miners.index = miners.index.to_series().replace({'Telco 214': 'Others'})
+    miners.index = miners.index.to_series().replace({'CANOE': 'Others'})
+    miners.index = miners.index.to_series().replace({'BATPOOL': 'Others'})
+    miners.index = miners.index.to_series().replace({'Kano CKPool': 'Others'})
+
+    miners = miners.groupby(miners.index, sort=False).sum()
+    print miners
+
+
+    label = miners.index.get_level_values(0)
+    series = pd.Series(miners, index=label, name='Bitcoin miners')
+    series.plot.pie( figsize=(8, 8), autopct='%.2f')
+    """
+    # ------------------------------------------------------
+
+
+    # ------------- PARALLEL COORDINATES
+    """
+    plt.figure()
+    df_parcord = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_mi']]
+    df_parcord['t_f'] = df_parcord['t_f'].apply(satoshi_bitcoin)
+    df_parcord['t_q'] = df_parcord['t_q'].apply(byte_megabyte)
+    df_parcord['Q'] = df_parcord['Q'].apply(byte_megabyte)
+    df_parcord['t_l'] = df_parcord['t_l'].apply(sec_hours)
+    df_parcord['B_T'] = df_parcord['B_T'].apply(sec_hours)
+
+    df_parcord = df_parcord.groupby('B_mi', as_index=False)
+    df_parcord = df_parcord.median()
+
+    miners = df['B_mi'].value_counts()  # count miners
+    miners = miners.sort_index()
+
+    # add the miner counter (how many transactions he mined)
+    df_parcord['cou'] = miners.values
+    df_parcord = df_parcord.sort('cou', ascending=False)
+    df_parcord = df_parcord.head(7)
+    #remove column of counter miners
+    df_parcord = df_parcord.drop('cou', 1)
+    print df_parcord
+    # indexes = df_parcord.index.get_level_values(0)
+    #print df_parcord
+    
+    
+    parallel_coordinates(df_parcord, 'B_mi')
+    """
+    # --------------------------------------------
 
     block_epoch = df['B_ep'].values
     start = epoch_datetime(block_epoch[-1])
@@ -732,10 +853,14 @@ def plot(miner=1):
     print ("transactions evaluated in between:\n" + str(start) + "\n" + str(end))
     print ("\n" + "number of transactions: " + str(len(block_epoch)))
 
-    latency = df['t_l'].values
-    latency[:] = [float(x) for x in latency]
+    # latency = df['t_l'].values
+    # latency[:] = [float(x) for x in latency]
 
-    percentage = calculate_percentage_txs_fee()
+    # percentage = calculate_percentage_txs_fee()
+
+
+    # df_byepoch = df.groupby('B_he')
+    # print df_byepoch.median()
 
     #plt.plot(block_epoch, percentage, "r-", label="% fee paid on the net total amount")
     # --- put data (epoch) in plot form epoch to datetime
@@ -761,7 +886,6 @@ def plot(miner=1):
 
     #sns.boxplot(df.t_f, groupby=df.B_ep)
     #sns.pointplot(x="B_ep", y="t_f", data=df)
-    #sns.heatmap(df.corr(), annot=True, fmt=".2f")
     #sns.jointplot(np.asarray(x_vals), np.asarray(y_vals), kind="reg", stat_func=None, color="g", xlim=(0.0, 200000.0), ylim=(0.0, 100.0))
     #plt.plot(x_vals, y_vals, "ro", label="transaction visibility")
 
@@ -1219,7 +1343,19 @@ def get_blockchain(number_of_blocks, hash):
         creation_time_list.append(current_creation_time)
 
         # todo: relayed by and received by give 'KeyError'
+
         # miner = current_block['relayed_by']
+
+        # ----- get the miner from the parsing of the webpage
+        page = requests.get('https://blockchain.info/block/'+hash)
+        tree = html.fromstring(page.content)
+
+        string = page.content
+        index_start = string.find("Relayed By")
+
+        string = string[index_start:(index_start + 150)]
+        miner = find_between(string, '">', '</a>')
+
         list_miners.append(miner)
 
         # received_time = current_block['received_time']
@@ -1286,6 +1422,15 @@ def write_file(list_to_write, file, index):
         list_to_write[6][index]) + "\ntransactions: " + str(list_to_write[7][index]) + "\navgttime: " + str(
         list_to_write[8][index]) + "\nmined_by: " + str(list_to_write[9][index]) + "\nreceived_time: " + str(list_to_write[10][index])+"\n\n")
 
+
+
+def find_between(s, first, last):
+    try:
+        start = s.index( first ) + len( first )
+        end = s.index( last, start )
+        return s[start:end]
+    except ValueError:
+        return ""
 
 
 def get_earliest_hash():

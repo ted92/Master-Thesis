@@ -40,5 +40,9 @@
 ##############
 **/src/plot/
 **/src/old_plots/
-src/*txt
-src/*tsv
+**/src/old dataset/
+/src/old dataset/*.tsv
+/src/*.txt
+/src/*.tsv
+/src/*.tsv
+/src/old_dataset/*.tsv
