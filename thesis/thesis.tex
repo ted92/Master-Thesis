@@ -109,9 +109,68 @@
 %\epigraphitem{Beware of bugs in the above code;\\I have only proved it correct, not tried it.}{Donald Knuth}
 %\end{epigraph}
 
+%TODO: SUBSTITUTE ALL THE # WITH CORRECT NUMBERS
 \begin{abstract}
 \label{sec:abstract}
+%TODO: change abstract accordingly to the results
+Nowadays blockchain systems are emerging and they are spreading
+each day more. Cryptocurrencies are the biggest example
+of a physical implementation of this protocol, having in $2012$ more
+than $50$ thousands transactions per day and reaching now
+in $2017$ more than $400$ thousands of transactions approved every day.
+In this thesis we
+evaluate the most famous blockchain system, the \emph{Bitcoin blockchain}.
+Public blockchains have emerged as a plausible messaging substrate
+for applications that require highly reliable communication.
+However, sending messages over existing blockchains can be cumbersome
+and costly as miners require payment to establish consensus on the
+sequence of messages. The blockchain protocol requires an always
+growing size of the informations stored in it so its \emph{scalability} is
+the biggest problem. For that reason we collected data to be analyzed and
+stored in our own dataframe, saving up to $x10$ space
+for the analysis.
 
+This thesis will consider the network
+performance of the Bitcoin public ledger when used as a massaging
+substrate. From $2009$ to $2017$ a lot of analysis has been done on
+Bitcoin blockchain and meanwhile its block size limit changed multiple times,
+from $256$\,bytes up to $1$\,Mb,
+the Bitcoin price raised from $\sim$\,$0.7$\,\$ to more than $4.000$\,\$ and
+different papers were published discussing whether changing or not the block size
+limit or talking about the fees a miner could get from clients.
+We read and considered previous analysis on Bitcoin blockchain,
+presented our own dataset, which contains a significant portion of
+the Bitcoin blockchain, updated at $09$-$2017$,
+discussed our results and compared them with other evaluations obtained
+during the years,
+then we also discussed how the fee paid to miners evolves
+during time and how much a
+client could pay for a faster approval time, plus we take into consideration
+transaction visibility, blockchain growth and fees paid to miners.
+From this we propose
+and evaluate, using machine learning techniques,
+three different cost prediction models for predicting
+bandwidth per Bitcoin cost of upcoming transaction. The models can
+be used by application to throttle network traffic to optimize
+message delivery. We also discuss and consider, according to the data
+obtained, whether the block size limit should be increased for an higher
+\emph{throughput} or not.
+
+People are using Bitcoin because 
+it has a lower fee rate and no central authority, we aim to find any
+possible relation between the fee paid from a transaction to a
+miner and the approval time of this transaction, plus we also noticed that
+the biggeris the blockchain size the more the system become
+centralized, since only few members, or nodes, of the \gls{p2p} network can
+support and use the full blockchain.
+
+Bitcoin blockchain has been analyzed with a blockchain analytics system,
+developed using Bitcoin's \gls{api} and data were collected both by using the
+\gls{api} and parsing \emph{blockchain.info} HTML pages.
+A total of \# transactions has been evaluated, more transactions than ever were
+considered before and useful informations about the Bitcoin blockchain emerged.
+This thesis gives also a measurement about accuracy of data
+provided from \emph{blockchain.info}.
 \end{abstract}
 
 %\begin{acknowledgement}
@@ -430,7 +489,8 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 %\label{eq:mae}
 %\text{\gls{mae}} = \frac{1}{m}\sum_{i=1}^{m}{|(y_i - \text{\emph{pred}}(x_i))|}
 %\end{equation}
-%TODO: If the problem is a classification problem, then other measure of performance must be used. One of the most used is the \emph{misclassification error}.
+%TODO: However, since \gls{mse} is in sqared units, the \gls{rmse} is usually a more usable number to calculate.
+%TODO: If the problem is a classification problem, then other measure of performance must be used. One of the most used is the \emph{misclassification error}. Classification problems generally revolve around misclassification error rates and, usually, algorithms for such kind of problems can present predictions in the form of a probability rate for the attributes rather than an attribute itself.
 
 %This chapter will give a detailed explanation about decentralized digital
 %currencies, explaining all the main concepts and key words that you should know when
@@ -478,6 +538,8 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 %TODO: The Pandas package makes it possible to read data into a specialized data structure called a \emph{data frame}\,\cite{pandas}.
 %TODO: As Michael Bowles\,\cite{bowles2015MLIP} says, you can think of a data frame as a table or matrix-like structure oriented with a row representing a single case or observation and columns representing particular attributes. We decided to use a data frame structure and not a matrix one becuase even though the data frame structure is matrix-like, its elements in various columns may be of different types. For statistical problems, the matrix is too confining because statistical samples typically have a mix of different types, plus, Pandas package makes it possible to automate the steps of calculating mean, variance, and quantiles offers and a nice and smooth control over your data. Our dataset contains both, numeric and categorical (or factors) variables.
 %TODO: Structure in the way the data are stored might need to be factored into your approach for doing subsequential sampling. This is the reason why we stored transactions ordered by block and each block ordered by height/epoch, in that way we have the data set ordered by block creation with all its transactions in it and it will be much easier to make analysis or sampling data following a cronological order.
+
+%TODO: Our dataframe allows us to collect all the useful informations without storing the whole raw blockchain like current systems for blockchain analysis do, see \emph{BitcoinCore}\,\cite{bitcoincore}. Raw data are collected in \gls{json}, analyzed, printed in our dataframe and then deleted. This gave us a $x10$ space saving on the blockchain, storing in a $1$\,GB dataframe what the raw files from \emph{bitcoin.info} store in $10$\,GB space. Plus, we believe that analyzing a small percentage of the blockchain everyday would give us relevant informations about the whole system, and due to time limitations we could collect only #% of the data, every day.
 
 %TODO: ============= VISUALIZING DATA ============
 %TODO: Once data are gathered and the dataset is created, the first step is to determine the outliers.
@@ -773,7 +835,10 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 
 %TODO: The next step wants to get some ideas about the relationship among the attributes and between attributes and labels including also categorical attributes.
 
+%TODO: We used for prediction both, \emph{linear} and \emph{nonlinear} algorithms and we considered that linear models are preferable when the data set has more columns than rows or when the underlying problem is simple, nonlinear models are preferable for complex problems with many more rows than columns of data.
+
 %TODO: To get values in $(0,1)$ the logit function in Eq.\,\ref{eq:logit} is applied to our data.
+
 %In this chapter we present observations of the Bitcoin blockchain captured by the
 %analytics system outlined in Chapter~\ref{chap:expsetup}. 
 %To evaluate our problem definition in Chapter~\ref{sec:probdefinition}, we focus on consideration related to 

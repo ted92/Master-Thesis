@@ -63,6 +63,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn import linear_model
 from sklearn.metrics import *
 from pandas.tools.plotting import parallel_coordinates
+from timeout import timeout
 
 # ------ GLOBAL ------
 global txs_dataset
@@ -156,8 +157,15 @@ def main(argv):
         sys.exit(2)
 
 
-
 def fetch_txs():
+    # remove the blockchain file
+    if (os.path.isfile(file_name)):
+        os.remove(file_name)
+
+    # remove transactions file
+    if (os.path.isfile(file_tx)):
+        os.remove(file_tx)
+
     if (os.path.isfile(txs_dataset)):
         # file already exists add data to the dataset
         # get the latest block hash
@@ -168,7 +176,7 @@ def fetch_txs():
         # retrieve 100 blocks earlier
         height_list = df['B_he'].values
         last_block = height_list[-1]
-        last_block = int(last_block) - 100
+        last_block = int(last_block) - 10
 
 
         b_array = get_json_request("https://blockchain.info/block-height/" + str(last_block) + "?format=json")
@@ -177,24 +185,16 @@ def fetch_txs():
 
         block_hash = b['hash']
 
-        # remove the blockchain file
-        if (os.path.isfile(file_name)):
-            os.remove(file_name)
-
-        # remove transactions file
-        if (os.path.isfile(file_tx)):
-            os.remove(file_tx)
-
-        get_blockchain(5, block_hash)
-        save_transactions(5, block_hash)
+        get_blockchain(10, block_hash)
+        # save_transactions(5, block_hash)
 
     else:
         # file doesn't exist
         # retrieve the last block hash
         latest_block = get_json_request(latest_block_url)
         block_hash = latest_block['hash']
-        get_blockchain(5, block_hash)
-        save_transactions(5, block_hash)
+        get_blockchain(10, block_hash)
+        # save_transactions(5, block_hash)
 
 
 
@@ -407,13 +407,12 @@ def get_blockchain_growth():
 
     return x, y
 
-def calculate_percentage_txs_fee():
+def calculate_percentage_txs_fee(df):
     """
 
     :return: array with the % of fee paid on the net transaction
     """
     # calculate % of fee considering the net output:
-    df = pd.DataFrame.from_csv(txs_dataset, sep='\t')
 
     output = df['t_ou'].values
     fee = df['t_f'].values
@@ -447,6 +446,90 @@ def date_to_plot(epoch_list):
         i += 1
     d = epoch_list
     return d
+
+
+def get_all_dataframe():
+    """
+    read from all the txs_dataset_# files and generate the whole dataframe
+    :return:    new_df      dataframe
+    """
+    i = 0
+    old_df = None
+    while True:
+        # if the file exists
+        df_name = "transaction_dataframe_"+str(i)+".tsv"
+        if (os.path.isfile(df_name)):
+            df = pd.DataFrame.from_csv(df_name, sep='\t')
+            new_df = pd.concat([old_df, df])
+            old_df = new_df
+        else:
+            break
+        i += 1
+    return new_df
+
+def revert_date_time(t):
+    """
+    given a format dd-mm-yyyy return yyyy:mm:dd
+    :param t:
+    :return:
+    """
+
+    return datetime.datetime.strptime(t, '%d-%m-%Y %H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
+
+
+def remove_minor_miners(df, number=7):
+    """
+
+    :param  df  :   dataframe containing miners
+    :return: new dataframe without the rows mined from these minor miners
+    """
+
+    # get only the top 7 miners
+    miners = df['B_mi'].value_counts()
+    miners = miners.head(number)
+
+    # remove all the other miners
+    df = df.loc[df['B_mi'].isin(miners.index)]
+
+    # remove miners
+    """
+    df = df[df.B_mi != "Eobot"]
+    df = df[df.B_mi != "P2Pool"]
+    df = df[df.B_mi != "HAOZHUZHU"]
+    df = df[df.B_mi != "BitMinter"]
+    df = df[df.B_mi != "PHash.IO"]
+    df = df[df.B_mi != "Bitcoin India"]
+    df = df[df.B_mi != "ConnectBTC"]
+    df = df[df.B_mi != "xbtc.exx.com&bw.com"]
+    df = df[df.B_mi != "shawnp0wers"]
+    df = df[df.B_mi != "GoGreenLight"]
+    df = df[df.B_mi != "Telco 214"]
+    df = df[df.B_mi != "CANOE"]
+    df = df[df.B_mi != "BATPOOL"]
+    df = df[df.B_mi != "Patel's Mining pool"]
+    df = df[df.B_mi != "120.25.194.218"]
+    df = df[df.B_mi != "188.40.74.13"]
+    df = df[df.B_mi != "148.251.6.18"]
+    df = df[df.B_mi != "95.110.234.93"]
+    df = df[df.B_mi != "Eligius"]
+    df = df[df.B_mi != "GHash.IO"]
+    df = df[df.B_mi != "BCMonster"]
+    df = df[df.B_mi != "21 Inc."]
+    df = df[df.B_mi != "Solo CKPool"]
+    df = df[df.B_mi != "SlushPool"]
+    df = df[df.B_mi != "Kano CKPool"]
+    df = df[df.B_mi != "ViaBTC"]
+    df = df[df.B_mi != "Bixin"]
+    df = df[df.B_mi != "Unknown"]
+    df = df[df.B_mi != "KnCMiner"]
+    df = df[df.B_mi != "GBMiners"]
+    df = df[df.B_mi != "BTC.TOP"]
+    df = df[df.B_mi != "Bitcoin.com"]
+    df = df[df.B_mi != "BTC.com"]
+    df = df[df.B_mi != "1Hash"]
+    """
+
+    return df
 
 
 def plot(miner=1):
@@ -769,52 +852,178 @@ def plot(miner=1):
 
 
     #plt.plot(y_vals, "ro", label="% of fee paid")
-    df = pd.DataFrame.from_csv('transaction_dataframe_0.tsv', sep='\t')
+    df = get_all_dataframe()
 
+
+
+
+    # -------------------- FEE DISTRIBUTED OVER TIME ACCORDING TO DIFFERENT MINERS --------------------
+    """
+    info = "plot/fee_distribution"
+    df_feedistr = df[['t_f', 'B_mi', 'B_ep']]
+    df_feedistr = remove_minor_miners(df_feedistr)
+
+    df_feedistr['t_f'] = df_feedistr['t_f'].apply(satoshi_bitcoin)
+
+    df_feedistr['date'] = df_feedistr['B_ep'].apply(epoch_datetime)
+    df_feedistr['date'] = df_feedistr['date'].apply(revert_date_time)
+    # split date to have yyyy-mm
+    df_feedistr['date'] = df_feedistr['date'].str.slice(start=0, stop=7)
+    df_feedistr = df_feedistr.groupby(['date', 'B_mi']).median().reset_index()
+    # print df_feedistr
+
+    g = sns.pointplot(x="date", y="t_f", hue="B_mi", data=df_feedistr, legend_out = True)
+    g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    g.set(xlabel='date', ylabel='$t_f$ (BTC)')
+    """
+    # -------------------------------------------------------------------------------------------------
+
+
+    # -------------- BLOCK SIZE ----------------
+    """
+    info = "plot/block_size"
+    df_block_size = df[['Q', 'B_ep']]
+    df_block_size['date'] = df_block_size['B_ep'].apply(epoch_datetime)
+    df_block_size['date'] = df_block_size['date'].apply(revert_date_time)
+
+    # split date to have yyyy-mm
+    df_block_size['date'] = df_block_size['date'].str.slice(start=0, stop=7)
+
+    df_block_size = df_block_size.groupby(['date']).median().reset_index()
+    df_block_size['Q'] = df_block_size['Q'].apply(byte_megabyte)
+
+    print df_block_size
+
+    g = sns.pointplot(x="date", y="Q", data=df_block_size, color="green")
+    g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    g.set(xlabel='date', ylabel='Q (Mb)')
+    """
+    # ------------------------------------------
+
+
+
+    # -------------- FEE - INPUT MINERS CALCULATIONS --------------------
+    """
+    info = "plot/fee_input_miners"
+    df_fee_per = remove_minor_miners(df, 10)
+    df_fee_per['t_per'] = calculate_percentage_txs_fee(df_fee_per)
+
+    print df_fee_per['t_per']
+
+    df_inputtxs = df_fee_per[['t_in', 't_f', 'B_mi', 't_per']]
+    df_inputtxs = df_inputtxs.groupby('B_mi').median().reset_index()
+    df_inputtxs['t_in'] = df_inputtxs['t_in'].apply(satoshi_bitcoin)
+    df_inputtxs['t_f'] = df_inputtxs['t_f'].apply(satoshi_bitcoin)
+    print df_inputtxs
+    # sns.pointplot(x="B_mi", y="t_f", data=df_inputtxs, color="green")
+    # sns.pointplot(x="B_mi", y="t_in", data=df_inputtxs, color="red")
+    g = sns.pointplot(x="B_mi", y="t_per", data=df_inputtxs, color="green")
+    g.set(xlabel='major miners', ylabel='$t_f$ %')
+    g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    """
+    # -------------------------------------------------------------------
+
+    # ------------- FEE PAID WITH DIFFERENT MINERS ---------------
+    """
+    info = "plot/fee_paid_to_miners"
+    df = remove_minor_miners(df)
+    df['t_per'] = calculate_percentage_txs_fee(df)
+    print df['t_per']
+    sns.violinplot(x=df.B_mi, y=df.t_per)
+    """
+    # ------------------------------------------------------------
+
+
+    # ----------- TRENDY MINERS IN DIFFERENT EPOCHS --------------
+    """
+    info = "plot/trendy_miners"
+    # add date to df from epoch
+    df['date'] = df['B_ep'].apply(epoch_datetime)
+    df['date'] = df['date'].apply(revert_date_time)
+
+    # split date to have yyyy-mm
+    df['date'] = df['date'].str.slice(start=0, stop=7)
+
+    print df['date']
+    # groub by date and then miners, count how many transactions a miner approved in a certain month
+    df_grouped = df.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+
+    # remove minor miners
+    df_grouped = remove_minor_miners(df_grouped, 8)
+
+    # calculate how many transactions were apprved by each miner in each year
+    g = sns.pointplot(x="date", y="size", hue="B_mi", data=df_grouped)
+    g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    g.set(xlabel='date', ylabel='transactions approved')
+    """
+    # ------------------------------------------------------------
 
     # -------- HEAT MAP ----------
-    # sns.heatmap(df.corr(), annot=True, fmt=".2f")
+    """
+    info = "plot/heat_map"
+    sns.heatmap(df.corr(), annot=True, fmt=".2f")
+    """
 
 
 
     # ----------- BOX PLOT -----------
-    # df.plot.box()
+    """
+    info = "plot/box_plot"
+    df.plot.box()
+    """
     # --------------------------------
 
 
     # -------- NUMBER OF MINERS pie chart
     """
+    info = "plot/miners"
     miners = df['B_mi'].value_counts() # count miners
+
     print miners
     # other minor miners
-    miners.index = miners.index.to_series().replace({'Eobot': 'Others'})
-    miners.index = miners.index.to_series().replace({'P2Pool': 'Others'})
-    miners.index = miners.index.to_series().replace({'HAOZHUZHU': 'Others'})
-    miners.index = miners.index.to_series().replace({'BitMinter': 'Others'})
-    miners.index = miners.index.to_series().replace({'PHash.IO': 'Others'})
-    miners.index = miners.index.to_series().replace({'Bitcoin India': 'Others'})
-    miners.index = miners.index.to_series().replace({'ConnectBTC': 'Others'})
-    miners.index = miners.index.to_series().replace({'xbtc.exx.com&bw.com': 'Others'})
-    miners.index = miners.index.to_series().replace({'shawnp0wers': 'Others'})
-    miners.index = miners.index.to_series().replace({'GoGreenLight': 'Others'})
-    miners.index = miners.index.to_series().replace({'Telco 214': 'Others'})
-    miners.index = miners.index.to_series().replace({'CANOE': 'Others'})
-    miners.index = miners.index.to_series().replace({'BATPOOL': 'Others'})
-    miners.index = miners.index.to_series().replace({'Kano CKPool': 'Others'})
+    
+    # miners.index = miners.index.to_series().replace({'Eobot': 'Others'})
+    # miners.index = miners.index.to_series().replace({'P2Pool': 'Others'})
+    # miners.index = miners.index.to_series().replace({'HAOZHUZHU': 'Others'})
+    # miners.index = miners.index.to_series().replace({'BitMinter': 'Others'})
+    # miners.index = miners.index.to_series().replace({'PHash.IO': 'Others'})
+    # miners.index = miners.index.to_series().replace({'Bitcoin India': 'Others'})
+    # miners.index = miners.index.to_series().replace({'ConnectBTC': 'Others'})
+    # miners.index = miners.index.to_series().replace({'xbtc.exx.com&bw.com': 'Others'})
+    # miners.index = miners.index.to_series().replace({'shawnp0wers': 'Others'})
+    # miners.index = miners.index.to_series().replace({'GoGreenLight': 'Others'})
+    # miners.index = miners.index.to_series().replace({'Telco 214': 'Others'})
+    # miners.index = miners.index.to_series().replace({'CANOE': 'Others'})
+    # miners.index = miners.index.to_series().replace({'BATPOOL': 'Others'})
+    # miners.index = miners.index.to_series().replace({"Patel's Mining pool": 'Others'})
+    # miners.index = miners.index.to_series().replace({'120.25.194.218': 'Others'})
+    # miners.index = miners.index.to_series().replace({'188.40.74.13': 'Others'})
+    # miners.index = miners.index.to_series().replace({'148.251.6.18': 'Others'})
+    # miners.index = miners.index.to_series().replace({'95.110.234.93': 'Others'})
+    # miners.index = miners.index.to_series().replace({'Eligius': 'Others'})
+    # miners.index = miners.index.to_series().replace({'GHash.IO': 'Others'})
+    # miners.index = miners.index.to_series().replace({'BCMonster': 'Others'})
+    # miners.index = miners.index.to_series().replace({'21 Inc.': 'Others'})
+    # miners.index = miners.index.to_series().replace({'Solo CKPool': 'Others'})
+    
 
     miners = miners.groupby(miners.index, sort=False).sum()
+    total = miners.sum()
+
+    miners = miners.head(8)
+    partial = miners.sum()
     print miners
 
 
     label = miners.index.get_level_values(0)
-    series = pd.Series(miners, index=label, name='Bitcoin miners')
+    series = pd.Series(miners, index=label, name='Bitcoin miners\n'+'transactions evaluated: ' + str(partial) + " out of: " + str(total))
     series.plot.pie( figsize=(8, 8), autopct='%.2f')
     """
     # ------------------------------------------------------
 
-
     # ------------- PARALLEL COORDINATES
     """
+    info = "plot/parallel_coordinates"
     plt.figure()
     df_parcord = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_mi']]
     df_parcord['t_f'] = df_parcord['t_f'].apply(satoshi_bitcoin)
@@ -856,7 +1065,7 @@ def plot(miner=1):
     # latency = df['t_l'].values
     # latency[:] = [float(x) for x in latency]
 
-    # percentage = calculate_percentage_txs_fee()
+    # percentage = calculate_percentage_txs_fee(df)
 
 
     # df_byepoch = df.groupby('B_he')
@@ -950,8 +1159,8 @@ def plot(miner=1):
     plt.legend(loc="best")
     #plt.xlabel("txs")
     #plt.ylabel("$t_{f}$ %")
-    plt.savefig('plot/fee_percentile', bbox_inches='tight', dpi=500)
-    print("plot fee_percentile.png created")
+    plt.savefig(info, bbox_inches='tight', dpi=500)
+    print(info +".png created")
     #plt.xlabel("$t_f$ (BTC)")
     #plt.ylabel("${t_l}$ (h)")
     #plt.savefig('plot/fee-approvaltime', bbox_inches='tight', dpi=500)
@@ -1252,7 +1461,7 @@ def save_transactions(n, hash):
 
         current_block = prev_block
 
-
+@timeout(360)
 def get_blockchain(number_of_blocks, hash):
     """
     it retreives blocks from blockchain, given an hash where to start.
@@ -1331,6 +1540,13 @@ def get_blockchain(number_of_blocks, hash):
 
         transactions = len(current_block['tx'])
         list_transactions.append(transactions)
+
+        # transaction writes
+        txs = current_block['tx']
+        # write transactions in file transactions.txt
+        with io.FileIO(file_tx, "a+") as file:
+            file.write(str(txs))
+            file.write("\n" + str(current_block['time']) + "\n")
 
         hash_prev_block = current_block['prev_block']
 
