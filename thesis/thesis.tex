@@ -113,11 +113,13 @@
 \begin{abstract}
 \label{sec:abstract}
 %TODO: change abstract accordingly to the results
+
+%TODO: Short introduction to blockchain
 Nowadays blockchain systems are emerging and they are spreading
 each day more. Cryptocurrencies are the biggest example
 of a physical implementation of this protocol, having in $2012$ more
 than $50$ thousands transactions per day and reaching now
-in $2017$ more than $400$ thousands of transactions approved every day.
+in $2017$ more than $350$ thousands of transactions approved every day.
 In this thesis we
 evaluate the most famous blockchain system, the \emph{Bitcoin blockchain}.
 Public blockchains have emerged as a plausible messaging substrate
@@ -130,6 +132,7 @@ the biggest problem. For that reason we collected data to be analyzed and
 stored in our own dataframe, saving up to $x10$ space
 for the analysis.
 
+%TODO: Previous works, problems on blockchain and what we did so far
 This thesis will consider the network
 performance of the Bitcoin public ledger when used as a massaging
 substrate. From $2009$ to $2017$ a lot of analysis has been done on
@@ -139,11 +142,11 @@ the Bitcoin price raised from $\sim$\,$0.7$\,\$ to more than $4.000$\,\$ and
 different papers were published discussing whether changing or not the block size
 limit or talking about the fees a miner could get from clients.
 We read and considered previous analysis on Bitcoin blockchain,
-presented our own dataset, which contains a significant portion of
+we then present our own dataset, which contains a significant portion of
 the Bitcoin blockchain, updated at $09$-$2017$,
-discussed our results and compared them with other evaluations obtained
-during the years,
-then we also discussed how the fee paid to miners evolves
+discuss our results and compare them with other evaluations
+from past years,
+then we also discuss how the fee paid to miners evolves
 during time and how much a
 client could pay for a faster approval time, plus we take into consideration
 transaction visibility, blockchain growth and fees paid to miners.
@@ -156,21 +159,22 @@ message delivery. We also discuss and consider, according to the data
 obtained, whether the block size limit should be increased for an higher
 \emph{throughput} or not.
 
+%TODO: 
 People are using Bitcoin because 
 it has a lower fee rate and no central authority, we aim to find any
 possible relation between the fee paid from a transaction to a
 miner and the approval time of this transaction, plus we also noticed that
-the biggeris the blockchain size the more the system become
-centralized, since only few members, or nodes, of the \gls{p2p} network can
+the bigger is the blockchain size the more the system become
+centralized, since only few members, or nodes, of the Peer to Peer network can
 support and use the full blockchain.
 
 Bitcoin blockchain has been analyzed with a blockchain analytics system,
-developed using Bitcoin's \gls{api} and data were collected both by using the
-\gls{api} and parsing \emph{blockchain.info} HTML pages.
+developed using Bitcoin's API and data were collected both by using the
+API and parsing blockchain.info HTML pages.
 A total of \# transactions has been evaluated, more transactions than ever were
 considered before and useful informations about the Bitcoin blockchain emerged.
 This thesis gives also a measurement about accuracy of data
-provided from \emph{blockchain.info}.
+provided from blockchain.info.
 \end{abstract}
 
 %\begin{acknowledgement}
@@ -190,11 +194,90 @@ provided from \emph{blockchain.info}.
 %TODO: give a short example of previous work, what they did and show that this problem has relevance for this field! works might be: Rizun one, Bohme (longitudinal study of bitcoin transaction fees) and On scaling decentralized blockchain system.
 
 %TODO: Another question we asked ourself for the data is how the various attributes relate to one another, and a quick way to get an idea of pair-wise relationship is to cross-plot the attributes and later interpolate the results.
+
+%TODO: ADJUST INTRODUCTION
+In $1964$, Paul Baran\,\cite{Baran1964:ODC}
+represented a very clear topology describing the differences
+between a centralized, decentralized and distributed
+network~(Figure\,\ref{fig:networks}). Since then, the attention
+in developing systems moved from a centralized scheme to a distributed one,
+leaving most of the computation to every single user in the network
+rather than a central coordinator.
+Such a change might be easy for systems that do not require much of
+security, where authentication or authorization is minimal.
+However, the more a system needs to be secure, the more the decentralization
+process might be tricky as it becomes very important to rely on
+some trusted central coordinator. Systems that more than others need
+to be secure are the one related to e-commerce, banking and trades, all
+systems that have to deal with money.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=1\textwidth]{img/networks}
+	\caption{Differences between network topologies. Source: On Distributed
+		Communication Networks, Paul Baran, 1964.}
+	\label{fig:networks}
+\end{figure}
+
+In $1983$, a research paper by David Chaum introduced the idea of digital cash\,\cite{chaum83blindsign}. In $1990$ he founded \emph{DigiCash},
+an electronic cash company that closed because of bankrupt in
+$1998$. After that, other systems such as \emph{e-gold} ($1996$) and
+\emph{PayPal} ($1998$) emerged. However, these systems allowed
+digital money transfer while they were still relying on a central authority.
+In $2008$ Satoshi~Nakatomo has presented Bitcoin\,\cite{Nakamoto_bitcoin},
+the first decentralized digital currency.
+Until $2008$ e-commerce used to rely exclusively on financial institutions
+serving as trusted third parties. Those are involved in the electronic
+payments process and they have to guarantee consistency of the
+transactions and security of data.
+
+Decentralized digital currencies are not
+dependent on any trusted third parties and they are built over a
+\gls{p2p} network where every component has the same
+privileges. These systems allow money exchange
+without a central authority, which means lower fees, no geographical
+separation and global trust among users. After Bitcoin,
+more decentralized digital currencies emerged, in $2011$ \emph{Litecoin},
+originally based on the bitcoin protocol, then in $2013$
+Gavin~Wood has presented \emph{Ethereum}\,\cite{ethereum} and in
+$2014$ \emph{Monero} currency was released.
+
+The order of transaction is essential in any cryptocurrency systems. 
+However, establishing correct order can be problematic in
+decentralized cryptocurrency systems as they allow 
+arbitrary nodes to join, including nodes that might be malicious.
+If arbitrary or Byzantine faults are allowed, the system might be left in an inconsistent or invalid state\,\cite{Lamport1982}.
+The ability to mask Byzantine faults has been implemented in various systems such as
+Byzantium\,\cite{Garcia:2011:EMB}, HRDB\,\cite{vandiver2007hrdb} and MITRA\,\cite{Luiz:2014:MBF}.
+These protocol guarantees consistency of transactions having
+$f$ faulty nodes, with a total of $N$ nodes where $N=2f+1$ or $N=3f+1$, and
+a protocol like \emph{Fireflies}\,\cite{Johansen2015Fireflies} provides secure and
+scalable membership management and communication substrate in overlay
+network with Byzantine members. To guarantee an order of
+transaction all these cryptocurrencies rely on the \emph{blockchain} protocol.
+
+\section{Blockchains}
+\label{sec:blockchains}
+The need to tolerate malicious members was the reason for introducing
+the \emph{blockchain} into cryptocurrency systems. The fundamental principle 
+behind the blockchain is that consensus on transaction ordering is based on 
+contributed computational power rather than number of participants. 
+The blockchain works by appending
+transactions in blocks. Every block is generated after a relevant computation
+(\emph{proof-of-work}),
+and each new block is appended to the public ledger of data,
+the blockchain, having in that way an ever growing chain of data
+containing every transaction ever happened.
+
+Besides its use in cryptocurrency, this blockchain technology
+opens up to several usages in different sectors such as
+trading, file storage or identity management. Indeed it is already
+used by NASDAQ in its private socket market.  If used in a \gls{p2p}
+file sharing network, the blockchain removes the need of a centralized
+data base and heavy storage areas. Moreover it allows users to create
+tamper-proof digital identities for themselves.
 Blockchain technology opens up to usages in several important sectors
 such as trading, file storage, and identity management.
-This technology is widely used in decentralized digital
-currencies, and at the present, the most common
-are Bitcoin\,(2008) and Ethereum\,(2013), but many more are emerging. 
 
 Blockchains essentially implements a distributed consensus protocols that enable a set of untrusted processes to agree on the content of an append only data structures. 
 These ledgers are divided into blocks and linked together in sequence by hashes. 
@@ -215,29 +298,86 @@ The security bugs in smart contracts are classified as \emph{Transaction-Orderin
 \emph{Timestamp Dependence}, \emph{Mishandled Exceptions}
 and \emph{Reentrancy Vulnerability}\,\cite{Luu:2016}.
 
+\section{Problem Statement}
+\label{sec:probdefinition}
+%TODO: One of the most recent debate on Bitcoin blockchain is wether the block size $Q$ should be increased or not. Rizun\,\cite{Rizun:2015:blocksizelimit} in his paper explained how challenging might be the increment of the block size and it defines an optimal size of~$\sim$\,$1$\,Mb. Anyway there are arguments in favor of increasing the block size, we analyzed these arguments and discuss whether and where is conveninet to increase the $Q$. Pros: More transactions per second, higher throughput. Less fees. Cons: miner won't get enough fee. Higher (exponential) risk of orphaning.
 
-Scalability and network performances are urgent concern in existing Blockchain-based cryptocurrencies~\cite{croman2016}.
-It is true that Bitcoin has lower fees than centralized currency schemes, but these properties come at a performance and scalability cost. 
-According to \cite{ethereum_white_paper}, if Bitcoin would
-have the same amount of transactions of a VISA circuit, its blockchain would grow
-about $1$\,MB per 3 seconds.
-Centralized schemes, like VISA are immediate, while having a
-throughput of $2,000$\,transactions/sec
-up to $56,000$\,transactions/sec\,\cite{croman2016}.
-In this thesis we presents some of our observation of the performance of the
-Bitcoin blockchain.  We provide detailed insights and analysis on how
-Bitcoin's characteristics have changed over time, and provide an
+While doing research, studying and reading papers related to blockchains,
+it turned out that the most urgent concerns are related to
+its scalability and performance, but also to the fee
+a client has to pay to get better latency.
+In $2015$, Möser and Böhme write\,\cite{Moser2015}:
+\begin{quote}
+	\emph{Bitcoin may not be as cheap for consumers as it appears.}
+	[\dots]
+	\emph{Bitcoin users are encouraged to pay fees to miners, up
+	to $10$\,cents (\gls{usd}), per trnsaction, irrispective of the amount
+paid.}
+\end{quote}
+
+Rizun writes in $2015$\,\cite{Rizun:2015:blocksizelimit}:
+\begin{quote}
+	\emph{The block size limit was set at one megabyte, corresponding
+		roughly to three transactions per second.}
+		[\dots]
+		\emph{The transaction rate is over three hundred times larger
+		than when the block size limit was introduced, and rising the limit
+		is now being seriously considered.}
+\end{quote}
+Then Croman writes in $2016$\,\cite{croman2016}:
+\begin{quote}
+\emph{The current trend of increasing the block sizes on Bitcoin protends
+a potential problem where the system will reach its maximum capacity to clear
+transactions, probably by $2017$.}
+\end{quote}
+
+%TODO: REVIEW THIS:
+It is obvious then that these problems need to be taken
+into consideration.
+In this thesis we discuss the scalability of the blockchain, how it affects
+the throughput and we present performance observations of the
+Bitcoin blockchain, analyzed with a blcockhain analytic system developed
+for this purpose. We provide detailed insights and analysis on how
+Bitcoin's characteristics, such as fee, block size and reward to different
+miners involved have changed over time, and provide an
 updated model describing how the Bitcoin blockchain will grow. 
-We analyse the correlation between the fee paid to the miner and block
-creation time, the time it takes for a transaction to 
-be visible in the whole network.  
+We analyzed the correlation between the fee paid from a transaction
+and its \emph{latency}, or the time it takes to 
+be visible in the whole network.
+%TODO: THREE MODELS? KEEP THEM?
 Three different models are proposed to describe how applications
 best can spend money to improve network charactertics,
 this affects average bandwidth available to an application. 
 
-\section{Problem Statement}
-\label{sec:probdefinition}
-%TODO: One of the most recent debate on Bitcoin blockchain is wether the block size $Q$ should be increased or not. Rizun\,\cite{Rizun:2015:blocksizelimit} in his paper explained how challenging might be the increment of the block size and it defines an optimal size of~$\sim$\,$1$\,Mb. Anyway there are arguments in favor of increasing the block size, we analyzed these arguments and discuss whether and where is conveninet to increase the $Q$. Pros: More transactions per second, higher throughput. Less fees. Cons: miner won't get enough fee. Higher (exponential) risk of orphaning.
+%TODO: keep it or not?
+\subsection{Scalability}
+\label{sec:prob_stat_scalability}
+Scalability and network performances are urgent
+concern in existing Blockchain-based
+cryptocurrencies~\cite{croman2016}.
+According to Ethereum white paper\,\cite{ethereum_white_paper},
+if Bitcoin would have the same amount of transactions
+of a VISA circuit, its blockchain would grow
+about $1$\,Mb every $3$ seconds, $\sim$\,$28$GB per day,
+instead of the actual growth of $\sim$\,$0.12$GB per day.
+In this thesis we discuss how much scalability affects
+centralization in Bitcoin network and how much it will
+impact in the next couple of years the blockchain
+growth.
+%TODO: Transactions-wise experiments or blocks-wise experiment
+
+\subsection{Performance}
+Centralized schemes, like VISA are immediate, while having a
+throughput of $2000$\,transactions/sec
+up to $56$ thousands\,transactions/sec\,\cite{croman2016}.
+It is true that Bitcoin has lower fees than centralized
+currency schemes, but these properties
+come at a performance and scalability cost.
+In the paper from Croman\,\cite{croman2016}, they
+claim that Bitcoin achieve a throughput of $7$ transactions/sec.
+In this thesis we also want to update at $2017$ this statment
+and see how much a block size change might
+influence the whole network performance.
 
 %TODO: Sentences:
 % You can't build something that works without having a certain level of centralization, there always should
@@ -251,6 +391,51 @@ this affects average bandwidth available to an application.
 
 \section{Method / Context}
 \label{sec:method}
+%TODO: REVIEW THIS
+In this thesis we analyze a considerable part of the blockchain.
+In the paper from $2015$ written by Möser and Böhme\,\cite{Moser2015},
+they analyze tips and tolls in Bitcoin blockchain, they collected data until $2014$
+and they analyze more than $9$\,million of transactions.
+At that time there were a total of $100$\,thousands
+transactions per day, while today we count about $350$\,thousands
+txs/day, so the retrieving part turned out to be more time consuming than expected.
+Despite that, we aim to collect even
+a larger portion of the blockchain, storing data smartly in a
+\emph{data frame}, which allows us to spare
+up to $10x$ of the space the blockchain actually requires. Then we analyze data
+and with \emph{machine learning} techniques we define models, discuss about
+the results and how much they can be reliable in a future-wise implementation.
+In our data frame we store more than \# transactions, with an analysis in between
+\#date and \#date.
+We used for the information retrieval \gls{api} from Blockchain.info
+combined with a \gls{html} parsing on every "block-page"
+of the same website.
+
+Our assumption is that we can get sufficient information about the
+blockchain growth, the block creation time, the time for a transaction to be visible
+in the public ledger of data and which miners are the more trendy and
+which usually requires more fee by retrieving and analyzing only a portion
+of the blockchain, but having in that way a finer
+granularity than the one represented in the Bitcoin website. In that
+way we hope to gain more informations out of it.
+Moreover, sampling data from a single node in the blockchain gives statistics
+representative of the whole system.
+
+For the analysis, data are retrieved block per block and part of the blockchain
+is saved in a text file. This finer granularity allows us to have
+a lot of informations that may be hidden in the statistical analysis
+provided from Bitcoin. It is also possible to use the informations retrieved
+to make future predictions about how much the 
+Bitcoin blockchain will grow, using polynomial interpolation on the data. According
+on how many blocks ago are fetched, it is possible to have an accurate prediction
+on the blockchain growth for the next few years.
+
+We are going to compare more recent data, retrieved real time, with the Bitcoin one and see the differences of the
+blockchain growth. Moreover, In the Bitcoin website for blockchain analysis,
+\url{blockchain.info}~\cite{bitcoin_blockchain}, the finer granularity
+shows data for the last $7$ days while we are collecting and monitoring data
+at every block creation ($\sim8$-$10$ min). In that way is easier for us to check
+if there are any abnormalities in the ledger of public data.
 
 \section{Outline}
 \label{sec:outline}
@@ -539,7 +724,7 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 %TODO: As Michael Bowles\,\cite{bowles2015MLIP} says, you can think of a data frame as a table or matrix-like structure oriented with a row representing a single case or observation and columns representing particular attributes. We decided to use a data frame structure and not a matrix one becuase even though the data frame structure is matrix-like, its elements in various columns may be of different types. For statistical problems, the matrix is too confining because statistical samples typically have a mix of different types, plus, Pandas package makes it possible to automate the steps of calculating mean, variance, and quantiles offers and a nice and smooth control over your data. Our dataset contains both, numeric and categorical (or factors) variables.
 %TODO: Structure in the way the data are stored might need to be factored into your approach for doing subsequential sampling. This is the reason why we stored transactions ordered by block and each block ordered by height/epoch, in that way we have the data set ordered by block creation with all its transactions in it and it will be much easier to make analysis or sampling data following a cronological order.
 
-%TODO: Our dataframe allows us to collect all the useful informations without storing the whole raw blockchain like current systems for blockchain analysis do, see \emph{BitcoinCore}\,\cite{bitcoincore}. Raw data are collected in \gls{json}, analyzed, printed in our dataframe and then deleted. This gave us a $x10$ space saving on the blockchain, storing in a $1$\,GB dataframe what the raw files from \emph{bitcoin.info} store in $10$\,GB space. Plus, we believe that analyzing a small percentage of the blockchain everyday would give us relevant informations about the whole system, and due to time limitations we could collect only #% of the data, every day.
+%TODO: Our dataframe allows us to collect all the useful informations without storing the whole raw blockchain like current systems for blockchain analysis do, see \emph{BitcoinCore}\,\cite{bitcoincore}. Raw data are collected in \gls{json}, analyzed, printed in our dataframe and then deleted. This gave us a $10x$ space saving on the blockchain, storing in a $1$\,GB dataframe what the raw files from \emph{bitcoin.info} store in $10$\,GB space. Plus, we believe that analyzing a small percentage of the blockchain everyday would give us relevant informations about the whole system, and due to time limitations we could collect only #% of the data, every day.
 
 %TODO: ============= VISUALIZING DATA ============
 %TODO: Once data are gathered and the dataset is created, the first step is to determine the outliers.
@@ -616,6 +801,8 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 
 \subsection{Data Retrieval}
 \label{sec:data_retrieval}
+
+%TODO: Show a table that list how data where retrieved, from where and why: SOURCE - ENTITY - INFORMATION table
 %Data in the blockchain can be retrieved in different ways: blocks can be added to
 %the top of the file, so the most recent blocks are fetched, or appended to the last element,
 %so the blockchain is analyzed even further in the past.
@@ -839,6 +1026,8 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 
 %TODO: To get values in $(0,1)$ the logit function in Eq.\,\ref{eq:logit} is applied to our data.
 
+
+%TODO: The Bitcoin price has been affected of an high volatility. For that reason, predicting the fee in \gls{usd} that a client might pay is difficult and it might change from the Bitcoin price. According to \emph{Coindesk.com}.... show the bitcoin price!
 %In this chapter we present observations of the Bitcoin blockchain captured by the
 %analytics system outlined in Chapter~\ref{chap:expsetup}. 
 %To evaluate our problem definition in Chapter~\ref{sec:probdefinition}, we focus on consideration related to 
@@ -1352,473 +1541,473 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 
 	\chapter{Listing}
 	\label{app:listing}
-	\begin{lstlisting}[numbers=left,frame=single,caption={Smart contract transaction code in Ethereum.}]
-function transfer(address _to, uint256 _value) {
-	/* Add and subtract new balances */
-	balanceOf[msg.sender] -= _value;
-	balanceOf[_to] += _value;
-	}
-	\end{lstlisting}
-	
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:smartcontract}
-}
-\begin{lstlisting}[float, numbers=left,frame=single,caption={Example of a smart contract that rewards users who solve a computational puzzle~\cite{smartcontracts}.}]
-contract Puzzle {
-  address public owner ;
-  bool public locked ;
-  uint public reward ;
-  bytes32 public diff ;
-  bytes public solution ;
-
-  function Puzzle () // constructor {
-    owner = msg. sender ;
-    reward = msg . value ;
-    locked = false ;
-    diff = bytes32 (11111); // pre - defined difficulty
-    }
-
-  function (){ // main code , runs at every invocation
-    if ( msg. sender == owner ){ // update reward
-    if ( locked )
-    throw ;
-    owner . send ( reward );
-    reward = msg . value ;
-    }
-    else
-      if ( msg . data . length > 0){ // submit a solution
-      if ( locked ) throw ;
-      if ( sha256 (msg. data ) < diff ){
-          msg. sender . send ( reward ); // send reward
-          solution = msg. data ;
-          locked
-          }}}}
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:usage}
-}
-\begin{lstlisting}[float, numbers=left, frame=single, caption={Application usage.}]
-Usage: observ.py -t number
-  -h | --help    : usage
-  -i             : gives info of the blockchain in the file .txt
-  -t number      : add on top a number of blocks. The blocks retreived will be the most recent ones. If the blockchain growth more than the block requested do -u (update)
-  -e number      : append blocks at the end of the .txt file. Fetch older blocks starting from the last retrieved
-  -P             : plot all
-  -p start [end] : plot data in .txt file in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
-  -R             : plot the regression and the models that predict the blockchain
-  -r start [end] : plot the regression and the models in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
-  -u             : update the local blockchain to the last block created
-
-\end{lstlisting}
-
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:block}
-}
-
-\begin{lstlisting}[float, numbers=left,frame=single,caption={Block object represented in Python according to api-v1-client-python to retrieve data on the blockchain. The function get\_block() will return an object of this type\,\cite{bitcoin_api}.},language=Python]
-class Block:
-  def __init__(self, b):
-    self.hash = b['hash']
-    self.version = b['ver']
-    self.previous_block = b['prev_block']
-    self.merkle_root = b['mrkl_root']
-    self.time = b['time']
-    self.bits = b['bits']
-    self.fee = b['fee']
-    self.nonce = b['nonce']
-    self.n_tx = b['n_tx']
-    self.size = b['size']
-    self.block_index = b['block_index']
-    self.main_chain = b['main_chain']
-    self.height = b['height']
-    self.received_time = b.get('received_time', b['time'])
-    self.relayed_by = b.get('relayed_by')
-    self.transactions = [Transaction(t) for t in b['tx']]
-    for tx in self.transactions:
-        tx.block_height = self.height
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:transaction}
-}
-
-\begin{lstlisting}[float, numbers=left,frame=single,caption={Transaction object represented in Python according to api-v1-client-python to retrieve data on the blockchain. The function get\_transaction() will return an object of this type\,\cite{bitcoin_api}.},language=Python]
-class Transaction:
-  def __init__(self, t):
-    self.double_spend = t.get('double_spend', False)
-    self.block_height = t.get('block_height')
-    self.time = t['time']
-    self.relayed_by = t['relayed_by']
-    self.hash = t['hash']
-    self.tx_index = t['tx_index']
-    self.version = t['ver']
-    self.size = t['size']
-    self.inputs = [Input(i) for i in t['inputs']]
-    self.outputs = [Output(o) for o in t['out']]
-
-    if self.block_height is None:
-       self.block_height = -1
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:block-json}
-}
-
-\begin{lstlisting}[float, frame=single, caption={Json object returned from the method \emph{get\_block()} in the Bitcoin \gls{api} class blockexplorer.py\,\cite{bitcoin_api}}, language=Python]
-hash : str
-version : int
-previous_block : str
-merkle_root : str
-time : int
-bits : int
-fee : int
-nonce int
-n_tx : int
-size : int
-block_index : int
-main_chain : bool
-height : int
-received_time : int
-relayed_by : string
-transactions : array of Transaction objects
-\end{lstlisting}
-
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:latest-block}
-}
-\begin{lstlisting}[float, numbers=left,frame=single,caption={Structure of the latest block retrieved. The function get\_latest\_block() will return an object with this structure.}]
-class LatestBlock:
-def __init__(self, b):
-self.hash = b['hash']
-self.time = b['time']
-self.block_index = b['block_index']
-self.height = b['height']
-self.tx_indexes = [i for i in b['txIndexes']]
-\end{lstlisting}
-
-
-\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:append-block}
-}
-\begin{lstlisting}[float, numbers=left, frame=single, caption={Collecting data starting from the last element in the blockchain.txt file.}]
-earliest_hash = get_earliest_hash()
-get_blockchain(n, earliest_hash)
-
-def get_blockchain(n, hash = None):
-  [...]
-  if (hash):  # start the retrieval from the hash
-    append_end = True  # in that way the write_blockchain method knows that has to append blocks and not write them at the beginning
-    last_block = blockexplorer.get_block(hash)
-  [...]
-
-def get_earliest_hash():
-  hash_list = get_list_from_file("hash") # method to collect data from blockchain.txt file having as attribute "hash"
-  length = len(hash_list)
-  earliest_hash = hash_list[length - 1]
-  return earliest_hash
-\end{lstlisting}
-
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:api-python}
-}
-\begin{lstlisting}[float, numbers=left, frame=single,caption={Calling \url{blockchain.info} through python \gls{api} and retrieving part of the blockchain.}]
-from blockchain import blockexplorer
-# get the last block
-last_block = blockexplorer.get_latest_block()
-hash_last_block = last_block.hash
-
-# current block now is the last block
-current_block = blockexplorer.get_block(hash_last_block)
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:read-bandwidth},
-	numbers=left,
-	frame=single
-}
-\begin{lstlisting}[float, caption={How read bandwidth is calculated, using the function $datetime.now()$ before and after the \gls{api} call.}]
-start_time = datetime.datetime.now() # ---------
-current_block = blockexplorer.get_block(current_block.previous_block)
-end_time = datetime.datetime.now() # ---------
-time_to_fetch = end_time - start_time
-time_in_seconds = get_time_in_seconds(time_to_fetch)
-
-#latency
-fetch_time_list.append(time_in_seconds)
-
-# calculate Bandwidth with MB/s
-block_size = float(current_block.size) / 1000000
-bandwidth = block_size / time_in_seconds
-bandwidth_list.append(bandwidth)
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:get-transaction-time},
-	numbers=left,
-	frame=single
-}
-\begin{lstlisting}[float, caption={Function that get the average write bandwidth of the block, calculating the time for each transaction to be visible in the public ledger of data.}]
-def get_avg_transaction_time(block):
-  # take transactions the block
-  transactions = block.transactions
-
-  # get block time -- when it is visible in the blockchain, so when it was created
-  block_time = block.time
-
-  # list of the creation time for all the transaction in the block
-  transactions_time_list = []
-
-  # list of the time that each transaction needs before being visible in the blockchain
-  time_to_be_visible = []
-
-  for t in transactions:
-    transactions_time_list.append(float(t.time))
-
-  for t_time in transactions_time_list:
-    time_to_be_visible.append(float(block_time - t_time))
-    
-  average_per_block = sum(time_to_be_visible) / len(time_to_be_visible)
-  return average_per_block
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:file-write},
-	numbers=left,
-	frame=single
-}
-\begin{lstlisting}[float, caption={How the file.write is performed in the blockchain analytics system. Differences with add and append.}]
-if(append):
-  for i in range(n):
-    file.write("block_informations")
-
-else: # add on top
-  hash_list_in_file = get_list_from_file("hash")
-  first_hash = hash_list_in_file[0]
-  elements = len(hash_list_in_file)
-  last_hash = hash_list_in_file[elements-1]
-  met_first = False
-  with io.FileIO(file_name, "a+") as file:
-    file.seek(0)  # place at the beginning of the file
-    existing_lines = file.readlines()  # read the already existing lines
-    file.seek(0)
-    file.truncate()  # delete all the file
-    file.seek(0)
-    i = 0
-    while (i < n):
-      if (first_hash == hash[i]):
-        met_first = True
-      while((met_first == False) and (i < n)):
-        # append on top
-        file.write("block_informations")
-        i = i + 1
-        if ((i < n) and (first_hash == hash[i])):
-          met_first = True
-      # when the block retrieved meets the one alread in the blockchain write the old file
-      file.writelines(existing_lines)
-
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:python-list},
-	numbers=left,
-	frame=single
-}
-\begin{lstlisting}[float, caption={Changing all the values inside a Python list in one code line.}]
-# size_list from byte to MB
-size_list[:] = [x / 1000000 for x in size_list]
-# time_list from seconds in minutes
-time_list[:] = [x / 60 for x in time_list]
-\end{lstlisting}
-
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:get-data-from-file},
-	numbers=left,
-	frame=single
-}
-\begin{lstlisting}[float, caption={Method that allows, given an attribute present in the blockchain.txt file, to create a list containing informations only about this quality using \emph{regular expressions}.}]
-hash_list = get_list_from_file("hash")
-
-def get_list_from_file(attribute):
-  list_to_return = []
-  if (os.path.isfile("blockchain.txt")):
-    # open the file and read in it -- blockchain_file
-    with open("blockchain.txt", "r") as blockchain_file:
-      for line in blockchain_file:
-      # regular expression that puts in a list the line just read: eg. ['hash', '<block_hash>']
-        list = re.findall(r"[\w']+", line)
-        # list[0] --> contains the attribute
-        # list[1] --> contains the value
-        if ((list) and (list[0] == attribute)):
-          list_to_return.append(list[1])
-  return list_to_return
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:growing-lists},
-	numbers=left,
-	frame=single
-}
-\begin{lstlisting}[float, caption={Generation of the growing size and time lists. Calculated following the Equations~\ref{eq:growing_size},~\ref{eq:growing_time}.}]
-def create_growing_time_list(time_list):
-  reversed_time_list = time_list[::-1]
-  time_to_append = 0
-  previous_time = 0
-  growing_time_list = []
-  growing_time_list.append(previous_time)
-  for time_el in reversed_time_list:
-    time_to_append = (float(time_el) / (60 * 60)) + previous_time  # time in hours
-    growing_time_list.append(time_to_append)
-    previous_time = time_to_append
-  return growing_time_list
-
-def create_growing_size_list(size_list):
-  reversed_size_list = size_list[::-1]
-  growing_size_list = []
-  value_to_append = 0
-  size_back = 0
-  growing_size_list.append(value_to_append)
-  for size_el in reversed_size_list:
-    value_to_append = size_el + size_back
-    growing_size_list.append(value_to_append)
-    size_back = value_to_append
-  return growing_size_list
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:polynomial-interpolation},
-	numbers=left,
-	frame=single
-}
-\begin{lstlisting}[float, caption={Example of a polynomial interpolation of two lists using NumPy libraries.}]
-import numpy as np
-
-model = np.polyfit(list1, list2, deg) # polynomial interpolation between list1 and list2 with the degree of the return polynomial
-# deg = 1 --> linear interpolation
-# deg = 2 --> quadratic
-# deg = 3 --> cubic
-# ...
-predicted = np.polyval(model, list1)
-plt.plot(list1, predicted, 'b-', label="pol_interp")
-\end{lstlisting}
-
-	\lstset{language=Python,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
-	commentstyle=\color{green}\ttfamily,
-	breaklines=true,
-	morecomment=[l][\color{magenta}]{\#},
-	label = {lst:check},
-	numbers=left,
-	frame=single
-}
-\begin{lstlisting}[float, caption={Check the status of the local blockhain, True if valid, False if not.}]
-def check_blockchain():
-  check = True
-  list = get_list_from_file("height")
-  number = int(list[0])
-  length_list = len(list)
-  for i in range(length_list):
-    if (number != int(list[i])):
-      check = False
-    number = number - 1
-  return check
-\end{lstlisting}
+%	\begin{lstlisting}[numbers=left,frame=single,caption={Smart contract transaction code in Ethereum.}]
+%function transfer(address _to, uint256 _value) {
+%	/* Add and subtract new balances */
+%	balanceOf[msg.sender] -= _value;
+%	balanceOf[_to] += _value;
+%	}
+%	\end{lstlisting}
+%	
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:smartcontract}
+%}
+%\begin{lstlisting}[float, numbers=left,frame=single,caption={Example of a smart contract that rewards users who solve a computational puzzle~\cite{smartcontracts}.}]
+%contract Puzzle {
+%  address public owner ;
+%  bool public locked ;
+%  uint public reward ;
+%  bytes32 public diff ;
+%  bytes public solution ;
+%
+%  function Puzzle () // constructor {
+%    owner = msg. sender ;
+%    reward = msg . value ;
+%    locked = false ;
+%    diff = bytes32 (11111); // pre - defined difficulty
+%    }
+%
+%  function (){ // main code , runs at every invocation
+%    if ( msg. sender == owner ){ // update reward
+%    if ( locked )
+%    throw ;
+%    owner . send ( reward );
+%    reward = msg . value ;
+%    }
+%    else
+%      if ( msg . data . length > 0){ // submit a solution
+%      if ( locked ) throw ;
+%      if ( sha256 (msg. data ) < diff ){
+%          msg. sender . send ( reward ); // send reward
+%          solution = msg. data ;
+%          locked
+%          }}}}
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:usage}
+%}
+%\begin{lstlisting}[float, numbers=left, frame=single, caption={Application usage.}]
+%Usage: observ.py -t number
+%  -h | --help    : usage
+%  -i             : gives info of the blockchain in the file .txt
+%  -t number      : add on top a number of blocks. The blocks retreived will be the most recent ones. If the blockchain growth more than the block requested do -u (update)
+%  -e number      : append blocks at the end of the .txt file. Fetch older blocks starting from the last retrieved
+%  -P             : plot all
+%  -p start [end] : plot data in .txt file in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
+%  -R             : plot the regression and the models that predict the blockchain
+%  -r start [end] : plot the regression and the models in a certain period of time, from start to end. If only start then consider from start to the end of the .txt file
+%  -u             : update the local blockchain to the last block created
+%
+%\end{lstlisting}
+%
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:block}
+%}
+%
+%\begin{lstlisting}[float, numbers=left,frame=single,caption={Block object represented in Python according to api-v1-client-python to retrieve data on the blockchain. The function get\_block() will return an object of this type\,\cite{bitcoin_api}.},language=Python]
+%class Block:
+%  def __init__(self, b):
+%    self.hash = b['hash']
+%    self.version = b['ver']
+%    self.previous_block = b['prev_block']
+%    self.merkle_root = b['mrkl_root']
+%    self.time = b['time']
+%    self.bits = b['bits']
+%    self.fee = b['fee']
+%    self.nonce = b['nonce']
+%    self.n_tx = b['n_tx']
+%    self.size = b['size']
+%    self.block_index = b['block_index']
+%    self.main_chain = b['main_chain']
+%    self.height = b['height']
+%    self.received_time = b.get('received_time', b['time'])
+%    self.relayed_by = b.get('relayed_by')
+%    self.transactions = [Transaction(t) for t in b['tx']]
+%    for tx in self.transactions:
+%        tx.block_height = self.height
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:transaction}
+%}
+%
+%\begin{lstlisting}[float, numbers=left,frame=single,caption={Transaction object represented in Python according to api-v1-client-python to retrieve data on the blockchain. The function get\_transaction() will return an object of this type\,\cite{bitcoin_api}.},language=Python]
+%class Transaction:
+%  def __init__(self, t):
+%    self.double_spend = t.get('double_spend', False)
+%    self.block_height = t.get('block_height')
+%    self.time = t['time']
+%    self.relayed_by = t['relayed_by']
+%    self.hash = t['hash']
+%    self.tx_index = t['tx_index']
+%    self.version = t['ver']
+%    self.size = t['size']
+%    self.inputs = [Input(i) for i in t['inputs']]
+%    self.outputs = [Output(o) for o in t['out']]
+%
+%    if self.block_height is None:
+%       self.block_height = -1
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:block-json}
+%}
+%
+%\begin{lstlisting}[float, frame=single, caption={Json object returned from the method \emph{get\_block()} in the Bitcoin \gls{api} class blockexplorer.py\,\cite{bitcoin_api}}, language=Python]
+%hash : str
+%version : int
+%previous_block : str
+%merkle_root : str
+%time : int
+%bits : int
+%fee : int
+%nonce int
+%n_tx : int
+%size : int
+%block_index : int
+%main_chain : bool
+%height : int
+%received_time : int
+%relayed_by : string
+%transactions : array of Transaction objects
+%\end{lstlisting}
+%
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:latest-block}
+%}
+%\begin{lstlisting}[float, numbers=left,frame=single,caption={Structure of the latest block retrieved. The function get\_latest\_block() will return an object with this structure.}]
+%class LatestBlock:
+%def __init__(self, b):
+%self.hash = b['hash']
+%self.time = b['time']
+%self.block_index = b['block_index']
+%self.height = b['height']
+%self.tx_indexes = [i for i in b['txIndexes']]
+%\end{lstlisting}
+%
+%
+%\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:append-block}
+%}
+%\begin{lstlisting}[float, numbers=left, frame=single, caption={Collecting data starting from the last element in the blockchain.txt file.}]
+%earliest_hash = get_earliest_hash()
+%get_blockchain(n, earliest_hash)
+%
+%def get_blockchain(n, hash = None):
+%  [...]
+%  if (hash):  # start the retrieval from the hash
+%    append_end = True  # in that way the write_blockchain method knows that has to append blocks and not write them at the beginning
+%    last_block = blockexplorer.get_block(hash)
+%  [...]
+%
+%def get_earliest_hash():
+%  hash_list = get_list_from_file("hash") # method to collect data from blockchain.txt file having as attribute "hash"
+%  length = len(hash_list)
+%  earliest_hash = hash_list[length - 1]
+%  return earliest_hash
+%\end{lstlisting}
+%
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:api-python}
+%}
+%\begin{lstlisting}[float, numbers=left, frame=single,caption={Calling \url{blockchain.info} through python \gls{api} and retrieving part of the blockchain.}]
+%from blockchain import blockexplorer
+%# get the last block
+%last_block = blockexplorer.get_latest_block()
+%hash_last_block = last_block.hash
+%
+%# current block now is the last block
+%current_block = blockexplorer.get_block(hash_last_block)
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:read-bandwidth},
+%	numbers=left,
+%	frame=single
+%}
+%\begin{lstlisting}[float, caption={How read bandwidth is calculated, using the function $datetime.now()$ before and after the \gls{api} call.}]
+%start_time = datetime.datetime.now() # ---------
+%current_block = blockexplorer.get_block(current_block.previous_block)
+%end_time = datetime.datetime.now() # ---------
+%time_to_fetch = end_time - start_time
+%time_in_seconds = get_time_in_seconds(time_to_fetch)
+%
+%#latency
+%fetch_time_list.append(time_in_seconds)
+%
+%# calculate Bandwidth with MB/s
+%block_size = float(current_block.size) / 1000000
+%bandwidth = block_size / time_in_seconds
+%bandwidth_list.append(bandwidth)
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:get-transaction-time},
+%	numbers=left,
+%	frame=single
+%}
+%\begin{lstlisting}[float, caption={Function that get the average write bandwidth of the block, calculating the time for each transaction to be visible in the public ledger of data.}]
+%def get_avg_transaction_time(block):
+%  # take transactions the block
+%  transactions = block.transactions
+%
+%  # get block time -- when it is visible in the blockchain, so when it was created
+%  block_time = block.time
+%
+%  # list of the creation time for all the transaction in the block
+%  transactions_time_list = []
+%
+%  # list of the time that each transaction needs before being visible in the blockchain
+%  time_to_be_visible = []
+%
+%  for t in transactions:
+%    transactions_time_list.append(float(t.time))
+%
+%  for t_time in transactions_time_list:
+%    time_to_be_visible.append(float(block_time - t_time))
+%    
+%  average_per_block = sum(time_to_be_visible) / len(time_to_be_visible)
+%  return average_per_block
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:file-write},
+%	numbers=left,
+%	frame=single
+%}
+%\begin{lstlisting}[float, caption={How the file.write is performed in the blockchain analytics system. Differences with add and append.}]
+%if(append):
+%  for i in range(n):
+%    file.write("block_informations")
+%
+%else: # add on top
+%  hash_list_in_file = get_list_from_file("hash")
+%  first_hash = hash_list_in_file[0]
+%  elements = len(hash_list_in_file)
+%  last_hash = hash_list_in_file[elements-1]
+%  met_first = False
+%  with io.FileIO(file_name, "a+") as file:
+%    file.seek(0)  # place at the beginning of the file
+%    existing_lines = file.readlines()  # read the already existing lines
+%    file.seek(0)
+%    file.truncate()  # delete all the file
+%    file.seek(0)
+%    i = 0
+%    while (i < n):
+%      if (first_hash == hash[i]):
+%        met_first = True
+%      while((met_first == False) and (i < n)):
+%        # append on top
+%        file.write("block_informations")
+%        i = i + 1
+%        if ((i < n) and (first_hash == hash[i])):
+%          met_first = True
+%      # when the block retrieved meets the one alread in the blockchain write the old file
+%      file.writelines(existing_lines)
+%
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:python-list},
+%	numbers=left,
+%	frame=single
+%}
+%\begin{lstlisting}[float, caption={Changing all the values inside a Python list in one code line.}]
+%# size_list from byte to MB
+%size_list[:] = [x / 1000000 for x in size_list]
+%# time_list from seconds in minutes
+%time_list[:] = [x / 60 for x in time_list]
+%\end{lstlisting}
+%
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:get-data-from-file},
+%	numbers=left,
+%	frame=single
+%}
+%\begin{lstlisting}[float, caption={Method that allows, given an attribute present in the blockchain.txt file, to create a list containing informations only about this quality using \emph{regular expressions}.}]
+%hash_list = get_list_from_file("hash")
+%
+%def get_list_from_file(attribute):
+%  list_to_return = []
+%  if (os.path.isfile("blockchain.txt")):
+%    # open the file and read in it -- blockchain_file
+%    with open("blockchain.txt", "r") as blockchain_file:
+%      for line in blockchain_file:
+%      # regular expression that puts in a list the line just read: eg. ['hash', '<block_hash>']
+%        list = re.findall(r"[\w']+", line)
+%        # list[0] --> contains the attribute
+%        # list[1] --> contains the value
+%        if ((list) and (list[0] == attribute)):
+%          list_to_return.append(list[1])
+%  return list_to_return
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:growing-lists},
+%	numbers=left,
+%	frame=single
+%}
+%\begin{lstlisting}[float, caption={Generation of the growing size and time lists. Calculated following the Equations~\ref{eq:growing_size},~\ref{eq:growing_time}.}]
+%def create_growing_time_list(time_list):
+%  reversed_time_list = time_list[::-1]
+%  time_to_append = 0
+%  previous_time = 0
+%  growing_time_list = []
+%  growing_time_list.append(previous_time)
+%  for time_el in reversed_time_list:
+%    time_to_append = (float(time_el) / (60 * 60)) + previous_time  # time in hours
+%    growing_time_list.append(time_to_append)
+%    previous_time = time_to_append
+%  return growing_time_list
+%
+%def create_growing_size_list(size_list):
+%  reversed_size_list = size_list[::-1]
+%  growing_size_list = []
+%  value_to_append = 0
+%  size_back = 0
+%  growing_size_list.append(value_to_append)
+%  for size_el in reversed_size_list:
+%    value_to_append = size_el + size_back
+%    growing_size_list.append(value_to_append)
+%    size_back = value_to_append
+%  return growing_size_list
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:polynomial-interpolation},
+%	numbers=left,
+%	frame=single
+%}
+%\begin{lstlisting}[float, caption={Example of a polynomial interpolation of two lists using NumPy libraries.}]
+%import numpy as np
+%
+%model = np.polyfit(list1, list2, deg) # polynomial interpolation between list1 and list2 with the degree of the return polynomial
+%# deg = 1 --> linear interpolation
+%# deg = 2 --> quadratic
+%# deg = 3 --> cubic
+%# ...
+%predicted = np.polyval(model, list1)
+%plt.plot(list1, predicted, 'b-', label="pol_interp")
+%\end{lstlisting}
+%
+%	\lstset{language=Python,
+%	basicstyle=\ttfamily,
+%	keywordstyle=\color{blue}\ttfamily,
+%	stringstyle=\color{red}\ttfamily,
+%	commentstyle=\color{green}\ttfamily,
+%	breaklines=true,
+%	morecomment=[l][\color{magenta}]{\#},
+%	label = {lst:check},
+%	numbers=left,
+%	frame=single
+%}
+%\begin{lstlisting}[float, caption={Check the status of the local blockhain, True if valid, False if not.}]
+%def check_blockchain():
+%  check = True
+%  list = get_list_from_file("height")
+%  number = int(list[0])
+%  length_list = len(list)
+%  for i in range(length_list):
+%    if (number != int(list[i])):
+%      check = False
+%    number = number - 1
+%  return check
+%\end{lstlisting}
 
 \end{appendices}
 

@@ -63,6 +63,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn import linear_model
 from sklearn.metrics import *
 from pandas.tools.plotting import parallel_coordinates
+from pandas.tools.plotting import andrews_curves
 from timeout import timeout
 
 # ------ GLOBAL ------
@@ -455,9 +456,10 @@ def get_all_dataframe():
     """
     i = 0
     old_df = None
+    ne_df = None
     while True:
         # if the file exists
-        df_name = "transaction_dataframe_"+str(i)+".tsv"
+        df_name = "old_dataset/transaction_dataframe_"+str(i)+".tsv"
         if (os.path.isfile(df_name)):
             df = pd.DataFrame.from_csv(df_name, sep='\t')
             new_df = pd.concat([old_df, df])
@@ -475,6 +477,75 @@ def revert_date_time(t):
     """
 
     return datetime.datetime.strptime(t, '%d-%m-%Y %H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
+
+
+def epoch_date_mm(df):
+    """
+    get a df with a column of epoch, returns another column with the date yyyy-mm so it orders the date by month
+    :param df:
+    :return:
+    """
+    df['date'] = df['B_ep'].apply(epoch_datetime)
+    df['date'] = df['date'].apply(revert_date_time)
+
+    df['date'] = df['date'].str.slice(start=0, stop=7)
+
+    return df
+
+def epoch_date_dd(df):
+    """
+    get a df with a column of epoch, returns another column with the date yyyy-mm-dd so it orders the date by day
+    :param df:
+    :return:
+    """
+    df['date'] = df['B_ep'].apply(epoch_datetime)
+    df['date'] = df['date'].apply(revert_date_time)
+
+    df['date'] = df['date'].str.slice(start=0, stop=10)
+    return df
+
+
+def epoch_date_yy(df):
+    """
+    get a df with a column of epoch, returns another column with the date yyyy so it orders the date by year
+    :param df:
+    :return:
+    """
+    df['date'] = df['B_ep'].apply(epoch_datetime)
+    df['date'] = df['date'].apply(revert_date_time)
+
+    df['date'] = df['date'].str.slice(start=0, stop=4)
+
+    return df
+
+
+def fee_intervals(fee):
+    """
+
+    :param fee:
+    :return:    the fee to be inserted in a df, this fee is a category in which the previous numerical fee is in, e.g. 0.00023 will be in 0.0005 category
+    """
+
+    if (fee < 0.0001):
+        # category 1 --> 0
+        fee = "0"
+    elif(fee >= 0.0001 and fee < 0.0002):
+        # category 2 --> 0.0001
+        fee = "0.0001"
+    elif(fee >= 0.0002 and fee < 0.0005):
+        # category 3 --> 0.0002
+        fee = "0.0002"
+    elif(fee >= 0.0005 and fee < 0.001):
+        # category 4 --> 0.001
+        fee = "0.0005"
+    elif(fee >= 0.001 and fee < 0.01):
+        # category 5 --> 0.01
+        fee = "0.001"
+    else:
+        # category 6 --> >0.01
+        fee = ">0.01"
+
+    return fee
 
 
 def remove_minor_miners(df, number=7):
@@ -855,27 +926,78 @@ def plot(miner=1):
     df = get_all_dataframe()
 
 
+    # ---------------------------- Distribution of transaction fees -------------------------------
+    info = "plot/txs_fee_distribution"
+    df_distr = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_ep']]
+    # split date to have yyyy-mm
+    df_distr = epoch_date_mm(df_distr)
+    df_distr['t_f'] = df_distr['t_f'].apply(satoshi_bitcoin)
+    # get a category for the fee
+    df_distr['t_f'] = df_distr['t_f'].apply(fee_intervals)
+    # groub by date and then miners, count how many transactions a miner approved in a certain month
+    df_grouped = df_distr.groupby(['t_f', 'date']).size().to_frame('size').reset_index()
+    # df_grouped.plot(data=df_grouped, x ='date', y='size', kind='area')
 
+    df_0 = df_grouped[df_grouped.t_f == "0"]
+    df_1 = df_grouped[df_grouped.t_f == "0.0001"]
+    df_2 = df_grouped[df_grouped.t_f == "0.0002"]
+    df_3 = df_grouped[df_grouped.t_f == "0.0005"]
+    df_4 = df_grouped[df_grouped.t_f == "0.001"]
+    df_5 = df_grouped[df_grouped.t_f == ">0.01"]
+
+
+    # create a new dataframe having as columns the different t_f
+    new_df = pd.DataFrame.from_items(
+        [('0', df_0['size'].values), ('0.0001', df_1['size'].values), ('0.0002', df_2['size'].values), ('0.0005', df_3['size'].values), ('0.001', df_4['size'].values),
+         ('>0.01', df_5['size'].values), ('date', df_0['date'].values)])
+
+    new_df.plot.area(x = 'date', y = 'size')
+
+    # ---------------------------------------------------------------------------------------------
+
+
+
+    # ---------------------------------- ANDREWS CURVES -----------------------------------
+    # info = "plot/andrews"
+    # df_andrews = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_mi']]
+    # andrews_curves(df_andrews, 'B_mi')
+    # -------------------------------------------------------------------------------------
+
+    # ---------------------- TRANSACTION LATENCY FROM EACH MINER --------------------------
+    # info = "plot/tx_latency"
+    # df = epoch_date_mm(df)
+    # df = df[['t_l', 'B_mi', 'date', 'B_ep']]
+    #
+    # df['t_l'] = df['t_l'].apply(sec_minutes)
+    #
+    # df_grouped = df.groupby(['date', 'B_mi']).median().reset_index()
+    # df_grouped = remove_minor_miners(df_grouped, 8)
+    # print df_grouped
+    # g = sns.pointplot(x="date", y="t_l", hue="B_mi", data=df_grouped)
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='date', ylabel='$t_l$ (min)')
+
+    # -------------------------------------------------------------------------------------
 
     # -------------------- FEE DISTRIBUTED OVER TIME ACCORDING TO DIFFERENT MINERS --------------------
-    """
-    info = "plot/fee_distribution"
-    df_feedistr = df[['t_f', 'B_mi', 'B_ep']]
-    df_feedistr = remove_minor_miners(df_feedistr)
 
-    df_feedistr['t_f'] = df_feedistr['t_f'].apply(satoshi_bitcoin)
+    # info = "plot/fee_distribution"
+    # df_feedistr = df[['t_f', 'B_mi', 'B_ep']]
+    # df_feedistr = remove_minor_miners(df_feedistr)
+    #
+    # df_feedistr['t_f'] = df_feedistr['t_f'].apply(satoshi_bitcoin)
+    #
+    # df_feedistr['date'] = df_feedistr['B_ep'].apply(epoch_datetime)
+    # df_feedistr['date'] = df_feedistr['date'].apply(revert_date_time)
+    # # split date to have yyyy-mm
+    # df_feedistr['date'] = df_feedistr['date'].str.slice(start=0, stop=7)
+    # df_feedistr = df_feedistr.groupby(['date', 'B_mi']).median().reset_index()
+    # # print df_feedistr
+    #
+    # g = sns.pointplot(x="date", y="t_f", hue="B_mi", data=df_feedistr, legend_out = True)
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='date', ylabel='$t_f$ (BTC)')
 
-    df_feedistr['date'] = df_feedistr['B_ep'].apply(epoch_datetime)
-    df_feedistr['date'] = df_feedistr['date'].apply(revert_date_time)
-    # split date to have yyyy-mm
-    df_feedistr['date'] = df_feedistr['date'].str.slice(start=0, stop=7)
-    df_feedistr = df_feedistr.groupby(['date', 'B_mi']).median().reset_index()
-    # print df_feedistr
-
-    g = sns.pointplot(x="date", y="t_f", hue="B_mi", data=df_feedistr, legend_out = True)
-    g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    g.set(xlabel='date', ylabel='$t_f$ (BTC)')
-    """
     # -------------------------------------------------------------------------------------------------
 
 
@@ -951,7 +1073,7 @@ def plot(miner=1):
     # remove minor miners
     df_grouped = remove_minor_miners(df_grouped, 8)
 
-    # calculate how many transactions were apprved by each miner in each year
+    # calculate how many transactions were apprved by each miner in every year
     g = sns.pointplot(x="date", y="size", hue="B_mi", data=df_grouped)
     g.set_xticklabels(g.get_xticklabels(), rotation=45)
     g.set(xlabel='date', ylabel='transactions approved')
@@ -975,50 +1097,52 @@ def plot(miner=1):
 
 
     # -------- NUMBER OF MINERS pie chart
-    """
-    info = "plot/miners"
-    miners = df['B_mi'].value_counts() # count miners
+    #
+    # info = "plot/miners"
+    # miners = df['B_mi'].value_counts() # count miners
+    #
+    # print miners
+    # # other minor miners
+    #
+    # # miners.index = miners.index.to_series().replace({'Eobot': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'P2Pool': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'HAOZHUZHU': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'BitMinter': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'PHash.IO': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'Bitcoin India': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'ConnectBTC': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'xbtc.exx.com&bw.com': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'shawnp0wers': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'GoGreenLight': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'Telco 214': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'CANOE': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'BATPOOL': 'Others'})
+    # # miners.index = miners.index.to_series().replace({"Patel's Mining pool": 'Others'})
+    # # miners.index = miners.index.to_series().replace({'120.25.194.218': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'188.40.74.13': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'148.251.6.18': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'95.110.234.93': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'Eligius': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'GHash.IO': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'BCMonster': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'21 Inc.': 'Others'})
+    # # miners.index = miners.index.to_series().replace({'Solo CKPool': 'Others'})
+    #
+    #
+    # miners = miners.groupby(miners.index, sort=False).sum()
+    # total = miners.sum()
+    #
+    # miners = miners.head(8)
+    # partial = miners.sum()
+    # print miners
+    #
+    #
+    # label = miners.index.get_level_values(0)
+    # plt.savefig(info, bbox_inches='tight', dpi=500)
+    #
+    # series = pd.Series(miners, index=label, name='Transactions mined')
+    # series.plot.pie(figsize=(8, 8), autopct='%.2f', title='transactions evaluated: ' + str(partial) + " out of: " + str(total), table=True)
 
-    print miners
-    # other minor miners
-    
-    # miners.index = miners.index.to_series().replace({'Eobot': 'Others'})
-    # miners.index = miners.index.to_series().replace({'P2Pool': 'Others'})
-    # miners.index = miners.index.to_series().replace({'HAOZHUZHU': 'Others'})
-    # miners.index = miners.index.to_series().replace({'BitMinter': 'Others'})
-    # miners.index = miners.index.to_series().replace({'PHash.IO': 'Others'})
-    # miners.index = miners.index.to_series().replace({'Bitcoin India': 'Others'})
-    # miners.index = miners.index.to_series().replace({'ConnectBTC': 'Others'})
-    # miners.index = miners.index.to_series().replace({'xbtc.exx.com&bw.com': 'Others'})
-    # miners.index = miners.index.to_series().replace({'shawnp0wers': 'Others'})
-    # miners.index = miners.index.to_series().replace({'GoGreenLight': 'Others'})
-    # miners.index = miners.index.to_series().replace({'Telco 214': 'Others'})
-    # miners.index = miners.index.to_series().replace({'CANOE': 'Others'})
-    # miners.index = miners.index.to_series().replace({'BATPOOL': 'Others'})
-    # miners.index = miners.index.to_series().replace({"Patel's Mining pool": 'Others'})
-    # miners.index = miners.index.to_series().replace({'120.25.194.218': 'Others'})
-    # miners.index = miners.index.to_series().replace({'188.40.74.13': 'Others'})
-    # miners.index = miners.index.to_series().replace({'148.251.6.18': 'Others'})
-    # miners.index = miners.index.to_series().replace({'95.110.234.93': 'Others'})
-    # miners.index = miners.index.to_series().replace({'Eligius': 'Others'})
-    # miners.index = miners.index.to_series().replace({'GHash.IO': 'Others'})
-    # miners.index = miners.index.to_series().replace({'BCMonster': 'Others'})
-    # miners.index = miners.index.to_series().replace({'21 Inc.': 'Others'})
-    # miners.index = miners.index.to_series().replace({'Solo CKPool': 'Others'})
-    
-
-    miners = miners.groupby(miners.index, sort=False).sum()
-    total = miners.sum()
-
-    miners = miners.head(8)
-    partial = miners.sum()
-    print miners
-
-
-    label = miners.index.get_level_values(0)
-    series = pd.Series(miners, index=label, name='Bitcoin miners\n'+'transactions evaluated: ' + str(partial) + " out of: " + str(total))
-    series.plot.pie( figsize=(8, 8), autopct='%.2f')
-    """
     # ------------------------------------------------------
 
     # ------------- PARALLEL COORDINATES
