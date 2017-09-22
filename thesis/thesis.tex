@@ -456,40 +456,86 @@ if there are any abnormalities in the ledger of public data.
 %TODO: PREVIOUS WORK -- WORKING ON THIS CHAPTER
 \chapter{Related Works - SotA}
 \label{chap:prev_works}
-Scalability and analysis on the blockchain has been taken into consideration
+%TODO: Talks about more papers on bitcoin
+As mentioned in Chapter\,\ref{chap:introduction},
+scalability and analysis on the blockchain has been taken into consideration
 by many researchers in the past years.
-This chapter summarizes the most relevant papers or works that talks about Bitcoin,
-decentralized cryptocurrencies, concepts behind them and statistical analysis on the
-blockchain. In a previous paper that we wrote\,\cite{Tedeschi:2016:PBB}, we enhanced the
-importance of paying for having a certain bandwidth in the Bitcoin network. A paper
-from Peter~R.~Rizun\,\cite{Rizun:2015:blocksizelimit}, explains how a rational Bitcoin
-miner should select transactions from his node mempool, when creating a new block,
-in order to maximize his profit. Analysis on the blockchain in matter of
-scalability is showed in the Position Paper of Kyle Croman\,\cite{croman2016}, they
-analyze how fundamental bottlenecks in Bitcoin limit the ability of its current peer-to-peer
-overlay network to support substantially higher throughputs and lower latencies. We are
-going to test the throughput as well, comparing it with the one showed in this paper.
-Furthermore, to fully understand how is possible to make money out of the blockchain and mining,
-in necessary to have a view of how \emph{VISA}\,\cite{visa} makes money as well.
+This chapter summarizes the most relevant papers or
+works that talks about Bitcoin,
+blockchain and decentralized cryptocurrencies,
+it gives a short view of what has already been done and
+the reults obtained.
+In our previous paper\,\cite{Tedeschi:2016:PBB}, we enhance
+the importance of paying for having a certain
+bandwidth in the Bitcoin network.
+A paper
+from Peter~R.~Rizun\,\cite{Rizun:2015:blocksizelimit},
+explains how a rational Bitcoin
+miner should select transactions from his node mempool,
+when creating a new block,
+in order to maximize his profit. We discuss that and apply
+new data from more recent sources to this idea of
+"selecting the right transaction" in a way that a miner could
+select the right transactions to earn more money out of the whole
+mining process.
+Scalability has taken into consideration
+in the Position Paper of Kyle Croman\,\cite{croman2016}, they
+analyze how fundamental bottlenecks in Bitcoin limit the ability
+of its current peer-to-peer
+overlay network to support substantially higher
+throughputs and lower latencies. We are
+going to test the throughput as well, comparing it with the one
+showed in this paper.
+Regarding fees and tolls paid in the Bitcoin blockchain
+we refer to the study done in $2014$ from Möser and
+Böhme\,\cite{Moser2015}. They analyze the
+entire blockchain and make assumptions about
+that these "fees" are supposed to substitute miners'
+minting rewards in the long run. This paper
+contributes empirical evidence from a historical
+analysis of agents' revealed behavior concerning
+their payment of transaction fees.
+Furthermore, to fully understand how is possible
+to make money out of the blockchain and mining,
+in necessary to have a view of
+how \emph{VISA}\,\cite{visa} makes money as well.
 
-\section{A Transaction Fee Market Exists Without a Block Size Limit}
+\section{Rizun - A Transaction Fee Market Exists Without a Block Size Limit}
 \label{sec:rizun}
-This paper shows how a Bitcoin miner should select transactions from his node's mempool,
-when creating a new block, in order to maximize his profit in the absence of a block size limit.
-\emph{Block space supply curve} and \emph{mempool demand curve} are explained, and the
-paper shows how the supply and demand curves from classical economics are related to the
+\subsection{Problems}
+A pressing concern exists over the ramifications of changing (or not)
+a Bitcoin protocol rule called \emph{block size limit}. This rule sets an
+upper bound on the network's transactional capacity, or \emph{throughput}.
+The limit was set at $1$\,Mb, corresponding roughly to three transactions
+per second. When this limit was set, it was over eight hundred times
+greater than what was required. However in $2015$, blocks
+were filled near capacity and users experienced delays. In $2015$
+the transaction rate was over three hundred times larger
+than when the block size limit was introduced. One of the
+concerns is whether, in the absence of a limit or if the limit
+is far above the transactional demand, a healthy transaction
+fee market would develop which charges users the full
+cost to post transactions. The object
+of this paper is to consider whether or not such a fee
+market is likely to emerge if miners, rather than the protocol,
+limit the block size.
+\subsection{Methods}
+This paper shows how a Bitcoin miner should
+select transactions from his node's mempool
+when creating a new block in order to maximize
+his profit in the absence of a block size limit.
+\emph{Block space supply curve} and
+\emph{mempool demand curve} are explained, and the
+paper shows how the supply and demand
+curves from classical economics are related to the
 derivatives of these two curves.
-
-They claim that the block-size limit determines the transaction throughput and one of their
-concern regards whether, in the absence of such a limit or if that limit is far above the
-transactional demand, a \emph{healthy transaction fee market} would develop which charges
-users the full cost to post transactions. The object of this paper is indeed to consider
-whether or not such a fee market is likely to emerge if miners, rather than the protocol,
-limit the block size. In this paper they derive the \emph{miner's profit equation} and then
-they introduce two novel concepts called the \emph{mempool demand curve} and the
-\emph{block space subbly curve}.
-
-\subsection{Miner's Profit Equation}
+In the paper Rizun claims that the block-size limit determines the
+transaction throughput. In this paper he derives
+the \emph{miner's profit equation} and then
+he introduces two novel concepts called
+the \emph{mempool demand curve} and the
+\emph{block space supply curve}.
+\subsubsection{Miner's Profit Equation}
 Every time a block is mined, the miner expects to generate a revenue $\langle V \rangle$
 at hashing cost $\langle C \rangle$ to earn profit per block
 \begin{equation}
@@ -509,7 +555,7 @@ and is equal to the amount he would earn if he won the block multiplied by his p
 winning. So the expected revenue would be:
 $\langle V\rangle = (R + M) h/H$,
 where the amount he would earn is the sum of the block reward, $R$, and the transaction fees, $M$.
-His probability of winning, assuming all blocks propagating instantly, is equal to the ration of his hash
+His probability of winning, assuming all blocks propagating instantly, is equal to the ratio of his hash
 rate, $h$, to the total hash rate of the Bitcoin network, $H$. The problem with this equation is that it
 does not reflect the miner's diminished chances of winning if he chooses to publish a block that propagates
 slowly to the other miners. If a miner finds first a valid block, but his solution is received after most miners
@@ -519,8 +565,9 @@ equation, considering the orphaning factor, $\mathbb{P}_{orphan}$, is the follow
 \label{eq:expectedrevenue}
 \langle V\rangle = \left(R + M\right)\frac{h}{H}\left(1 - \mathbb{P}_{orphan}\right).
 \end{equation}
-Where the chance that a block gets orphaned increases with the amount of time it takes the
-block to propagate to the other miners. Indeed, if $\tau$ is the block propagation time, the
+Where $P_{orphan}$ increases with the amount of time a block takes
+to propagate to other miners. Indeed, if $\tau$ is
+the block propagation time, the
 probability of orphaning is defined as:
 \begin{equation}
 \label{eq:orphaning}
@@ -535,19 +582,25 @@ A \emph{rational miner} selects which transactions to include in his block in a 
 the expectation value of his profit. This selection is explained with the \emph{mempool demand curve}
 and the \emph{block space supply curve}.
 
-\subsection{The Mempool Demand Curve}
+\subsubsection{The Mempool Demand Curve}
 \label{sec:mempooldemand}
-The set of transactions that still need to be approved and included in a block is called \emph{mempool}.
-The mempool set is denoted with $\mathcal{N}$ and the number of transactions contained within it as $n$.
-According to the size limit, a block can select a $b \leq n$ transactions from $\mathcal{N}$ to create a
+The set of transactions that still need to be approved and included
+in a block is called \emph{mempool}.
+The mempool set is denoted with $\mathcal{N}$ and the number
+of transactions contained within it as $n$.
+According to the size limit, a block can select a $b \leq n$
+transactions from $\mathcal{N}$ to create a
 new block $\mathcal{B} \subset \mathcal{N}$.
-
-A block first includes transactions with an higher \emph{fee density}. This last, is a ratio between
-the \emph{transaction fee} and the \emph{transaction size}.  To construct the mempool demand
-curve, is necessary first sorting the mempool from greatest fee density to least and then
-associating an index $\{i: 1,2,\dots,n-1,n\}$ with each transaction in the resulting list.
-
-The mempool demand curve will be then a graphical representation of the sum of the fees offered
+A block first includes transactions with an higher \emph{fee density}, $\rho$.
+This last, is a ratio between
+the \emph{transaction fee}, $t_f$ and the \emph{transaction size}, $t_q$.
+To construct the mempool demand
+curve, is necessary first sorting the mempool from
+greatest fee density to least and then
+associating an index $\{i: 1,2,\dots,n-1,n\}$ with each
+transaction in the resulting list.
+The mempool demand curve will be then a graphical
+representation of the sum of the fees offered
 by each transaction in this sorted list:
 \begin{equation}
 \label{eq:memdemandcurve}
@@ -558,9 +611,12 @@ and the sum of each transaction's size in bytes:
 \label{eq:transactionsize}
 Q(b) \equiv \sum_{i = 1}^{b} size_i.
 \end{equation}
+The mempool demand curve represents then the maximum fee,
+$M_{demand}(b)$
+a miner can claim by producing a given quantity $Q(b)$ of blockspace.
 %TODO: Insert graph of the mempool demand curve
 
-\subsection{The Block Space Supply Curve}
+\subsubsection{The Block Space Supply Curve}
 \label{sec:blockspacesupply}
 The size of the block a miner elects to produce controls the fees he attempts to claim, $M(Q)$,
 and the propagation time he chooses to risk, $\tau(Q)$. The block space supply curve represents
@@ -574,22 +630,45 @@ M_{supply}(Q) = R\left(e^{\frac{\Delta \tau (Q)}{T}} - 1\right),
 where $\Delta \tau (Q) \equiv \tau(Q) - \tau(0)$. The propagation time ,$\tau$, is just an esteem from
 the propagation delay versus the block size.
 
-\subsection{Maximizing the Miner's Profit}
-To maximize his profit, the miner construct a mempool demand curve and a space supply curve.
-The block size $Q^*$ where the miner's surplus, $M_{demand} - M_{supply}$, is largest represents
-the point of maximum profit. In the Figure\,\ref{fig:mempooldemandcurve} are represented the
-mempool demand curve and the space supply curve, calculated using our analitic system.
+\subsubsection{Maximizing the Miner's Profit}
+To maximize his profit, the miner construct a mempool
+demand curve and a space supply curve.
+The block size $Q^*$ where the miner's surplus,
+$M_{demand} - M_{supply}$, is largest represents
+the point of maximum profit. Considering this point $Q^*$ of maximum
+profit, Rizun considers three market conditions for Bitcoin transaction
+fees: \emph{healthy}, \emph{unhealthy} and \emph{non-existent}.
+In a healthy fee market, the miner's surplus is maximized
+at a finite quantity of block space, and thus a miner is
+incentivized to produce a finite block. In an unhealthy
+market, the miner's surplus continually increases with
+block space, and therefore a rational miner should produce
+an arbitrary large block. In a non-existent market,
+including \emph{any} transactions results in a deficit
+to the miner, and so the miner is better off
+producing an empty block. A rational
+miner will produce a big block if his mempool
+is full of high fee density transactions, and
+will produce an empty block if no transactions pay a fee sufficient
+to offset the orphaning risk.
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=1\textwidth]{img/mempooldemandcurve}
-	\caption{Maximizing the profit of a miner evaluating the unconfirmed transactions from the Bitcoin
-	blockchain. Mempool demand, $M_{demand}(b)$, and space supply, $M_{demand}(Q)$, curve are represented
-	with our analytics system, and the block space $Q^*$ for a maximum profit is around $1$\,Mb. There the
-	gap between the two curves is bigger.}
-	\label{fig:mempooldemandcurve}
-\end{figure}
-%TODO: Insert graph of the block space supply curve
+\subsection{Results}
+%TODO: Conclusions from this paper
+In conclusion, they show that a transaction fee market should
+emerge without a block size limit if miners
+include transactions in a manner that maximizes
+the expectation value of their profit. A
+critical step in establishing this result was their
+calculation of the miner’s cost to supply
+additional block space by accounting for orphaning risk.
+
+\section{Möser \& Böhme - Trends, Tips, Tolls: A Longitudinal
+study of Bitcoin Transaction Fees}
+\label{sec:moser}
+
+\section{Croman - On Scaling Decentralized Blockchains}
+\label{sec:croman}
+
 \chapter{Technical Background}
 \label{chap:techback}
 %TODO: We refrain from explaining Bitcoin and its terminology in detail and refer the reader to existing high-level (thr rconomics of digital currencies, bitcoin, journal of economics prospective) or technical\,\cite{ethereum},\,\cite{bitcoinmining},\,\cite{bitcoin_blockchain},\,\cite{Rizun:2015:blocksizelimit},\,\cite{Nakamoto_bitcoin},\,\cite{ethereum_white_paper}.
@@ -1028,6 +1107,8 @@ mempool demand curve and the space supply curve, calculated using our analitic s
 
 
 %TODO: The Bitcoin price has been affected of an high volatility. For that reason, predicting the fee in \gls{usd} that a client might pay is difficult and it might change from the Bitcoin price. According to \emph{Coindesk.com}.... show the bitcoin price!
+
+%TODO: Block size limit can set the number of transactions the network can confirm per block, so the throughput of the whole Bitcoin network.
 %In this chapter we present observations of the Bitcoin blockchain captured by the
 %analytics system outlined in Chapter~\ref{chap:expsetup}. 
 %To evaluate our problem definition in Chapter~\ref{sec:probdefinition}, we focus on consideration related to 

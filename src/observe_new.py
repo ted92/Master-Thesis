@@ -179,7 +179,6 @@ def fetch_txs():
         last_block = height_list[-1]
         last_block = int(last_block) - 10
 
-
         b_array = get_json_request("https://blockchain.info/block-height/" + str(last_block) + "?format=json")
         blocks = b_array['blocks']
         b = blocks[0]
@@ -528,19 +527,19 @@ def fee_intervals(fee):
 
     if (fee < 0.0001):
         # category 1 --> 0
-        fee = "0"
+        fee = ">0"
     elif(fee >= 0.0001 and fee < 0.0002):
         # category 2 --> 0.0001
-        fee = "0.0001"
+        fee = ">0.0001"
     elif(fee >= 0.0002 and fee < 0.0005):
         # category 3 --> 0.0002
-        fee = "0.0002"
+        fee = ">0.0002"
     elif(fee >= 0.0005 and fee < 0.001):
         # category 4 --> 0.001
-        fee = "0.0005"
+        fee = ">0.0005"
     elif(fee >= 0.001 and fee < 0.01):
         # category 5 --> 0.01
-        fee = "0.001"
+        fee = ">0.001"
     else:
         # category 6 --> >0.01
         fee = ">0.01"
@@ -926,32 +925,139 @@ def plot(miner=1):
     df = get_all_dataframe()
 
 
+    # --------------------------- THROUGHPUT ----------------------------
+    # info = "plot/throughput"
+    # df_thr = df[['B_t', 'B_T', 'B_ep']]
+    # df_thr = epoch_date_dd(df_thr)
+    #
+    # df_thr = df_thr.groupby('date').mean().reset_index()
+    # df_thr['thr'] = df_thr['B_t'] / df_thr['B_T']
+    #
+    # ax = df_thr.plot(x='date', y = ['thr'])
+    #
+    # lines, labels = ax.get_legend_handles_labels()
+    # ax.legend(lines[:2], labels[:2], loc='best')
+    #
+    # ax.set_ylabel("throughput (txs/s)")
+
+    # -------------------------------------------------------------------
+
+    # --------------------------------- Transaction fee in USD -------------------------------------
+    # eligible transactions are the ones which have a size in between 200 and 300 bytes
+    info = "plot/txs_USD"
+    df_usd = df[['t_f', 'B_T', 'B_ep']]
+
+    btc_usd = get_json_request("https://api.blockchain.info/charts/market-price?timespan=all&format=json")
+    values = btc_usd['values']
+
+    y = []
+    x = []
+    for el in values:
+        y.append(el['y'])
+        x.append(el['x'])
+
+    # create array containing x and y coordinates of the BTC-USD price
+    y = np.asarray(y)
+    x = np.asarray(x)
+
+    # add the USD value in dataframe
+
+    # create USD array
+    epoch = df_usd['B_ep'].values
+    epoch[:] = [int(el) for el in epoch]
+
+    usd_array = []
+    for ep in epoch:
+        index = find_nearest(x, ep)
+        usd_array.append(y[index])
+
+    df_usd['USD'] = usd_array
+
+    df_usd['t_f'] = df_usd['t_f'].apply(satoshi_bitcoin)
+
+    # adding the fee paid in USD
+    usd_price = df_usd['USD'].values
+    fees = df_usd['t_f'].values
+    fees[:] = [float(el) for el in fees]
+    usd_price[:] = [float(el) for el in usd_price]
+
+    fee_in_usd = []
+    for usd, fee in zip(usd_price, fees):
+        fee_in_usd.append(usd*fee)
+
+    df_usd['usd_fee'] = fee_in_usd
+    df_usd = epoch_date_mm(df_usd)
+
+    df_usd = df_usd.sort_values('date')
+    df_usd = df_usd[df_usd.usd_fee <= df_usd.USD]
+
+    print df_usd
+
+    ax = df_usd.plot(x='date', y = ['USD', 'usd_fee'])
+
+    lines, _ = ax.get_legend_handles_labels()
+    labels = []
+    labels.append(u'BTC - USD exchange rate')
+    labels.append(u'fee paid in USD')
+
+    print lines
+    ax.legend(lines[:2], labels[:2], loc='best')
+
+    ax.set_ylabel("USD")
+
+
+    # ----------------------------------------------------------------------------------------------
+
+
+
+    # --------------------------------- Eligible transactions -------------------------------------
+    # eligible transactions are the ones which have a size in between 200 and 300 bytes
+
+
+    # ---------------------------------------------------------------------------------------------
+
     # ---------------------------- Distribution of transaction fees -------------------------------
-    info = "plot/txs_fee_distribution"
-    df_distr = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_ep']]
-    # split date to have yyyy-mm
-    df_distr = epoch_date_mm(df_distr)
-    df_distr['t_f'] = df_distr['t_f'].apply(satoshi_bitcoin)
-    # get a category for the fee
-    df_distr['t_f'] = df_distr['t_f'].apply(fee_intervals)
-    # groub by date and then miners, count how many transactions a miner approved in a certain month
-    df_grouped = df_distr.groupby(['t_f', 'date']).size().to_frame('size').reset_index()
-    # df_grouped.plot(data=df_grouped, x ='date', y='size', kind='area')
-
-    df_0 = df_grouped[df_grouped.t_f == "0"]
-    df_1 = df_grouped[df_grouped.t_f == "0.0001"]
-    df_2 = df_grouped[df_grouped.t_f == "0.0002"]
-    df_3 = df_grouped[df_grouped.t_f == "0.0005"]
-    df_4 = df_grouped[df_grouped.t_f == "0.001"]
-    df_5 = df_grouped[df_grouped.t_f == ">0.01"]
-
-
-    # create a new dataframe having as columns the different t_f
-    new_df = pd.DataFrame.from_items(
-        [('0', df_0['size'].values), ('0.0001', df_1['size'].values), ('0.0002', df_2['size'].values), ('0.0005', df_3['size'].values), ('0.001', df_4['size'].values),
-         ('>0.01', df_5['size'].values), ('date', df_0['date'].values)])
-
-    new_df.plot.area(x = 'date', y = 'size')
+    # info = "plot/txs_fee_distribution"
+    # df_distr = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_ep']]
+    # # split date to have yyyy-mm
+    # df_distr = epoch_date_mm(df_distr)
+    # df_distr['t_f'] = df_distr['t_f'].apply(satoshi_bitcoin)
+    # # get a category for the fee
+    # df_distr['t_f'] = df_distr['t_f'].apply(fee_intervals)
+    # # groub by date and then miners, count how many transactions a miner approved in a certain month
+    # df_distr = df_distr.groupby(['t_f', 'date']).size().to_frame('size').reset_index()
+    # # df_grouped.plot(data=df_grouped, x ='date', y='size', kind='area')
+    #
+    # df_0 = df_distr[df_distr.t_f == ">0"]
+    # df_1 = df_distr[df_distr.t_f == ">0.0001"]
+    # df_2 = df_distr[df_distr.t_f == ">0.0002"]
+    # df_3 = df_distr[df_distr.t_f == ">0.0005"]
+    # df_4 = df_distr[df_distr.t_f == ">0.001"]
+    # df_5 = df_distr[df_distr.t_f == ">0.01"]
+    #
+    #
+    # # create a new dataframe having as columns the different t_f
+    # new_df = pd.DataFrame.from_items(
+    #     [('>0', df_0['size'].values), ('>0.0001', df_1['size'].values), ('>0.0002', df_2['size'].values), ('>0.0005', df_3['size'].values), ('>0.001', df_4['size'].values),
+    #      ('>0.01', df_5['size'].values), ('date', df_0['date'].values)])
+    #
+    # dates = new_df['date'].values
+    #
+    # col_list = list(new_df)
+    # col_list.remove('date')
+    # new_df['total'] = new_df[col_list].sum(axis=1)
+    # df1 = new_df.drop(['date'], axis=1)
+    #
+    # percent = df1.div(df1.total, axis='index') * 100
+    #
+    # percent = percent.drop(['total'], axis=1)
+    # percent['date'] = dates
+    # print percent
+    #
+    #
+    # ax = percent.plot.area(x = 'date')
+    # ax.set_ylim(0, 100)
+    # ax.set_ylabel("%")
 
     # ---------------------------------------------------------------------------------------------
 
@@ -2216,6 +2322,11 @@ def create_growing_size_list(size_list, initial_size=0):
         size_back = value_to_append
 
     return growing_size_list
+
+
+def find_nearest(array,value):
+    idx = (np.abs(array-value)).argmin()
+    return idx
 
 """
 Progress bar -- from @Vladimir Ignatyev
