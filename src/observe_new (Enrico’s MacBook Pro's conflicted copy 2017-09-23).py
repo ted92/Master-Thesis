@@ -458,7 +458,7 @@ def get_all_dataframe():
     ne_df = None
     while True:
         # if the file exists
-        df_name = "transaction_dataframe_"+str(i)+".tsv"
+        df_name = "old_dataset/transaction_dataframe_"+str(i)+".tsv"
         if (os.path.isfile(df_name)):
             df = pd.DataFrame.from_csv(df_name, sep='\t')
             new_df = pd.concat([old_df, df])
@@ -956,55 +956,19 @@ def plot(miner=1):
 
 
     # ------------------------ FEE OUTPUT, BTC IN CIRCULATION---------------------------
-    # info = "plot/total_btc"
-    # df_btc = df[['t_in', 'B_ep']]
-    #
-    # df_btc = epoch_date_mm(df_btc)
-    # df_btc['t_in'] = df_btc['t_in'].apply(satoshi_bitcoin)
-    # df_btc = df_btc.groupby('date').sum().reset_index()
-    #
-    # print df_btc
-    # df_btc = df_btc.interpolate(method='cubic')
-    # ax = df_btc.plot(x='date', y='t_in')
-    # ax.set_ylabel("money (BTC)")
-    # ax.set_ylim(0, 10000000)
+    info = "plot/total_btc"
+    df_btc = df[['t_in', 'B_ep']]
+
+    df_btc = epoch_date_dd(df_btc)
+    df_btc['t_in'] = df_btc['t_in'].apply(satoshi_bitcoin)
+    df_btc = df_btc.groupby('date').sum().reset_index()
+
+    print df_btc
+    ax = df_btc.plot(x='date', y='t_in')
+    ax.set_ylabel("money (BTC)")
+    ax.set_ylim(0, 1000000)
 
     # -------------------------------------------------------------------------
-
-    # -------------------------- TX LATENCY - FEE PAID ----------------------------
-    #TODO: TO FINISH AND TO TEST
-    info = "plot/fee_latency"
-    df_fl = df[['t_l', 't_f']]
-
-    df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
-    # df_fl = df_fl.groupby(['date']).mean().reset_index()
-
-    print df_fl
-
-    g = sns.regplot(x="t_f", y="t_l",  data=df_fl, color="orange")
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (sec)')
-
-    # -----------------------------------------------------------------------------
-
-    # -------------------- % OF ZERO FEE TX FOR EACH MINER ------------------------
-    # #TODO: TO FINISH AND TO TEST
-    # info = "plot/zero_fee"
-    #
-    # df_zero = df[['B_ep', 't_f', 'B_mi']]
-    # # create two dataframes containing in one, the number of zero transactions per miner and in the other the total number of transaction per miner
-    # miners = df_zero['B_mi'].value_counts()
-    # miners = miners.groupby(miners.index, sort=False).sum()
-    # print miners
-    # df_only_zero = df_zerod[df_zero.t_f == "0"]
-    # miners_zero = df_only_zero['B_mi'].value_counts()
-    # miners_zero = miners_zero.groupby(miners_zero.index, sort=False).sum()
-    # print miners_zero
-    #
-    # # miners = miners.head(10)
-
-    # -----------------------------------------------------------------------------
-
 
     # ------------------------ FEE DENSITY / FEE LATENCY -------------------------
     # # TODO: NOT WORKING
@@ -1371,8 +1335,9 @@ def plot(miner=1):
     # --------------------------------
 
 
-    # -------- MARKET SHARE OF MINERS x TRANSACTION
-    # info = "plot/market_share_txs"
+    # -------- NUMBER OF MINERS pie chart
+    #
+    # info = "plot/miners"
     # miners = df['B_mi'].value_counts() # count miners
     #
     # print miners
@@ -1406,7 +1371,7 @@ def plot(miner=1):
     # miners = miners.groupby(miners.index, sort=False).sum()
     # total = miners.sum()
     #
-    # miners = miners.head(10)
+    # miners = miners.head(8)
     # partial = miners.sum()
     # print miners
     #
@@ -1414,37 +1379,10 @@ def plot(miner=1):
     # label = miners.index.get_level_values(0)
     # plt.savefig(info, bbox_inches='tight', dpi=500)
     #
-    # series = pd.Series(miners, index=label, name='Transactions approved')
+    # series = pd.Series(miners, index=label, name='Transactions mined')
     # series.plot.pie(figsize=(8, 8), autopct='%.2f', title='transactions evaluated: ' + str(partial) + " out of: " + str(total), table=True)
 
     # ------------------------------------------------------
-
-
-    # ------------------------- MARKET SHARE OF MINERS x BLOCK -------------------------------
-    # info = "plot/market_share_blocks"
-    #
-    # df_blc_mined = df[['B_ep', 'B_mi']]
-    # df_blc_mined = df_blc_mined.groupby(['B_ep', 'B_mi']).size().reset_index()
-    #
-    # print df_blc_mined
-    # miners = df_blc_mined['B_mi'].value_counts()  # count miners
-    #
-    # print miners
-    #
-    # miners = miners.groupby(miners.index, sort=False).sum()
-    # total = miners.sum()
-    #
-    # miners = miners.head(10)
-    # partial = miners.sum()
-    # print miners
-    #
-    # label = miners.index.get_level_values(0)
-    # plt.savefig(info, bbox_inches='tight', dpi=500)
-    #
-    # series = pd.Series(miners, index=label, name='Blocks mined')
-    # series.plot.pie(figsize=(8, 8), autopct='%.2f',
-    #                 title='Blocks evaluated: ' + str(partial) + " out of: " + str(total), table=True)
-    # -----------------------------------------------------------------------------------------------
 
     # ------------- PARALLEL COORDINATES
     """

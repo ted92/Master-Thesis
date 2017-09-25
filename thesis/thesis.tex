@@ -170,11 +170,11 @@ support and use the full blockchain.
 
 Bitcoin blockchain has been analyzed with a blockchain analytics system,
 developed using Bitcoin's API and data were collected both by using the
-API and parsing blockchain.info HTML pages.
+API and parsing \url{blockchain.info} HTML pages.
 A total of \# transactions has been evaluated, more transactions than ever were
 considered before and useful informations about the Bitcoin blockchain emerged.
 This thesis gives also a measurement about accuracy of data
-provided from blockchain.info.
+provided from \url{blockchain.info}.
 \end{abstract}
 
 %\begin{acknowledgement}
@@ -297,7 +297,11 @@ occurred earlier than another one to gain money.
 The security bugs in smart contracts are classified as \emph{Transaction-Ordering Dependence},
 \emph{Timestamp Dependence}, \emph{Mishandled Exceptions}
 and \emph{Reentrancy Vulnerability}\,\cite{Luu:2016}.
-
+In this thesis we refrain from explaining Bitcoin and its terminology in detail
+and refer the reader to already existing high-level\,\cite{Underwood:2016:BBB,
+Bohme2015BETG}
+or technical\,\cite{Nakamoto_bitcoin, ethereum_white_paper}.
+ description.
 \section{Problem Statement}
 \label{sec:probdefinition}
 %TODO: One of the most recent debate on Bitcoin blockchain is wether the block size $Q$ should be increased or not. Rizun\,\cite{Rizun:2015:blocksizelimit} in his paper explained how challenging might be the increment of the block size and it defines an optimal size of~$\sim$\,$1$\,Mb. Anyway there are arguments in favor of increasing the block size, we analyzed these arguments and discuss whether and where is conveninet to increase the $Q$. Pros: More transactions per second, higher throughput. Less fees. Cons: miner won't get enough fee. Higher (exponential) risk of orphaning.
@@ -407,7 +411,7 @@ and with \emph{machine learning} techniques we define models, discuss about
 the results and how much they can be reliable in a future-wise implementation.
 In our data frame we store more than \# transactions, with an analysis in between
 \#date and \#date.
-We used for the information retrieval \gls{api} from Blockchain.info
+We used for the information retrieval \gls{api} from \url{blockchain.info}
 combined with a \gls{html} parsing on every "block-page"
 of the same website.
 
@@ -665,13 +669,126 @@ additional block space by accounting for orphaning risk.
 \section{Möser \& Böhme - Trends, Tips, Tolls: A Longitudinal
 study of Bitcoin Transaction Fees}
 \label{sec:moser}
+\subsection{Problems}
+The Bitcoin protocol supports optional direct payments
+from transaction partners to miners, also called \emph{fees}.
+Acknowledging their
+role for the stability of the system, the right level of
+transaction fees is a hot topic of normative debate. The actual
+costs of the system are not extensively studied yet. Disregarding
+intangible factors of (in)convenience, Bitcoin may not be as cheap for
+consumers as it appears. The main problems/questions
+that this paper focuses on are:
+\begin{enumerate}[noitemsep]
+	\item Do higher transaction fees lead to faster confirmation?
+	\item Do impatient users offer higher fees?
+	\item Do mining pools enforce strictly positive fee systematically
+	(excluding $0$-fee transactions)?
+\end{enumerate}
 
+\subsection{Methods}
+They enhance the definition of transaction fee, which is encoded
+as difference between the sum of all inputs and the sum of all outputs
+of a transaction. Then to study trends of Bitcoin transaction fee
+conventions over the past couple of years, they combine data from
+different sources. They load the blockchain by parsing
+the block files of the Bitcoin Core client\,\cite{bitcoincore}
+and extract information on the size of the block and transactions.
+Additional data is fetched from \url{blockchain.info}, such as
+information about miners. Furthermore, data on bitcoin exchange rate
+is taken from \url{coindesk.com}, which provides an average Bitcoin
+price in \gls{usd}. The time range selected for the analysis
+is in between January\,$2011$ and August\,$2014$. To answer
+question $(1)$, they compared time when a transaction is first
+seen on the network and the timestamp of the block that includes
+the transaction, calculating in that way transaction latency, $t_l$.
+They analyze a representative subset of $9000$ transactions
+randomly chosen from all eligible transaction between June
+$2012$ and May $2013$, then to answer question $(2)$ they
+compute for each transaction the holding time, which is the period
+until the output was spent again, and compared their fees to see if
+they are higher. To answer question $(3)$ is necessary get
+informations about major mining pools. They used data
+from \url{blockchain.info} to retrieve useful informations about miners
+and major miners were analyzed such as \emph{AntPool}, \emph{50BTC},
+\emph{BitMinter}, \emph{Slush}, \emph{ASICMiner} and more.
+\subsection{Results}
+\subsubsection{Trends}
+Overall, they claim that Bitcoin transaction fees are lower than $0.1\%$ of
+the transmitted value, which is significant below the fees charged
+by conventiaonal payment systems. It appeared to them that hard size limit
+do not (yet) significantly drive the level of transaction fees.
+In our thesis we want to test if this is still true.
+Regarding trends for the fees paid per transaction over time,
+the first notable change from $0$ and $0.01$\,\bitcoin~fee
+occurs after June $2011$, transactions
+with fee of $0.0005$\,\bitcoin~appear and account for
+about $20$-$30\%$ of all transaction. In the second quarter
+of $2012$ the transactions paying $0.0005$\,\bitcoin~raised
+to $60$-$70\%$ of all transactions. In the fourth quarter of
+$2012$, $30$-$40\%$ of all transactions were paying a
+fee of $0.001$\,\bitcoin. In May $2013$, the nominal value
+of $0.001$\,\bitcoin~makes space for a tenth: $0.0001$\,\bitcoin.
+This fee level stays on and gains a share of more than $70\%$
+towards $2015$. In order to reason about these changes, they
+mapped important events in the Bitcoin ecosystem. Generally,
+there seem to be two main reasons for shift in trends:
+changes to the Bitcoin reference implementation and actions by large
+intermediaries in the ecosystem. The emergence of $0.0005$\,\bitcoin~fees
+in June $2011$ can be mapped to the release of version $0.3.23$
+of the Bitcoin Core client, which reduced the default transaction fee
+from $0.01$\,\bitcoin~to $0.0005$\,\bitcoin. The raise of these
+last transaction fees in the second quarter of $2012$ is probably
+due to the launch of the gambling website \emph{SatoshiDice}\,\cite{satoshidice}.
+On May $2013$, version $0.8.2$ of Bitcoin Core was released.
+
+\subsubsection{Tips}
+There is a small share of transactions that did not offer fee to miners,
+most of them offered default fee amount but some of them
+were even willing to pay a higher fee. A plausible reason
+is that paying more in fee leads to a faster confirmation.
+After the analysis turned out that half of all zero-fee transactions
+had to wait more than $20$ minuets for their first confirmation.
+In contrast to that, paying a $0.0005$\,\bitcoin~fee lead to an
+inclusion into a block in half of the time. $10\%$ of all zero-fee
+transactions took almost $4$\,hours to confirm, in contrast
+to $40$\,minutes for transactions paying a $0.0005$\,\bitcoin~
+fee. The difference between paying $0.0005$\,\bitcoin~or
+$0.001$\,\bitcoin~fee is not as pronounced, but the difference
+in medians are still statistically and economically significant.
+
+\subsubsection{Tolls}
+Analysis on pool behavior regarding a possible systematic
+exclusion of zero-fee transactions has been done.
+Shares have shifted between pools quite extensively.
+In $2013$, BTC Guild had a market share of up to $40\%$,
+in $2014$ both GHash.IO and Discus Fish ousted this pool.
+Also, the share of other pools has risen in $2014$. Previous
+incumbents like Slush or $50$BTC have lost popularity.
+Possible reasons include economic and technical factors,
+like pool fees, service availability, or robustness against
+attacks. Given the dominance of a few mining pools, they
+evaluated whether some pools systematically enforce fees.
+The results show that two pools, Discus Fish and Eligius,
+have a considerably higher share of blocks without any
+zero-fee transaction, with $30.6\%$ for Eligius and $62.5\%$
+for Discus Fish, in contrast to an average of $14.4\%$.
+Over than that though, there is no clear evidence for
+enforcement of strictly positive transactions fees.
+ 
 \section{Croman - On Scaling Decentralized Blockchains}
 \label{sec:croman}
+\subsection{Problems}
+
+\subsection{Methods}
+
+\subsection{Results}
 
 \chapter{Technical Background}
 \label{chap:techback}
 %TODO: We refrain from explaining Bitcoin and its terminology in detail and refer the reader to existing high-level (thr rconomics of digital currencies, bitcoin, journal of economics prospective) or technical\,\cite{ethereum},\,\cite{bitcoinmining},\,\cite{bitcoin_blockchain},\,\cite{Rizun:2015:blocksizelimit},\,\cite{Nakamoto_bitcoin},\,\cite{ethereum_white_paper}.
+
+%TODO: Miners are free to accept the offer by including the transaction in the blockchain, or to ignore it. This created a market mechanism to find the price of Bitcoin transactions. Competitive miners will include transactions as long as the fee exceeds the marginal cost of inclusion. Production costs are fixed per block (but may vary between miners depending on access to technology and energy cooling) and the protocol defines a maximum block size. Because of that, the marginal cost of inclusion is zero if there are fewer unconfirmed transactions than the capacity left in the block. Because of that, competitive miners make positive expected profits only if transactions compete for space in the blockchain. Houy\,\cite{RePEc:gat:wpaper:1407} argues that a maximum block size is necessary for the stability of Bitcoin. However in that way big mining pool might take advantage from less competition, having a centralization problem, since you compete only if the capacity is reached. In that way if you never reach the capacity, raising the fee then won't be helpful at all. Before $2015$ transactions almost never required to compete for space in blocks, since the demand was less then the offer. A group of programmers even created a soft fork that doesn't offer fee at all\,\cite{}
 
 %TODO: MACHINE LEARNING SECTION
 %TODO: The degree of correlation between two attributes can be quantified using Pearson's correlation coefficient. Pearson's correlation coefficient is defined for two equal length vectors $u$ and $v$ \cite{bowles2015machine}:
@@ -794,7 +911,7 @@ study of Bitcoin Transaction Fees}
 %TODO: ============ RETRIEVING DATA =============
 %TODO: The instability of the the connection and the \gls{api}'s given from Bitcoin, collecting data was extremely difficult and time consuming. We analyzed and collected data from #DATE to #DATE with more than # blocks and # transactions
 
-%TODO: talk about how and from where data were collected. blockchain.info, json etc.. which kind of data were collected and why. Use maybe coindesk.com for the avg USD bitcoin price.
+%TODO: talk about how and from where data were collected. blockchain.info, json etc.. which kind of data were collected from each source and why. Use maybe coindesk.com for the avg USD bitcoin price.
 
 %TODO: Talk about the time range selected and why. Read "a longitudinal study of bitcoin transaction fees" the section Data and Methods
 
@@ -1000,6 +1117,10 @@ study of Bitcoin Transaction Fees}
 %of useful libraries for data manipulation and plotting.
 
 \subsection{Methods}
+%TODO: Define formulas
+%$t_l = B_{epoch} - t_{epoch}$
+
+
 %An UML diagram of the main methods used in the application is represented in
 %Figure~\ref{fig:uml_sequence_diagram_application}.
 %The application usage is described in Appendix~\ref{lst:usage} and the main
@@ -1109,6 +1230,8 @@ study of Bitcoin Transaction Fees}
 %TODO: The Bitcoin price has been affected of an high volatility. For that reason, predicting the fee in \gls{usd} that a client might pay is difficult and it might change from the Bitcoin price. According to \emph{Coindesk.com}.... show the bitcoin price!
 
 %TODO: Block size limit can set the number of transactions the network can confirm per block, so the throughput of the whole Bitcoin network.
+
+%TODO: In our longitudinal plot each data point visualizes aggregated data of \# blocks.
 %In this chapter we present observations of the Bitcoin blockchain captured by the
 %analytics system outlined in Chapter~\ref{chap:expsetup}. 
 %To evaluate our problem definition in Chapter~\ref{sec:probdefinition}, we focus on consideration related to 
@@ -1618,6 +1741,10 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 	\item [$n$] number of transactions in a miner’s mempool.
 	\item [$B$] single block.
 	\item [$B_t$] transaction root that links to every transaction in a block $B$.
+	\item [$B_{epoch}$] timestamp of a block $B$.
+	Epoch of when the block was included in the blockchain
+	\item [$t_{epoch}$] timestamp of a transaction $t$.
+	Epoch of when $t$ was first seen in the network
 \end{description}
 
 	\chapter{Listing}
