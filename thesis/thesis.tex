@@ -304,6 +304,8 @@ or technical\,\cite{Nakamoto_bitcoin, ethereum_white_paper}.
  description.
 \section{Problem Statement}
 \label{sec:probdefinition}
+%TODO: Say that we state and focus on three major problems on the blockchain: 1- Scalability, 2- Performance, 3- profit of the participant in the network.
+ 
 %TODO: One of the most recent debate on Bitcoin blockchain is wether the block size $Q$ should be increased or not. Rizun\,\cite{Rizun:2015:blocksizelimit} in his paper explained how challenging might be the increment of the block size and it defines an optimal size of~$\sim$\,$1$\,Mb. Anyway there are arguments in favor of increasing the block size, we analyzed these arguments and discuss whether and where is conveninet to increase the $Q$. Pros: More transactions per second, higher throughput. Less fees. Cons: miner won't get enough fee. Higher (exponential) risk of orphaning.
 
 While doing research, studying and reading papers related to blockchains,
@@ -362,7 +364,7 @@ cryptocurrencies~\cite{croman2016}.
 According to Ethereum white paper\,\cite{ethereum_white_paper},
 if Bitcoin would have the same amount of transactions
 of a VISA circuit, its blockchain would grow
-about $1$\,Mb every $3$ seconds, $\sim$\,$28$GB per day,
+about $1$\,MB every $3$ seconds, $\sim$\,$28$GB per day,
 instead of the actual growth of $\sim$\,$0.12$GB per day.
 In this thesis we discuss how much scalability affects
 centralization in Bitcoin network and how much it will
@@ -504,7 +506,7 @@ to make money out of the blockchain and mining,
 in necessary to have a view of
 how \emph{VISA}\,\cite{visa} makes money as well.
 
-\section{Rizun - A Transaction Fee Market Exists Without a Block Size Limit}
+\section{Rizun - A Transaction Fee Market Exists Without a Block Size Limit\,\cite{Rizun:2015:blocksizelimit}}
 \label{sec:rizun}
 \subsection{Problems}
 A pressing concern exists over the ramifications of changing (or not)
@@ -667,7 +669,7 @@ calculation of the miner’s cost to supply
 additional block space by accounting for orphaning risk.
 
 \section{Möser \& Böhme - Trends, Tips, Tolls: A Longitudinal
-study of Bitcoin Transaction Fees}
+study of Bitcoin Transaction Fees\,\cite{Moser2015}}
 \label{sec:moser}
 \subsection{Problems}
 The Bitcoin protocol supports optional direct payments
@@ -776,13 +778,189 @@ for Discus Fish, in contrast to an average of $14.4\%$.
 Over than that though, there is no clear evidence for
 enforcement of strictly positive transactions fees.
  
-\section{Croman - On Scaling Decentralized Blockchains}
+\section{Croman - On Scaling Decentralized Blockchains\,\cite{croman2016}}
 \label{sec:croman}
 \subsection{Problems}
+The increasing popularity of blockchain-based cryptocurrencies
+has made scalability a primary and urgent concern. The main question
+that this paper focuses on is the following:
+\begin{quote}
+\emph{Can decentralized blockchains be scaled up to match the performance
+of a mainstream payment processor? What does it take
+to get there?}
+\end{quote}
+At the time of writing, the Bitcoin blockchain took $10$\,min or longer
+to confirm transactions, achieving $7$\,transactions/sec maximum
+throughput. Visa credit card confirms a transaction within seconds
+and processes $2000$\,transactions/sec ona verage with peaks
+of $56,000$\,transactions/sec. This paper aims to place
+exploration of blockchain scalability on a scientific footing.
+Bitcoin community has put forth various proposals to modify
+the key systems parameters of block size and block interval.
+In this paper they show that such scaling by reparametrization
+can achieve only limited benefits. This because because Bitcoin
+generates a lot of network traffic, due to its
+decentralization. There are a lot of peers in the network
+and they all have to interact. To ensure that most
+of the nodes in the overlay network have sufficient
+throughput they set two guidelines:
+\begin{itemize}[noitemsep]
+	\item \textbf{Throughput limit.} The block size should not exceed $4$\,MB
+	given $10$\,minutes average block interval. Corresponding at maximum
+	$27$\,transactions/sec.
+	\item \textbf{Latency limit.} The block interval should not be smaller
+	than $12$\,seconds.
+\end{itemize}
+The community also proposed radically different scaling approaches,
+and introduced mechanisms such as Corallo's relay network,
+a centralized block propagation mechanism.
+One of the main contribution of this paper was to \emph{quantify}
+Bitcoin's current scalability limits within its decentralized components.
+Their findings leaded them to the position that \emph{fundamental protocol
+redesign is needed for blockchains to scale significantly while retaining their
+decentralization}. Plus, scalability is not a single metric and
+measurement and understanding of many important metrics,
+like \emph{fairness} or \emph{mining power utilization}, are lacking.
+Monitoring and measuring a decentralized blockchain from only
+a few vantage points poses significant challenges. In this paper
+they call for better measurements techniques, by continuously monitor
+the health of the decentralized system to answer key questions such as:
+\emph{"To what extent can we push system paramteres without sacrificing security?"}.
 
 \subsection{Methods}
-
+In this paper they manly focused on:
+\begin{itemize}[noitemsep]
+	\item \textbf{Maximum throughput.} At the time of writing ($2016$) maximum
+	throughput was $3$-$7$\,transactions/sec. Number constrained by
+	$Q$ and $\mathcal{T}$ .
+	\item \textbf{Latency.} Time for a transaction to confirm, $t_l$. A transaction
+	is considered confirmed when it is included in a block, roughly $10$\,minutes
+	expectation.
+	\item \textbf{Bootstrap time.} The time it takes to a new node to download and
+	process the history necessary to validate the current system
+	state. In $2016$ that was roughly $4$\,days. 
+	\item \textbf{\gls{cpct}.} The cost in \gls{usd} of resources consumed
+	by the entire Bitcoin system to confirm a single transaction. It could be
+	summarized in:
+	\begin{enumerate}
+		\item \emph{Mining:} Expended by miners generating the proof of work
+		for each block.
+		\item \emph{Transaction validation:} The cost of computation necessary
+		to validate that a transaction can spend the outputs referenced by its inputs,
+		dominated by cryptographic verifications.
+		\item \emph{Bandwidth:} The cost of network resources required to receive
+		and transmit transactions, blocks and metadata.
+		\item \emph{Storage:} The cost of storing all currently spendable
+		transactions, which is necessary for miners and full nodes to perform
+		transaction validation, and of storing the blockchain's historical data,
+		which is necessary to bootstrab new node that join the network.
+	\end{enumerate}
+\end{itemize}
+The cost per transaction for Bitcoin was calculated performing a
+back-of-the-envelope calculation by summing up the electricity
+consumed by the network as a whole, as well as the hardware cost
+of mining equipment. They projected their estimates based on the
+\emph{AntMiner S5+} mining hardware\,\cite{mining_hw}. They assume
+a $1$\,year effective lifetime for the hardware and that the average
+hashing rate of the network is $450,000,000$\,GH/s. Furthermore,
+they assume an average price per KWh of $0.1\$$. Two scenarios are
+possible, the first is when the Bitcoin network is operating at
+maximum throughput of $3$-$7$\,transactions/sec. This
+limit is constrained by the $1$\,MB block size limit and the
+variable transactions size. The lower bound is inferred
+from the average transaction size of $500$\,bytes, while the
+upper bound is based on an unusually small transactions
+size of $250$\,bytes. The second scenario is based on the
+average throughput of Bitcoin network, which is based on
+statistics collected in October $2015$, and it resulted to be
+of $1.57$\,transactions/sec. They show then a Bitcoin cost
+breakdown assuming that the entire network contains
+$5400$ full nodes and they evince that is a fallacy to assume
+that transaction costs necessarily have to be offset by
+transaction fees. Indeed, the costs of running full nodes
+may be offset by financial externalities such as selling items
+whose costs computational time for a node or confirming a
+transaction without trusting third parties. Said so, is important
+to enhance that miners are bereft of these two factors and
+they need to be compensated. According to new measurements
+on the block propagation time, they also defined \textbf{X\% effective
+throughput} as follows:
+\[
+\text{X\% effective throughput} = Q / (\text{X\% block propagation delay})
+\]
+Considering that the propagation delay is, for $1$\,MB block size and
+$90$\,\% of block propagation, $2.4$\,minutes, they calculated
+an X\% effective throughput of $55$\,Kbps $\equiv$ $26$\,tx/sec
+having a $90$\,\% of block propagation.
+\subsubsection{Throughput limit}
+They observed that the block size $Q$, and interval $\mathcal{T}$,
+must satisfy:
+\[
+\frac{Q}{\text{X\% effective throughput}} < \mathcal{T}
+\]
+having in that way, for a $10$\,minutes block interval a block size
+that should not exceed $4$\,MB for $X=90\%$ and $38$\,MB for
+$X=50\%$. Given $\mathcal{T} = 10$\,minutes the block size
+should not exceed $4$\,MB, corresponding to a throughput
+of at most $27$\,transactions/sec.
+\subsubsection{Latency limit}
+To improve the system's latency it could be enough
+to reduce the block interval. To maintain effective
+throughput that would also require a reduction in the
+block size. Propagating a block smaller than $80$\,KB would
+not make full use of the network's bandwidth, as latency would
+still be a significant factor in the block's propagation time.
+To propagate a $80$\,KB block to $90$\,\% of the nodes would
+take roughly $12$\,seconds. In conclusion, to retain at least $90$\,\%
+effective throughput and fully utilize the bandwidth of the network,
+the block interval should not be smaller than $12$\,seconds.
 \subsection{Results}
+More difficult to measure metrics could also reveal scaling
+limitations, example \emph{fairness}. Their measurement results
+suggest that top $10$\,\% nodes receive a $1$\,MB block $2.4$\,minutes
+earlier than the bottom $10$\,\%, meaning that some miners could
+obtain a significant lead over others solving hash puzzles. In the end,
+they want to rethink the design of a scalable blockchain, organizing
+it around a decomposition of the Bitcoin system into a set of abstraction
+layers that they called \emph{planes}. In a hierarchical of
+dependency from bottom to the top the layers are:
+\begin{enumerate}[noitemsep]
+	\item \textbf{Network Plane.} It propagates transaction messages. Bitcoin's
+	network protocol do not fully utilize underlying network bandwidth,
+	making Bitcoin's Network Plane the bottleneck in transaction processing.
+	A solution could be to avoid denial-of-service by propagation
+	of invalid transactions, a node must fully receive and validate a transaction
+	before further propagations.
+	\item \textbf{Consensus Plane.} Functionality that mines
+	blocks and reaches consensus on their integration
+	in the blockchain. It receives
+	messages from Network Plane and outputs transactions ready to be insert
+	in the system ledger. Bitcoin's blockchain protocol has a three-way-tradeoff
+	between, \emph{consensus speed}, \emph{bandwidth} and security, and
+	the increment of two of them leads to the loss of the third. For example,
+	if the first two are improved then there is loss in the mining power
+	that secures the system.
+	\item \textbf{Storage Plane.} It functions as a global memory
+	that stores and provides availability for authenticated data produced
+	by the Consensus Plane. Storage Plane in Bitocin only supports
+	\texttt{writes} operations that append data and doesn't support
+	\emph{delete} operations. The only supported \emph{read} operation
+	downloads the entire ledger, a process that require four days. The
+	community has proposed ideas such as \gls{utxo} data structure.
+	\item \textbf{View Plane.} A view is a data structure derived from the
+	full ledger whose state is obtained by applying all transactions. For
+	Bitcoin miners, it is unnecessary to operate on the full ledger that
+	stores the entire transaction history. Miners and nodes in Bitcoin
+	locally compute and operate on a view of the ledger called \gls{utxo} set,
+	which specifies the current balance of all entities in the system.
+	Bitcoin requires all consensus nodes to verify all transactions, and
+	based on the result of the computation, every node needs to update its
+	view, e.g. \gls{utxo} sets, locally and generating then the same conclusion
+	of all other nodes in the system, representing in that way
+	an honest set of consensus nodes, keeping an high availability.
+	\item \textbf{Side Plane.} Allows off-the-main-chain consensus.
+	
+\end{enumerate}
 
 \chapter{Technical Background}
 \label{chap:techback}
@@ -1661,6 +1839,8 @@ enforcement of strictly positive transactions fees.
 
 \section{Comments}
 \label{sec:comments}
+%TODO: I was new in the field of blockchain and cryptocurrencies, but I enjoyed while studying it and I believe that with all these experiments, good assumption and results will be obtained in the future
+
 %A relevant aspect to note is that there are some blocks
 %that take approximately $80$\,minutes to be created, when the
 %average time is supposed to be $\sim8$\,min. This affects also the

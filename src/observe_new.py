@@ -458,7 +458,7 @@ def get_all_dataframe():
     ne_df = None
     while True:
         # if the file exists
-        df_name = "transaction_dataframe_"+str(i)+".tsv"
+        df_name = "old_dataset/transaction_dataframe_"+str(i)+".tsv"
         if (os.path.isfile(df_name)):
             df = pd.DataFrame.from_csv(df_name, sep='\t')
             new_df = pd.concat([old_df, df])
@@ -972,42 +972,154 @@ def plot(miner=1):
     # -------------------------------------------------------------------------
 
     # -------------------------- TX LATENCY - FEE PAID ----------------------------
-    #TODO: TO FINISH AND TO TEST
-    info = "plot/fee_latency"
-    df_fl = df[['t_l', 't_f']]
-
-    df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
-    # df_fl = df_fl.groupby(['date']).mean().reset_index()
-
-    print df_fl
-
-    g = sns.regplot(x="t_f", y="t_l",  data=df_fl, color="orange")
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (sec)')
+    # info = "plot/fee_latency"
+    # df_fl = df[['t_l', 't_f']]
+    #
+    # df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
+    # # df_fl = df_fl.groupby(['date']).mean().reset_index()
+    #
+    # print df_fl
+    #
+    # g = sns.regplot(x="t_f", y="t_l",  data=df_fl, color="orange")
+    # # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (sec)', ylim=(0, 6000), xlim=(0, 1))
 
     # -----------------------------------------------------------------------------
 
-    # -------------------- % OF ZERO FEE TX FOR EACH MINER ------------------------
-    # #TODO: TO FINISH AND TO TEST
+    # -------------------- % OF ZERO FEE TX FOR EACH MINER FROM MONTH TO MONTH ------------------------
+    info = "plot/zero_fee_monthly"
+
+    df_zero = df[['B_ep', 't_f', 'B_mi']]
+    df_zero = remove_minor_miners(df_zero, 5)
+    df_zero = epoch_date_mm(df_zero)
+
+    df_only_zero = df_zero[df_zero.t_f == 0]
+
+
+    df_zero = df_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+    df_only_zero = df_only_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+
+    print df_zero
+    print df_only_zero
+
+    # create two lists containing B_mi and size each, for total txs and zero fee only
+    b_mi = df_zero['B_mi'].values
+    tx_size = df_zero['size'].values
+
+    b_mi_0 = df_only_zero['B_mi'].values
+    tx_size_0 = df_only_zero['size'].values
+
+    all_date = df_zero['date'].values
+    date_0 = df_only_zero['date'].values
+
+    # adding missing 0% zero-fee miners
+
+    i = 0
+    j = 0
+
+    new_b_mi_0 = []
+    new_tx_size_0 = []
+
+
+    while (i < len(b_mi)):
+        found = False
+        j = 0
+        while ((j < len(b_mi_0)) and (found == False)):
+            if((b_mi[i] == b_mi_0[j]) and (all_date[i] == date_0[j])):
+                new_b_mi_0.append(b_mi[i])
+                new_tx_size_0.append(tx_size_0[j])
+                found = True
+            else:
+                if((j == (len(b_mi_0)-1)) and (found == False)):
+                    found = True
+                    new_b_mi_0.append(b_mi[i])
+                    new_tx_size_0.append(0)
+                else:
+                    pass
+            j += 1
+        i += 1
+
+    # calculate percentage on total
+    percentage = []
+    for zero, tot in zip(new_tx_size_0, tx_size):
+        perc = (float(zero) * 100) / float(tot)
+        percentage.append(perc)
+
+    # add percentage to df_zero
+    df_zero['number 0'] = new_tx_size_0
+    df_zero['%0'] = percentage
+
+    print df_zero
+
+    g = sns.pointplot(x="date", y="%0", hue="B_mi", data=df_zero)
+    g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    g.set(xlabel='date', ylabel='% of zero-fee transactions')
+    # -------------------------------------------------------------------------------------------------
+
+
+
+    # -------------------- % OF ZERO FEE TX FOR EACH MINER FROM ALL TIME ------------------------
     # info = "plot/zero_fee"
     #
     # df_zero = df[['B_ep', 't_f', 'B_mi']]
+    #
     # # create two dataframes containing in one, the number of zero transactions per miner and in the other the total number of transaction per miner
     # miners = df_zero['B_mi'].value_counts()
-    # miners = miners.groupby(miners.index, sort=False).sum()
-    # print miners
-    # df_only_zero = df_zerod[df_zero.t_f == "0"]
-    # miners_zero = df_only_zero['B_mi'].value_counts()
-    # miners_zero = miners_zero.groupby(miners_zero.index, sort=False).sum()
-    # print miners_zero
+    # miners = miners.groupby(miners.index, sort=False).sum().reset_index()
     #
-    # # miners = miners.head(10)
+    # df_only_zero = df_zero[df_zero.t_f == 0]
+    # miners_zero = df_only_zero['B_mi'].value_counts()
+    # miners_zero = miners_zero.groupby(miners_zero.index, sort=False).sum().reset_index()
+    #
+    #
+    # miners = miners.head(20)
+    # miners_zero_new = pd.DataFrame()
+    # miners_zero_old = pd.DataFrame()
+    #
+    # for miner in miners['index']:
+    #     miners_zero_old = miners_zero[miners_zero['index'] == miner]
+    #     miners_zero_new = pd.concat([miners_zero_old, miners_zero_new])
+    #
+    # # append in the new zero df the miners which had 0 txs with zero-fee
+    # i = 0
+    # for miner in miners['index']:
+    #     if(miner in miners_zero_new['index'].values):
+    #         pass
+    #     else:
+    #         miners_zero_new.loc[i] = [miner, 0]
+    #     i += 1
+    #
+    # print miners
+    # print miners_zero_new
+    # miners = miners.sort_values(by='index')
+    # miners_zero_new = miners_zero_new.sort_values(by='index')
+    #
+    # list_0 = miners_zero_new['B_mi'].values
+    # list_tot = miners['B_mi'].values
+    #
+    # miners['0'] = list_0
+    # print miners
+    # print miners_zero_new
+    #
+    #
+    #
+    # new_list = []
+    # for zero, tot in zip(list_0, list_tot):
+    #     perc = (float(zero) * 100) / float(tot)
+    #     new_list.append(perc)
+    #
+    # # create a new df containing the percentage of the zero transaction fee per miner
+    # miners[r'%0'] = new_list
+    #
+    # ax = miners.plot.bar(x='index', y='%0')
+    # ax.set_xlabel("miners")
+    # ax.set_ylabel("% of zero-fee transactions")
 
     # -----------------------------------------------------------------------------
 
 
     # ------------------------ FEE DENSITY / FEE LATENCY -------------------------
-    # # TODO: NOT WORKING
+    # # TODO: NOT WORKING BECAUSE OF THE DIVISION, USE THE FUNCTION DIVIDE!
     # info = "plot/fee_density_latency"
     #
     # df_dens_lat = df[['t_l', 't_f', 't_q', 'B_ep']]
@@ -1102,7 +1214,7 @@ def plot(miner=1):
     # df_thr = df[['B_t', 'B_T', 'B_ep']]
     # df_thr = epoch_date_dd(df_thr)
     #
-    # df_thr = df_thr.groupby('date').mean().reset_index()
+    # df_thr = df_thr.groupby('date').sum().reset_index()
     # df_thr['thr'] = df_thr['B_t'] / df_thr['B_T']
     #
     # ax = df_thr.plot(x='date', y = ['thr'])
