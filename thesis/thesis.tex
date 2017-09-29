@@ -30,6 +30,8 @@
 
 \usepackage{glossaries}
 
+\usepackage{threeparttable}
+
 \newtheorem{defs}{Definition}
 
 \makeglossaries
@@ -80,7 +82,6 @@
 		}%
 	}%
 }
-
 
 
 \begin{document}
@@ -310,8 +311,8 @@ or technical\,\cite{Nakamoto_bitcoin, ethereum_white_paper}.
 
 While doing research, studying and reading papers related to blockchains,
 it turned out that the most urgent concerns are related to
-its scalability and performance, but also to the fee
-a client has to pay to get better latency.
+its scalability, performance and a profit optimization from participant
+in the whole system.
 In $2015$, Möser and Böhme write\,\cite{Moser2015}:
 \begin{quote}
 	\emph{Bitcoin may not be as cheap for consumers as it appears.}
@@ -459,10 +460,8 @@ if there are any abnormalities in the ledger of public data.
 %Finally, Chapter~\ref{chap:conclusion} includes future implementation of the system,
 %possible development of this project and conclusions of the overall work.
 
-%TODO: PREVIOUS WORK -- WORKING ON THIS CHAPTER
 \chapter{Related Works - SotA}
 \label{chap:prev_works}
-%TODO: Talks about more papers on bitcoin
 As mentioned in Chapter\,\ref{chap:introduction},
 scalability and analysis on the blockchain has been taken into consideration
 by many researchers in the past years.
@@ -620,7 +619,6 @@ Q(b) \equiv \sum_{i = 1}^{b} size_i.
 The mempool demand curve represents then the maximum fee,
 $M_{demand}(b)$
 a miner can claim by producing a given quantity $Q(b)$ of blockspace.
-%TODO: Insert graph of the mempool demand curve
 
 \subsubsection{The Block Space Supply Curve}
 \label{sec:blockspacesupply}
@@ -936,7 +934,7 @@ dependency from bottom to the top the layers are:
 	in the blockchain. It receives
 	messages from Network Plane and outputs transactions ready to be insert
 	in the system ledger. Bitcoin's blockchain protocol has a three-way-tradeoff
-	between, \emph{consensus speed}, \emph{bandwidth} and security, and
+	between, \emph{consensus speed}, \emph{bandwidth} and \emph{security}, and
 	the increment of two of them leads to the loss of the third. For example,
 	if the first two are improved then there is loss in the mining power
 	that secures the system.
@@ -959,14 +957,173 @@ dependency from bottom to the top the layers are:
 	of all other nodes in the system, representing in that way
 	an honest set of consensus nodes, keeping an high availability.
 	\item \textbf{Side Plane.} Allows off-the-main-chain consensus.
-	
 \end{enumerate}
+
+\section{Assumptions} %TODO: improve assumptions (maybe)
+\label{sec:assumptions}
+The main problems that we should focus on
+are related to blockchain scalability, performance and
+see whether the constant increasing amount of transactions
+per day affects the way miners include transactions
+or the way clients offer fees to miners.
+We assume then, having informations from the
+previous listed papers, that analyzing the last $3$\,years
+of transactions might produce interesting
+results about how this (not anymore) new but still
+cryptic system is evolving and changing its
+properties according to achieve better performance
+even after it scaled drastically in the last couple of
+years
+and still be able to compensate miners and users.
 
 \chapter{Technical Background}
 \label{chap:techback}
-%TODO: We refrain from explaining Bitcoin and its terminology in detail and refer the reader to existing high-level (thr rconomics of digital currencies, bitcoin, journal of economics prospective) or technical\,\cite{ethereum},\,\cite{bitcoinmining},\,\cite{bitcoin_blockchain},\,\cite{Rizun:2015:blocksizelimit},\,\cite{Nakamoto_bitcoin},\,\cite{ethereum_white_paper}.
+This chapter wants to introduce the reader in blockchain systems,
+particularly the Bitcoin one. We show a list of symbols which
+might be useful for reading in Appendix~\ref{app:LOS}. However,
+we won't go in deep details explaining Bitcoin or its
+terminology and we refer
+to already existing high-level\,\cite{Bohme2015BETG} or
+technical\,\cite{ethereum, bitcoinmining,
+bitcoin_blockchain, Rizun:2015:blocksizelimit, Nakamoto_bitcoin,
+ethereum_white_paper} descriptions, but we will explain the concept
+of payments and fee in Bitcoin system, how miners profit from
+mining,
+how a user could choose whether including fee or not in its
+transactions and how performance and scalability is
+changing the way miners select transactions.
+We will also talk about some machine learning
+techniques and data structures.
 
-%TODO: Miners are free to accept the offer by including the transaction in the blockchain, or to ignore it. This created a market mechanism to find the price of Bitcoin transactions. Competitive miners will include transactions as long as the fee exceeds the marginal cost of inclusion. Production costs are fixed per block (but may vary between miners depending on access to technology and energy cooling) and the protocol defines a maximum block size. Because of that, the marginal cost of inclusion is zero if there are fewer unconfirmed transactions than the capacity left in the block. Because of that, competitive miners make positive expected profits only if transactions compete for space in the blockchain. Houy\,\cite{RePEc:gat:wpaper:1407} argues that a maximum block size is necessary for the stability of Bitcoin. However in that way big mining pool might take advantage from less competition, having a centralization problem, since you compete only if the capacity is reached. In that way if you never reach the capacity, raising the fee then won't be helpful at all. Before $2015$ transactions almost never required to compete for space in blocks, since the demand was less then the offer. A group of programmers even created a soft fork that doesn't offer fee at all\,\cite{}
+It should be clear before reading, the differences
+between a \emph{centralized} and a \emph{decentralized} digital currencies.
+These differences are summarized in Table~\ref{tab:centralized_vs_decentralized}.
+As mentioned in Chapter~\ref{chap:introduction}, more decentralized
+digital currencies are emerging nowadays, and they aim
+to facilitate transactions between consenting individuals who would otherwise
+have no means to trust each other and deal with geographical separation and 
+interfacing difficulties.
+According to Nakamoto\,\cite{Nakamoto_bitcoin} an electronic coin is defined as
+follows:
+\definition{An \emph{eletronic coin} is a chain of digital signatures.
+	Each owner transfers the coin to the next by digitally signing a hash of
+	the previous transaction and the public key of the next owner and adding
+	these to the end of the coin.}
+Transactions are registered in \emph{blocks} and all these systems use the
+\emph{blockchain} technology to maintain a serial order of them.
+The blockchain is a consensus protocol that users run to maintain and secure a
+shared ledger of data and it is formed of all blocks, ordered by time and connected
+between each other with the \emph{previous block} attribute. A transaction is approved
+only when it is included in a block, and the miner including this transactions has first
+solved the \emph{proof-of-work}. Difficulty of proof-of-work is increased
+according to keep an average $\mathcal{T}$ of $10$\,minutes.
+\begin{table}
+	\caption{Centralized vs Decentralized digital currencies}
+	\label{tab:centralized_vs_decentralized}
+	\begin{tabular}{|p{5.8cm}|p{5.8cm}|} \hline
+		\centering
+		\textbf{Centralized}&\textbf{Decentralized}\\
+		\hline
+		Under the control of a central authority & Requires consensous among users to make changes\\
+		\hline
+		Users are dependent from the control given from the \gls{ca} & Users have full control over their assets/data\\
+		\hline
+		No need to enforce cryptography or to create keys & User’s data is uniquely identified by private key \\
+		\hline
+		Only users allowed by \gls{ca} can participate & Anyone can join and use ledger \\
+		\hline
+		Historic transactions can be changed by the \gls{ca} & Historic transactions are unalterable and permanent\\
+		\hline
+		Can be run very efficiently using relational databases that fit the need of the applications & Inefficient for the cost of mining \\
+		\hline		
+	\end{tabular}
+\end{table}
+%TODO: BLOCKCHAIN SECTION - FEES
+\section{Bitcoin \& Fees}
+\label{sec:bitcoinfee}
+We talked about miners and that they mine blocks including
+transactions in them. Every miner has a \emph{mempool}, $\mathcal{N}$,
+containing the new, unapproved, $n$ transactions.
+Miners are free to choose
+whether to accept or refuse a certain transaction $t \in \mathcal{N}$.
+Competitive miners will include transactions as long as the fee exceeds
+the marginal cost of inclusion. Production costs are fixed
+per block (but may vary between miners depending on access to
+technology and energy cooling) and the protocol
+defines a maximum block size $Q$.
+Because of that, the marginal cost of inclusion is zero if there are
+fewer unconfirmed transactions than the capacity left in the block.
+Competitive miners make positive expected profits only if transactions
+compete for space in the blockchain. Houy\,\cite{RePEc:gat:wpaper:1407}
+argues that a maximum block size is necessary for the stability of Bitcoin.
+However in that way big mining pool might take advantage from less competition,
+having a centralization problem, since a transaction is willing to
+compete only if the capacity is reached.
+In that way if the system never reaches the capacity, raising the fee
+won't be helpful at all. Before $2015$ transactions almost
+never required to compete for space in blocks, since the demand
+was less then the offer, but nowadays we have a totally different
+scenario. 
+In $2012$, the number of transactions confirmed per day
+reached peaks of $50,000$ transactions, with an average of
+$15,000$ transactions per day\,\cite{bitcoin_blockchain}.
+Nowadays we have an average of $250,000$ transactions
+approved per day, with peaks of $350,000$. Since the throughput
+limitations in the system, due to the block size limit $Q$
+and the average interval $\mathcal{T}$ set at $10$\,minutes and
+with such big increment of transactions to approve every day,
+miners could start to choose transactions with an higher
+$\rho$ or simply transactions that are willing to offer an higher fee
+rather than zero-fee transactions.
+Adding the fact that the reward $R$ has a $50\%$ reduction every
+$210,000$ blocks creates a market mechanism to find the price
+of Bitcoin transactions.
+
+By reading previous papers, we made some assumptions of how
+the following properties of the Bitcoin systems may vary if other
+properties are changing as well. We tried to classify the main
+properties of the system and make assumptions on how they
+may vary. This attributes are $Q$, $\mathcal{T}$, $\tau$,
+$\gamma$, $t_f$, $\langle C\rangle$ and $\mathbb{P}_{orphan}$, and
+our assumptions are summarized in Table~\ref{tab:possiblerelations}. For
+each property, every row is telling what happen to the other attributes
+if the attribute considered is increased/decreased. White space
+means that there might be no relation or we don't have any assumption
+on these two attributes.
+%TODO: Explain the table, white spaces is where we don't have any guess. 
+\begin{table}
+	\begin{threeparttable}
+	\caption{Possible Relations Between Major Attributes}
+	\label{tab:possiblerelations}
+	\begin{tabular}{|p{1.5cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|} \hline
+		\centering
+		&\textbf{$Q$}&\textbf{$\mathcal{T}$}&\textbf{$\tau$}&\textbf{$\gamma$}&	\textbf{$t_f$}&\textbf{$\langle C\rangle$}&	\textbf{$\mathbb{P}_{orphan}$} \\
+		\hline
+		\textbf{$Q\uparrow$}& & &$\downarrow\downarrow$ &$\uparrow$ &$\downarrow$ &$\uparrow$ &$\uparrow\uparrow$\\
+		\hline
+		 \textbf{$\mathcal{T}\uparrow$}&$(\uparrow)$&&&$\downarrow$&&&\\
+		\hline
+		\textbf{$\tau\uparrow$}&$\downarrow\downarrow$&&&$\uparrow$&$(\downarrow)$&$(\uparrow)$&$\downarrow$ \\
+		\hline
+		\textbf{$\gamma\uparrow$}&$\uparrow$&$\downarrow$&&&$(\downarrow)$&$\uparrow$&$(\uparrow)$ \\
+		\hline
+		\textbf{$t_f\downarrow$}&&&$(\uparrow)$&&&$\uparrow$&\\
+		\hline
+		\textbf{$\langle C\rangle\downarrow$}&$\downarrow$&&&&$\uparrow$&&\\
+		\hline
+	\textbf{$\mathbb{P}_{orphan}\downarrow$}&$\downarrow$&&&&&$\downarrow$& \\
+		\hline
+	\end{tabular}
+ \begin{tablenotes}
+	\item[1] $\uparrow\uparrow$, $\uparrow$, $\downarrow\downarrow$, $\downarrow$: increase, decrease.
+	\item[2] $(\uparrow)$, $(\downarrow)$: might increase/decrease.
+
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+%TODO: DATA STRUCTURE SECTION
+
 
 %TODO: MACHINE LEARNING SECTION
 %TODO: The degree of correlation between two attributes can be quantified using Pearson's correlation coefficient. Pearson's correlation coefficient is defined for two equal length vectors $u$ and $v$ \cite{bowles2015machine}:
@@ -1410,6 +1567,8 @@ dependency from bottom to the top the layers are:
 %TODO: Block size limit can set the number of transactions the network can confirm per block, so the throughput of the whole Bitcoin network.
 
 %TODO: In our longitudinal plot each data point visualizes aggregated data of \# blocks.
+
+%TODO: Talk about the observations during time, how the scalability of the system from # transactions per day to # transactions per day influenced the fees and tolls in the system.
 %In this chapter we present observations of the Bitcoin blockchain captured by the
 %analytics system outlined in Chapter~\ref{chap:expsetup}. 
 %To evaluate our problem definition in Chapter~\ref{sec:probdefinition}, we focus on consideration related to 
@@ -1890,7 +2049,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 	\end{description}
 
 \chapter{List of Symbols}
-
+\label{app:LOS}
 \begin{description}[leftmargin=!, labelwidth=\widthof{\bfseries $M_{demand}(b)$ }]
 	\setlength\itemsep{1em}
 	\item [$t_B$] transaction approved in a block $B$.
@@ -1902,7 +2061,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 	\item [$\mathcal{T}$] expected block interval time~($\sim$\,$10$\,min)
 	\item [$\mathbb{P}_{orphan}$] probability that given a block is orphaned.
 	\item [$\tau$] block solution propagation time, we consider a $\tau = 10$\,
-	seconds according to Decker\,\cite{Decker2013IPBN}.
+	seconds according to Decker\,\cite{Decker2013IPBN}. %TODO: analyze recent data form Croman
 	\item [$\eta$] cost per hash.
 	\item [$\langle \Pi \rangle$] expectation value of a miner’s profit per block.
 	\item [$\langle V\rangle$] expectation value of a miner’s revenue per block.
@@ -1925,6 +2084,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 	Epoch of when the block was included in the blockchain
 	\item [$t_{epoch}$] timestamp of a transaction $t$.
 	Epoch of when $t$ was first seen in the network
+	\item [$\gamma$] throughput of Bitcoin network, measured in txs/sec.
 \end{description}
 
 	\chapter{Listing}

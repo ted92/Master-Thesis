@@ -458,7 +458,7 @@ def get_all_dataframe():
     ne_df = None
     while True:
         # if the file exists
-        df_name = "old_dataset/transaction_dataframe_"+str(i)+".tsv"
+        df_name = "transaction_dataframe_"+str(i)+".tsv"
         if (os.path.isfile(df_name)):
             df = pd.DataFrame.from_csv(df_name, sep='\t')
             new_df = pd.concat([old_df, df])
@@ -631,6 +631,15 @@ def remove_minor_miners(df, number=7):
 
     return df
 
+
+def KLT(a):
+    """
+    Returns Karhunen Loeve Transform of the input and
+    the transformation matrix and eigenval
+    """
+    val, vec = np.linalg.eig(np.cov(a))
+    klt = np.dot(vec, a)
+    return klt, vec, val
 
 def plot(miner=1):
     """
@@ -954,6 +963,21 @@ def plot(miner=1):
     #plt.plot(y_vals, "ro", label="% of fee paid")
     df = get_all_dataframe()
 
+    # ==== KLT
+    # df_klt = df[['t_f', 't_in', 't_ou', 't_q', 't_%', 't_l', 'Q', 'B_T']]
+    #
+    # df_klt = df_klt.head(20)
+    # # temp =[]
+    # # for row in df_klt.iterrows():
+    # #     index, data = row
+    # #     temp.append(data.tolist())
+    # #     pass
+    #
+    # klt, vec, val = KLT(df_klt)
+    # print klt
+    # print vec
+    # print val
+    # ========
 
     # ------------------------ FEE OUTPUT, BTC IN CIRCULATION---------------------------
     # info = "plot/total_btc"
@@ -987,76 +1011,93 @@ def plot(miner=1):
     # -----------------------------------------------------------------------------
 
     # -------------------- % OF ZERO FEE TX FOR EACH MINER FROM MONTH TO MONTH ------------------------
-    info = "plot/zero_fee_monthly"
-
-    df_zero = df[['B_ep', 't_f', 'B_mi']]
-    df_zero = remove_minor_miners(df_zero, 5)
-    df_zero = epoch_date_mm(df_zero)
-
-    df_only_zero = df_zero[df_zero.t_f == 0]
-
-
-    df_zero = df_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
-    df_only_zero = df_only_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
-
-    print df_zero
-    print df_only_zero
-
-    # create two lists containing B_mi and size each, for total txs and zero fee only
-    b_mi = df_zero['B_mi'].values
-    tx_size = df_zero['size'].values
-
-    b_mi_0 = df_only_zero['B_mi'].values
-    tx_size_0 = df_only_zero['size'].values
-
-    all_date = df_zero['date'].values
-    date_0 = df_only_zero['date'].values
-
-    # adding missing 0% zero-fee miners
-
-    i = 0
-    j = 0
-
-    new_b_mi_0 = []
-    new_tx_size_0 = []
-
-
-    while (i < len(b_mi)):
-        found = False
-        j = 0
-        while ((j < len(b_mi_0)) and (found == False)):
-            if((b_mi[i] == b_mi_0[j]) and (all_date[i] == date_0[j])):
-                new_b_mi_0.append(b_mi[i])
-                new_tx_size_0.append(tx_size_0[j])
-                found = True
-            else:
-                if((j == (len(b_mi_0)-1)) and (found == False)):
-                    found = True
-                    new_b_mi_0.append(b_mi[i])
-                    new_tx_size_0.append(0)
-                else:
-                    pass
-            j += 1
-        i += 1
-
-    # calculate percentage on total
-    percentage = []
-    for zero, tot in zip(new_tx_size_0, tx_size):
-        perc = (float(zero) * 100) / float(tot)
-        percentage.append(perc)
-
-    # add percentage to df_zero
-    df_zero['number 0'] = new_tx_size_0
-    df_zero['%0'] = percentage
-
-    print df_zero
-
-    g = sns.pointplot(x="date", y="%0", hue="B_mi", data=df_zero)
-    g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    g.set(xlabel='date', ylabel='% of zero-fee transactions')
+    # info = "plot/zero_fee_monthly"
+    #
+    # df_zero = df[['B_ep', 't_f', 'B_mi']]
+    # df_zero = remove_minor_miners(df_zero, 5)
+    # df_zero = epoch_date_mm(df_zero)
+    #
+    # df_only_zero = df_zero[df_zero.t_f == 0]
+    #
+    #
+    # df_zero = df_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+    # df_only_zero = df_only_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+    #
+    # print df_zero
+    # print df_only_zero
+    #
+    # # create two lists containing B_mi and size each, for total txs and zero fee only
+    # b_mi = df_zero['B_mi'].values
+    # tx_size = df_zero['size'].values
+    #
+    # b_mi_0 = df_only_zero['B_mi'].values
+    # tx_size_0 = df_only_zero['size'].values
+    #
+    # all_date = df_zero['date'].values
+    # date_0 = df_only_zero['date'].values
+    #
+    # # adding missing 0% zero-fee miners
+    #
+    # i = 0
+    # j = 0
+    #
+    # new_b_mi_0 = []
+    # new_tx_size_0 = []
+    #
+    #
+    # while (i < len(b_mi)):
+    #     found = False
+    #     j = 0
+    #     while ((j < len(b_mi_0)) and (found == False)):
+    #         if((b_mi[i] == b_mi_0[j]) and (all_date[i] == date_0[j])):
+    #             new_b_mi_0.append(b_mi[i])
+    #             new_tx_size_0.append(tx_size_0[j])
+    #             found = True
+    #         else:
+    #             if((j == (len(b_mi_0)-1)) and (found == False)):
+    #                 found = True
+    #                 new_b_mi_0.append(b_mi[i])
+    #                 new_tx_size_0.append(0)
+    #             else:
+    #                 pass
+    #         j += 1
+    #     i += 1
+    #
+    # # calculate percentage on total
+    # percentage = []
+    # for zero, tot in zip(new_tx_size_0, tx_size):
+    #     perc = (float(zero) * 100) / float(tot)
+    #     percentage.append(perc)
+    #
+    # # add percentage to df_zero
+    # df_zero['number 0'] = new_tx_size_0
+    # df_zero['%0'] = percentage
+    #
+    # print df_zero
+    #
+    # g = sns.pointplot(x="date", y="%0", hue="B_mi", data=df_zero)
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='date', ylabel='% of zero-fee transactions')
     # -------------------------------------------------------------------------------------------------
 
 
+    # ------------------------- TRANSACTIONS DISTRIBUTION -----------------------------
+    info = "plot/txs_distribution"
+
+    df_txs = df[['B_ep', 'B_t']]
+    df_txs = epoch_date_dd(df_txs)
+
+    df_txs = df_txs.groupby(['date']).size().to_frame('size').reset_index()
+
+
+
+    print df_txs
+
+    ax = df_txs.plot(x='date', y='size')
+    ax.set_xlabel("date")
+    ax.set_ylabel("number of txs")
+
+    # ----------------------------------------------------------------------------
 
     # -------------------- % OF ZERO FEE TX FOR EACH MINER FROM ALL TIME ------------------------
     # info = "plot/zero_fee"
@@ -1223,7 +1264,6 @@ def plot(miner=1):
     # ax.legend(lines[:2], labels[:2], loc='best')
     #
     # ax.set_ylabel("throughput (txs/s)")
-
     # -------------------------------------------------------------------
 
     # --------------------------------- Transaction fee in USD -------------------------------------
