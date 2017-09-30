@@ -341,14 +341,17 @@ transactions, probably by $2017$.}
 %TODO: REVIEW THIS:
 It is obvious then that these problems need to be taken
 into consideration.
-In this thesis we discuss the scalability of the blockchain, how it affects
+In our thesis we propose a longitudinal study on Bitcoin blockchain,
+analyzing most recent data.
+In particular, we discuss the scalability of the blockchain, how it affects
 the throughput and we present performance observations of the
 Bitcoin blockchain, analyzed with a blcockhain analytic system developed
 for this purpose. We provide detailed insights and analysis on how
 Bitcoin's characteristics, such as fee, block size and reward to different
 miners involved have changed over time, and provide an
-updated model describing how the Bitcoin blockchain will grow. 
-We analyzed the correlation between the fee paid from a transaction
+updated model describing how the Bitcoin blockchain will grow.
+Furthermore, we analyzed the
+correlation between the fee paid from a transaction
 and its \emph{latency}, or the time it takes to 
 be visible in the whole network.
 %TODO: THREE MODELS? KEEP THEM?
@@ -505,7 +508,7 @@ to make money out of the blockchain and mining,
 in necessary to have a view of
 how \emph{VISA}\,\cite{visa} makes money as well.
 
-\section{Rizun - A Transaction Fee Market Exists Without a Block Size Limit\,\cite{Rizun:2015:blocksizelimit}}
+\section{Rizun - A Transaction Fee Market Exists Without a Block Size Limit}
 \label{sec:rizun}
 \subsection{Problems}
 A pressing concern exists over the ramifications of changing (or not)
@@ -667,7 +670,7 @@ calculation of the miner’s cost to supply
 additional block space by accounting for orphaning risk.
 
 \section{Möser \& Böhme - Trends, Tips, Tolls: A Longitudinal
-study of Bitcoin Transaction Fees\,\cite{Moser2015}}
+study of Bitcoin Transaction Fees}
 \label{sec:moser}
 \subsection{Problems}
 The Bitcoin protocol supports optional direct payments
@@ -776,7 +779,7 @@ for Discus Fish, in contrast to an average of $14.4\%$.
 Over than that though, there is no clear evidence for
 enforcement of strictly positive transactions fees.
  
-\section{Croman - On Scaling Decentralized Blockchains\,\cite{croman2016}}
+\section{Croman - On Scaling Decentralized Blockchains}
 \label{sec:croman}
 \subsection{Problems}
 The increasing popularity of blockchain-based cryptocurrencies
@@ -1086,11 +1089,15 @@ properties of the system and make assumptions on how they
 may vary. This attributes are $Q$, $\mathcal{T}$, $\tau$,
 $\gamma$, $t_f$, $\langle C\rangle$ and $\mathbb{P}_{orphan}$, and
 our assumptions are summarized in Table~\ref{tab:possiblerelations}. For
-each property, every row is telling what happen to the other attributes
+each property, its row is telling what happens to other attributes
 if the attribute considered is increased/decreased. White space
 means that there might be no relation or we don't have any assumption
-on these two attributes.
-%TODO: Explain the table, white spaces is where we don't have any guess. 
+yet. For example, if we are going to increase the block space $Q$,
+then we have a relevant increase on the propagation time, $\tau$,
+the chances of orphaning are way bigger, so will be the cost to mine a block,
+but we have a better throughput, $\gamma$ and we might have
+less fee from transactions, $t_f$, since they will have less competition
+to be included in a block.
 \begin{table}
 	\begin{threeparttable}
 	\caption{Possible Relations Between Major Attributes}
@@ -1099,140 +1106,186 @@ on these two attributes.
 		\centering
 		&\textbf{$Q$}&\textbf{$\mathcal{T}$}&\textbf{$\tau$}&\textbf{$\gamma$}&	\textbf{$t_f$}&\textbf{$\langle C\rangle$}&	\textbf{$\mathbb{P}_{orphan}$} \\
 		\hline
-		\textbf{$Q\uparrow$}& & &$\downarrow\downarrow$ &$\uparrow$ &$\downarrow$ &$\uparrow$ &$\uparrow\uparrow$\\
+		\textbf{$Q\uparrow$}& \cellcolor{gray!25}& &$\uparrow\uparrow$ &$\uparrow$ &$(\downarrow)$ &$\uparrow$ &$\uparrow\uparrow$\\
 		\hline
-		 \textbf{$\mathcal{T}\uparrow$}&$(\uparrow)$&&&$\downarrow$&&&\\
+		 \textbf{$\mathcal{T}\uparrow$}&$(\uparrow)$&\cellcolor{gray!25}&&$\downarrow$&&&\\
 		\hline
-		\textbf{$\tau\uparrow$}&$\downarrow\downarrow$&&&$\uparrow$&$(\downarrow)$&$(\uparrow)$&$\downarrow$ \\
+		\textbf{$\tau\uparrow$}&$\uparrow\uparrow$&&\cellcolor{gray!25}&$\downarrow$&$(\downarrow)$&$(\uparrow)$&$\uparrow$$\uparrow$ \\
 		\hline
-		\textbf{$\gamma\uparrow$}&$\uparrow$&$\downarrow$&&&$(\downarrow)$&$\uparrow$&$(\uparrow)$ \\
+		\textbf{$\gamma\uparrow$}&$\uparrow$&$\downarrow$&&\cellcolor{gray!25}&$(\downarrow)$&$\uparrow$&$(\uparrow)$ \\
 		\hline
-		\textbf{$t_f\downarrow$}&&&$(\uparrow)$&&&$\uparrow$&\\
+		\textbf{$t_f\downarrow$}&&&$(\uparrow)$&&\cellcolor{gray!25}&$\uparrow$&\\
 		\hline
-		\textbf{$\langle C\rangle\downarrow$}&$\downarrow$&&&&$\uparrow$&&\\
+		\textbf{$\langle C\rangle\downarrow$}&$\downarrow$&&&&$\uparrow$&\cellcolor{gray!25}&\\
 		\hline
-	\textbf{$\mathbb{P}_{orphan}\downarrow$}&$\downarrow$&&&&&$\downarrow$& \\
+	\textbf{$\mathbb{P}_{orphan}\downarrow$}&$\downarrow$&&&&&$\downarrow$& \cellcolor{gray!25}\\
 		\hline
 	\end{tabular}
  \begin{tablenotes}
-	\item[1] $\uparrow\uparrow$, $\uparrow$, $\downarrow\downarrow$, $\downarrow$: increase, decrease.
-	\item[2] $(\uparrow)$, $(\downarrow)$: might increase/decrease.
+ 	\item[1] $\uparrow\uparrow$, $\downarrow\downarrow$: exponential or more than linear
+ 	increase/decrease
+	\item[2] $\uparrow$, $\downarrow$: increase/decrease.
+	\item[3] $(\uparrow)$, $(\downarrow)$: might increase/decrease.
 
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-%TODO: DATA STRUCTURE SECTION
+\section{Machine Learning}
+\label{sec:machinelearning}
+Once a new node first joins the Bitcoin network, it has to download
+all the useful informations to process transactions and to
+verify them. These informations consist in a huge quantity
+of data, nowadays $\sim$\,$125$\,GB, and it grows over time.
+A full node might require more than four days to 
+downloads the entire ledger. It is obvious to think then that once you
+collected all the data, a proper way of analyzing them is necessary.
+We want to explain some of the most common and
+fundamental techniques of machine learning which were
+useful for our purpose of analyzing the Bitcoin blockchain.
+These informations were collected from Bowles' book\,\cite{bowles2015machine}.
+It is very important, to be able to verify our assumptions made in
+Table\,\ref{tab:possiblerelations}, to check how much
+a pair of attributes will be related to each other.
+We measure that by using \emph{Pearson's correlation}.
 
+\subsubsection{Pearson's Correlation}
+The degree of correlation between two attributes
+can be quantified using Pearson's correlation coefficient.
+Pearson's correlation coefficient is defined for two equal
+length vectors $u$ and $v$:
+\begin{align}
+u &= \begin{bmatrix}
+u_{1} \\
+u_{2} \\
+\vdots \\
+u_{n}
+\end{bmatrix} &
+v &= \begin{bmatrix}
+v_{1}\\
+v_{2}\\
+\vdots\\
+v_{n}
+\end{bmatrix}
+\end{align}
+First subtract the mean value of $u$ from all the elements of $u$, and the same with $v$, then we generate $\Delta{u}$ and $\Delta{v}$ as follows:
+\[
+\overline{u} = avg(u)
+\]
+\[
+\overline{v} = avg(v)
+\]
+\begin{align}
+\Delta{u} &=\begin{bmatrix}
+u_{1} - \overline{u}\\
+u_{2} - \overline{u}\\
+\vdots\\
+u_{n} - \overline{u}
+\end{bmatrix} &
+\Delta{v} &=\begin{bmatrix}
+v_{1} - \overline{v}\\
+v_{2} - \overline{v}\\
+\vdots\\
+v_{n} - \overline{v}
+\end{bmatrix} 
+\end{align}
+The Pearson's correlation between $u$ and $v$ is defined as follows
+in Equation\,\ref{eq:pearson}:
+\begin{equation}
+\label{eq:pearson}
+corr(u,v) = \frac{\Delta{u^{T}} * \Delta{v}}{\sqrt{(\Delta{u^{T}}*\Delta{u})*(\Delta{v^{T}}*\Delta{v})}}
+\end{equation}
 
-%TODO: MACHINE LEARNING SECTION
-%TODO: The degree of correlation between two attributes can be quantified using Pearson's correlation coefficient. Pearson's correlation coefficient is defined for two equal length vectors $u$ and $v$ \cite{bowles2015machine}:
-%\begin{align}
-%u &= \begin{bmatrix}
-%u_{1} \\
-%u_{2} \\
-%\vdots \\
-%u_{n}
-%\end{bmatrix} &
-%v &= \begin{bmatrix}
-%v_{1}\\
-%v_{2}\\
-%\vdots\\
-%v_{n}
-%\end{bmatrix}
-%\end{align}
-%First subtract the mean value of $u$ from all the elements of $u$, and the same with $v$, then we generate $\Delta{u}$ and $\Delta{v}$ as follows:
-%\[
-%\overline{u} = avg(u)
-%\]
-%\[
-%\overline{v} = avg(v)
-%\]
-%\begin{align}
-%\Delta{u} &=\begin{bmatrix}
-%u_{1} - \overline{u}\\
-%u_{2} - \overline{u}\\
-%\vdots\\
-%u_{n} - \overline{u}
-%\end{bmatrix} &
-%\Delta{v} &=\begin{bmatrix}
-%v_{1} - \overline{v}\\
-%v_{2} - \overline{v}\\
-%\vdots\\
-%v_{n} - \overline{v}
-%\end{bmatrix} 
-%\end{align}
-
-%TODO: ... continues pearson's correlation: The Pearson's correlation between $u$ and $v$ is defined in \ref{eq:pearson}:
-%\begin{equation}
-%\label{eq:pearson}
-%corr(u,v) = \frac{\Delta{u^{T}} * \Delta{v}}{\sqrt{(\Delta{u^{T}}*\Delta{u})*(\Delta{v^{T}}*\Delta{v})}}
-%\end{equation}
-
-%TODO: Working with huge amount of data, with different attributes having all different values it might be useful to transform them with a function in a range of values such as $(0,1)$. This function is defined in Eq.\,\ref{eq:logit} and is called \emph{logit transform}.
+%\subsubsection{Logit Transform}
+%Working with huge amount of data,
+%with different attributes having all different values it might be
+%useful to transform them with a function in a range of values
+%such as $(0,1)$. This function is defined in Eq.\,\ref{eq:logit}
+%and is called \emph{logit transform}.
 %\begin{equation}
 %\label{eq:logit}
 %\text{\emph{logit transform}}(x) = \frac{1}{(1 + e^{-x})}
 %\end{equation}
 
-%TODO: Training and predicting models involves different types of variables:
-%\begin{description}[leftmargin=!, labelwidth=\widthof{\bfseries --Target variables-- }]
-%	\item[Target variables:] the variable that you are attempting to predict, represented with $Y$;
-%	\item[Predictors:] variables that you can use to make the prediction, represented with $X$.
-%\end{description}
-%\begin{align}
-%X &=\begin{bmatrix}
-%x_{11} & x_{12}  & \dots & x_{1n}\\
-%x_{21} & x_{22} & \dots & x_{2n}\\
-%\vdots & \vdots & & \vdots\\
-%x_{m1} & x_{m2} & \dots & x_{mn}
-%\end{bmatrix} &
-%Y &=\begin{bmatrix}
-%y_{1}\\
-%y_{2}\\
-%\vdots\\
-%y_{m}
-%\end{bmatrix} 
-%\end{align}
-%TODO: When the targets are real numbers, the problem of training those data is called \emph{regression problem}. If the targets are two-valued the problem is called \emph{binary classification problem}. We need to predict then every $y_i \in Y$ using every row $x_i \in X$ and evaluate the performance of our predictions. Good performance means using the attributes $x_i$ to generate a prediction that is \emph{close} to $y_i$. For a regression problem where $y_i$ is a real number, performance is measured in terms like the \gls{mse}\,(Eq.\ref{eq:mse}) or the \gls{mae}\,(Eq. \ref{eq:mae})\,\cite{bowles2015machine}.
-%
-%\begin{equation}
-%\label{eq:mse}
-%\text{\gls{mse}} = \frac{1}{m}\sum_{i=1}^{m}{(y_i - \text{\emph{pred}}(x_i))^2}
-%\end{equation}
-%
-%\begin{equation}
-%\label{eq:mae}
-%\text{\gls{mae}} = \frac{1}{m}\sum_{i=1}^{m}{|(y_i - \text{\emph{pred}}(x_i))|}
-%\end{equation}
-%TODO: However, since \gls{mse} is in sqared units, the \gls{rmse} is usually a more usable number to calculate.
-%TODO: If the problem is a classification problem, then other measure of performance must be used. One of the most used is the \emph{misclassification error}. Classification problems generally revolve around misclassification error rates and, usually, algorithms for such kind of problems can present predictions in the form of a probability rate for the attributes rather than an attribute itself.
+\subsubsection{Training a Dataset}
+\label{sec:trainingdataset}
+Having a huge dataset implies having a big amount
+of data with different type of attributes. This attributes might have
+\emph{numerical} or \emph{categorical} values. 
+\begin{description}[leftmargin=!, labelwidth=\widthof{\bfseries -Categorical- }, noitemsep]
+	\item [Numerical:] Data that can be measured, quantified. For example
+	the fee paid to a miner in \gls{btc}.
+	\item [Categorical:]Data which represent characteristics. For
+	example the name of the miners in the Bitcoin system.
+\end{description}
+Training and predicting models involves different types of variables:
+\begin{description}[leftmargin=!, labelwidth=\widthof{\bfseries -Target variables- }, noitemsep]
+	\item[Target variables:] the variable that you are attempting to predict, represented with $Y$;
+	\item[Predictors:] variables that you can use to make the prediction, represented with $X$.
+\end{description}
+\begin{align}
+X &=\begin{bmatrix}
+x_{11} & x_{12}  & \dots & x_{1n}\\
+x_{21} & x_{22} & \dots & x_{2n}\\
+\vdots & \vdots & \ddots& \vdots\\
+x_{m1} & x_{m2} & \dots & x_{mn}
+\end{bmatrix} &
+Y &=\begin{bmatrix}
+y_{1}\\
+y_{2}\\
+\vdots\\
+y_{m}
+\end{bmatrix} 
+\end{align}
+When the targets are real numbers,
+the problem of training those data is called
+\emph{regression problem}. If the targets are two-valued
+the problem is called \emph{binary classification problem}.
+We need to predict then every $y_i \in Y$ using every row
+$x_i \in X$ and evaluate the performance of our predictions.
+Good performance means using the attributes $x_i$ to generate
+a prediction that is \emph{close} to $y_i$. For a regression
+problem where $y_i$ is a real number, performance is
+measured in terms like the \gls{mse}\,(Equation\,\ref{eq:mse})
+or the \gls{mae}\,(Equation\,\ref{eq:mae})\,\cite{bowles2015machine}.
+\begin{equation}
+\label{eq:mse}
+\text{\gls{mse}} = \frac{1}{m}\sum_{i=1}^{m}{(y_i - \text{\emph{pred}}(x_i))^2}
+\end{equation}
+\begin{equation}
+\label{eq:mae}
+\text{\gls{mae}} = \frac{1}{m}\sum_{i=1}^{m}{|(y_i - \text{\emph{pred}}(x_i))|}
+\end{equation}
+However, since \gls{mse} is in squared units,
+the \gls{rmse} is usually a more usable number to calculate.
+If the problem is a classification problem,
+then other measure of performance must be used.
+One of the most used is the \emph{misclassification error}.
+Classification problems generally revolve around
+misclassification error rates and, usually,
+algorithms for such kind of problems can
+present predictions in the form of a probability
+rate for the attributes rather than an attribute itself.
 
-%This chapter will give a detailed explanation about decentralized digital
-%currencies, explaining all the main concepts and key words that you should know when
-%you read about cryptocurrency. 	The differences between centralized
-%and decentralized cryptocurrencies are discussed, enhancing their main
-%characteristics, pros and cons. Concepts such as blockchain, 
-%proof of work, state, block, transaction, and gas fee
-%are described and discussed.
-
-
-
-%\definition{An \emph{eletronic coin} is a chain of digital signatures.
-%Each owner transfers the coin to the next by digitally signing a hash of
-%the previous transaction and the public key of the next owner and adding
-%these to the end of the coin.}
-
-
-
-
-%\definition{A \emph{transaction} (formally, $T$) is a single
-%	cryptographically-signed instruction constructed by an actor with the scope of giving
-%	money to someone else in the network.}
-
+\subsubsection{Visualizing Data}
+When analyzing big datasets, finding a smooth and nice way of
+showing informations out of them might be tricky. For example, if
+you have millions or billions of samples it will result
+almost impossible to get any information by simply plotting them.
+When analyzing longitudinal data for example, informations
+might be showed daily, monthly or even yearly-wise, then the
+\emph{mean} for every portion is applied. However, bigger
+is the dataset and most likely it will contain \emph{outliers}.
+In this case, calculating the mean on those data
+might be misleading, that is why in a longitudinal study
+should also be considered whether to apply a \emph{median} value
+for every portion rather than the mean, since the mean is particularly
+susceptible to the influence of outliers.
+%TODO: Talk about outliers, better to use median rather than mean when there are too many outliers in data collected.
 
 \chapter{Blockchain Analytics System}
 \label{chap:expsetup}
+%TODO: We did longitudinal data - 50% of the blockchain for 3 years
 %In order to understand digital cryptocurrencies systems,
 %to test and make experiments on the blockchain, a complete data analytic
 %system was designed and implemented. This chapter will explain how the

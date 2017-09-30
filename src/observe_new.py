@@ -265,7 +265,10 @@ def read_txs_file():
         # ---- CALCULATE % OF FEE ----
         f_percentile = []
         for f_in, f_ou in zip(input, output):
-            percentile = 100 - (float(f_ou * 100) / float(f_in))
+            if (float(f_in)!= 0):
+                percentile = 100 - (float(f_ou * 100) / float(f_in))
+            else:
+                percentile = 0
             f_percentile.append(percentile)
             # ----------------------------
 
@@ -1082,20 +1085,22 @@ def plot(miner=1):
 
 
     # ------------------------- TRANSACTIONS DISTRIBUTION -----------------------------
-    info = "plot/txs_distribution"
-
-    df_txs = df[['B_ep', 'B_t']]
-    df_txs = epoch_date_dd(df_txs)
-
-    df_txs = df_txs.groupby(['date']).size().to_frame('size').reset_index()
-
-
-
-    print df_txs
-
-    ax = df_txs.plot(x='date', y='size')
-    ax.set_xlabel("date")
-    ax.set_ylabel("number of txs")
+    # info = "plot/txs_distribution"
+    #
+    # df_txs = df[['B_ep', 'B_t']]
+    # df_txs = epoch_date_dd(df_txs)
+    #
+    # df_txs = df_txs.groupby(['date']).size().to_frame('size').reset_index()
+    #
+    # print df_txs
+    #
+    # df_txs['size'] = df_txs['size'].apply(lambda x: x * 2)
+    #
+    # print df_txs
+    #
+    # ax = df_txs.plot(x='date', y='size')
+    # ax.set_xlabel("date")
+    # ax.set_ylabel("number of txs")
 
     # ----------------------------------------------------------------------------
 
@@ -1251,19 +1256,28 @@ def plot(miner=1):
 
 
     # --------------------------- THROUGHPUT ----------------------------
-    # info = "plot/throughput"
-    # df_thr = df[['B_t', 'B_T', 'B_ep']]
-    # df_thr = epoch_date_dd(df_thr)
-    #
-    # df_thr = df_thr.groupby('date').sum().reset_index()
-    # df_thr['thr'] = df_thr['B_t'] / df_thr['B_T']
-    #
-    # ax = df_thr.plot(x='date', y = ['thr'])
-    #
+    info = "plot/throughput"
+    df_thr = df[['B_t', 'B_T', 'B_ep']]
+    df_thr = epoch_date_dd(df_thr)
+
+    df_thr = df_thr.groupby(['date']).size().to_frame('size').reset_index()
+    size = df_thr['size'].values
+
+    df_thr = df[['B_t', 'B_T', 'B_ep']]
+    df_thr = epoch_date_dd(df_thr)
+    df_thr = df_thr.groupby(['date', 'B_ep']).median().reset_index()
+    df_thr = df_thr.groupby(['date']).sum().reset_index()
+    df_thr['size'] = size
+    df_thr = df_thr[['date', 'size', 'B_T']]
+    df_thr['thr'] = df_thr['size'] / df_thr['B_T']
+
+    print df_thr
+    ax = df_thr.plot(x='date', y = ['thr'])
+
     # lines, labels = ax.get_legend_handles_labels()
     # ax.legend(lines[:2], labels[:2], loc='best')
-    #
-    # ax.set_ylabel("throughput (txs/s)")
+
+    ax.set_ylabel("throughput (txs/s)")
     # -------------------------------------------------------------------
 
     # --------------------------------- Transaction fee in USD -------------------------------------
@@ -1320,11 +1334,11 @@ def plot(miner=1):
     # ax = df_usd.plot(x='date', y = ['USD', 'usd_fee'])
     #
     # # lines, labels = ax.get_legend_handles_labels()
-    # labels = []
-    # labels.append(u'BTC - USD exchange rate')
-    # labels.append(u'fee paid in USD')
-    #
-    # ax.legend(labels, loc='best')
+    # # labels = []
+    # # labels.append(u'BTC - USD exchange rate')
+    # # labels.append(u'fee paid in USD')
+    # #
+    # # ax.legend(labels, loc='best')
     #
     # ax.set_ylabel("USD")
     # ----------------------------------------------------------------------------------------------
