@@ -1256,28 +1256,28 @@ def plot(miner=1):
 
 
     # --------------------------- THROUGHPUT ----------------------------
-    info = "plot/throughput"
-    df_thr = df[['B_t', 'B_T', 'B_ep']]
-    df_thr = epoch_date_dd(df_thr)
-
-    df_thr = df_thr.groupby(['date']).size().to_frame('size').reset_index()
-    size = df_thr['size'].values
-
-    df_thr = df[['B_t', 'B_T', 'B_ep']]
-    df_thr = epoch_date_dd(df_thr)
-    df_thr = df_thr.groupby(['date', 'B_ep']).median().reset_index()
-    df_thr = df_thr.groupby(['date']).sum().reset_index()
-    df_thr['size'] = size
-    df_thr = df_thr[['date', 'size', 'B_T']]
-    df_thr['thr'] = df_thr['size'] / df_thr['B_T']
-
-    print df_thr
-    ax = df_thr.plot(x='date', y = ['thr'])
-
-    # lines, labels = ax.get_legend_handles_labels()
-    # ax.legend(lines[:2], labels[:2], loc='best')
-
-    ax.set_ylabel("throughput (txs/s)")
+    # info = "plot/throughput"
+    # df_thr = df[['B_t', 'B_T', 'B_ep']]
+    # df_thr = epoch_date_dd(df_thr)
+    #
+    # df_thr = df_thr.groupby(['date']).size().to_frame('size').reset_index()
+    # size = df_thr['size'].values
+    #
+    # df_thr = df[['B_t', 'B_T', 'B_ep']]
+    # df_thr = epoch_date_dd(df_thr)
+    # df_thr = df_thr.groupby(['date', 'B_ep']).median().reset_index()
+    # df_thr = df_thr.groupby(['date']).sum().reset_index()
+    # df_thr['size'] = size
+    # df_thr = df_thr[['date', 'size', 'B_T']]
+    # df_thr['thr'] = df_thr['size'] / df_thr['B_T']
+    #
+    # print df_thr
+    # ax = df_thr.plot(x='date', y = ['thr'])
+    #
+    # # lines, labels = ax.get_legend_handles_labels()
+    # # ax.legend(lines[:2], labels[:2], loc='best')
+    #
+    # ax.set_ylabel("throughput (txs/s)")
     # -------------------------------------------------------------------
 
     # --------------------------------- Transaction fee in USD -------------------------------------
@@ -1498,7 +1498,6 @@ def plot(miner=1):
 
 
     # ----------- TRENDY MINERS IN DIFFERENT EPOCHS --------------
-    """
     info = "plot/trendy_miners"
     # add date to df from epoch
     df['date'] = df['B_ep'].apply(epoch_datetime)
@@ -1518,7 +1517,7 @@ def plot(miner=1):
     g = sns.pointplot(x="date", y="size", hue="B_mi", data=df_grouped)
     g.set_xticklabels(g.get_xticklabels(), rotation=45)
     g.set(xlabel='date', ylabel='transactions approved')
-    """
+
     # ------------------------------------------------------------
 
     # -------- HEAT MAP ----------
@@ -1545,28 +1544,7 @@ def plot(miner=1):
     # # other minor miners
     #
     # # miners.index = miners.index.to_series().replace({'Eobot': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'P2Pool': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'HAOZHUZHU': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'BitMinter': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'PHash.IO': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'Bitcoin India': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'ConnectBTC': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'xbtc.exx.com&bw.com': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'shawnp0wers': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'GoGreenLight': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'Telco 214': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'CANOE': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'BATPOOL': 'Others'})
-    # # miners.index = miners.index.to_series().replace({"Patel's Mining pool": 'Others'})
-    # # miners.index = miners.index.to_series().replace({'120.25.194.218': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'188.40.74.13': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'148.251.6.18': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'95.110.234.93': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'Eligius': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'GHash.IO': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'BCMonster': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'21 Inc.': 'Others'})
-    # # miners.index = miners.index.to_series().replace({'Solo CKPool': 'Others'})
+    #
     #
     #
     # miners = miners.groupby(miners.index, sort=False).sum()
@@ -1613,35 +1591,34 @@ def plot(miner=1):
     # -----------------------------------------------------------------------------------------------
 
     # ------------- PARALLEL COORDINATES
-    """
-    info = "plot/parallel_coordinates"
-    plt.figure()
-    df_parcord = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_mi']]
-    df_parcord['t_f'] = df_parcord['t_f'].apply(satoshi_bitcoin)
-    df_parcord['t_q'] = df_parcord['t_q'].apply(byte_megabyte)
-    df_parcord['Q'] = df_parcord['Q'].apply(byte_megabyte)
-    df_parcord['t_l'] = df_parcord['t_l'].apply(sec_hours)
-    df_parcord['B_T'] = df_parcord['B_T'].apply(sec_hours)
+    #
+    # info = "plot/parallel_coordinates"
+    # plt.figure()
+    # df_parcord = df[['t_f', 't_q', 't_%', 't_l', 'B_T', 'B_mi']]
+    # df_parcord['t_f'] = df_parcord['t_f'].apply(satoshi_bitcoin)
+    # df_parcord['t_q'] = df_parcord['t_q'].apply(byte_megabyte)
+    # df_parcord['t_l'] = df_parcord['t_l'].apply(sec_hours)
+    # df_parcord['B_T'] = df_parcord['B_T'].apply(sec_hours)
+    #
+    # df_parcord = df_parcord.groupby('B_mi', as_index=False)
+    # df_parcord = df_parcord.median()
+    # 
+    # miners = df['B_mi'].value_counts()  # count miners
+    # miners = miners.sort_index()
+    #
+    # # add the miner counter (how many transactions he mined)
+    # df_parcord['cou'] = miners.values
+    # df_parcord = df_parcord.sort('cou', ascending=False)
+    # df_parcord = df_parcord.head(7)
+    # #remove column of counter miners
+    # df_parcord = df_parcord.drop('cou', 1)
+    # print df_parcord
+    # # indexes = df_parcord.index.get_level_values(0)
+    # #print df_parcord
+    #
+    #
+    # parallel_coordinates(df_parcord, 'B_mi')
 
-    df_parcord = df_parcord.groupby('B_mi', as_index=False)
-    df_parcord = df_parcord.median()
-
-    miners = df['B_mi'].value_counts()  # count miners
-    miners = miners.sort_index()
-
-    # add the miner counter (how many transactions he mined)
-    df_parcord['cou'] = miners.values
-    df_parcord = df_parcord.sort('cou', ascending=False)
-    df_parcord = df_parcord.head(7)
-    #remove column of counter miners
-    df_parcord = df_parcord.drop('cou', 1)
-    print df_parcord
-    # indexes = df_parcord.index.get_level_values(0)
-    #print df_parcord
-    
-    
-    parallel_coordinates(df_parcord, 'B_mi')
-    """
     # --------------------------------------------
 
     block_epoch = df['B_ep'].values

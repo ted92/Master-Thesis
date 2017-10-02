@@ -401,6 +401,8 @@ influence the whole network performance.
 
 \section{Method / Context}
 \label{sec:method}
+\cite{forex-python}
+
 %TODO: REVIEW THIS
 In this thesis we analyze a considerable part of the blockchain.
 In the paper from $2015$ written by Möser and Böhme\,\cite{Moser2015},
@@ -890,9 +892,9 @@ throughput} as follows:
 \text{X\% effective throughput} = Q / (\text{X\% block propagation delay})
 \]
 Considering that the propagation delay is, for $1$\,MB block size and
-$90$\,\% of block propagation, $2.4$\,minutes, they calculated
+$\text{X}\% = 90\%$ of block propagation, $2.4$\,minutes, they calculated
 an X\% effective throughput of $55$\,Kbps $\equiv$ $26$\,tx/sec
-having a $90$\,\% of block propagation.
+having  $\text{X}\% = 90\%$ of block propagation.
 \subsubsection{Throughput limit}
 They observed that the block size $Q$, and interval $\mathcal{T}$,
 must satisfy:
@@ -900,8 +902,8 @@ must satisfy:
 \frac{Q}{\text{X\% effective throughput}} < \mathcal{T}
 \]
 having in that way, for a $10$\,minutes block interval a block size
-that should not exceed $4$\,MB for $X=90\%$ and $38$\,MB for
-$X=50\%$. Given $\mathcal{T} = 10$\,minutes the block size
+that should not exceed $4$\,MB for $\text{X}=90\%$ and $38$\,MB for
+$\text{X}=50\%$. Given $\mathcal{T} = 10$\,minutes the block size
 should not exceed $4$\,MB, corresponding to a throughput
 of at most $27$\,transactions/sec.
 \subsubsection{Latency limit}
@@ -911,8 +913,8 @@ throughput that would also require a reduction in the
 block size. Propagating a block smaller than $80$\,KB would
 not make full use of the network's bandwidth, as latency would
 still be a significant factor in the block's propagation time.
-To propagate a $80$\,KB block to $90$\,\% of the nodes would
-take roughly $12$\,seconds. In conclusion, to retain at least $90$\,\%
+To propagate a $80$\,KB block to $90\%$ of the nodes would
+take roughly $12$\,seconds. In conclusion, to retain at least $90\%$
 effective throughput and fully utilize the bandwidth of the network,
 the block interval should not be smaller than $12$\,seconds.
 \subsection{Results}
@@ -1149,7 +1151,7 @@ Table\,\ref{tab:possiblerelations}, to check how much
 a pair of attributes will be related to each other.
 We measure that by using \emph{Pearson's correlation}.
 
-\subsubsection{Pearson's Correlation}
+\subsection{Pearson's Correlation}
 The degree of correlation between two attributes
 can be quantified using Pearson's correlation coefficient.
 Pearson's correlation coefficient is defined for two equal
@@ -1207,7 +1209,7 @@ corr(u,v) = \frac{\Delta{u^{T}} * \Delta{v}}{\sqrt{(\Delta{u^{T}}*\Delta{u})*(\D
 %\text{\emph{logit transform}}(x) = \frac{1}{(1 + e^{-x})}
 %\end{equation}
 
-\subsubsection{Training a Dataset}
+\subsection{Training a Dataset}
 \label{sec:trainingdataset}
 Having a huge dataset implies having a big amount
 of data with different type of attributes. This attributes might have
@@ -1267,11 +1269,11 @@ algorithms for such kind of problems can
 present predictions in the form of a probability
 rate for the attributes rather than an attribute itself.
 
-\subsubsection{Visualizing Data}
+\subsection{Visualizing Data}
 When analyzing big datasets, finding a smooth and nice way of
-showing informations out of them might be tricky. For example, if
+representing informations of them might be tricky. For example, if
 you have millions or billions of samples it will result
-almost impossible to get any information by simply plotting them.
+almost impossible to get any information by simply plotting these data.
 When analyzing longitudinal data for example, informations
 might be showed daily, monthly or even yearly-wise, then the
 \emph{mean} for every portion is applied. However, bigger
@@ -1281,21 +1283,73 @@ might be misleading, that is why in a longitudinal study
 should also be considered whether to apply a \emph{median} value
 for every portion rather than the mean, since the mean is particularly
 susceptible to the influence of outliers.
-%TODO: Talk about outliers, better to use median rather than mean when there are too many outliers in data collected.
 
 \chapter{Blockchain Analytics System}
 \label{chap:expsetup}
-%TODO: We did longitudinal data - 50% of the blockchain for 3 years
-%In order to understand digital cryptocurrencies systems,
-%to test and make experiments on the blockchain, a complete data analytic
-%system was designed and implemented. This chapter will explain how the
-%blockchain analytics system on Bitcoin was implemented,
-%starting from its architecture until the \gls{api}
-%used and then how data are processed and manipulated.
+In order to understand digital cryptocurrencies,
+in particular the Bitcoin ones,
+to test and make experiments on the blockchain, a complete data analytic
+system was designed and implemented. In our thesis, thanks to
+this system, we were able to run a longitudinal study
+on the Bitcoin blcokchain, collecting useful
+informations from $2014$ to $2017$, analyzing more
+than $100$\,millions of transactions corresponding
+to the $50\%$ of the entire blockchain in between that period.
+This chapter will explain how our studies on the Bitcoin
+blockchain took place, clarifying how
+we analyzed the \gls{api}s from \url{blockchain.info} to get the
+best out of them and illustrating how we collected and manipulated
+our data. Then we describe how we decided to plot
+our data and why. In Chapter~\ref{chap:evaluation} again
+we point out our solutions compared to our
+assumptions and our conclusions.
 
 \section{Blockchain Data Sources}
-\label{sec:apis}
-
+Many websites like \url{tradeblock.com}\,\cite{tradeblock}
+or \url{blockchain.info}\,\cite{bitcoin_blockchain}
+are observing the Bitcoin blockchain every day.
+These websites provide also remote \gls{api} 
+that allows you to retrieve data directly from
+the website and they can be used in a Python application
+as a HTTP request/response. Furthermore, websites like
+\url{coinbase.com} provide useful informations about the
+money exchange price and they arrange \gls{api} along with
+libraries like the one we used called
+\emph{forex-python}\,\cite{forex-python}.
+One of the most popular system that could be used
+to make analysis on Bitcoin is its client, \emph{Bitcoin Core}.
+However, its gigantic quantity of data to download before you
+even get started might be disheartening, since you first
+have to download the whole raw data of Bitcoin blockchain, which
+now is about $125$\,GB with in total about $250$\,GB of
+space needed. Since we wanted to optimize and
+be able to select data we wished to analyze and
+we didn't have the need to run a full node,
+we developed a system for blockchain retrieval and analysis.
+This system allows to fetch a portion of the blockchain, it
+stores data in a pandas dataframe\,\cite{pandas} in a way to save
+up to $x10$ space on disk but still storing all the informations
+we need and finally, it displays all the knowledge acquired
+analyzing data and applying machine learning technique
+on those, using Python libraries
+such as \emph{matplotlib}\,\cite{matplotlib} and
+\emph{seaborn}\,\cite{michael_waskom_seaborn}.
+Our blockchain analytic system was implemented
+on a MacBook Pro with MacOS Sierra \emph{v$10.12.6$},
+with a $2.8$\,GHz Intel Core i$7$ processor
+and $16$\,GB~$1600$\,MHz DDR3 of RAM, using
+JetBrains PyCharm (\emph{v$2017.1.4$}) software as
+text editor and \emph{Python v$2.7.12$}
+as programming language. Even though we know
+Python is not common for its computational speed,
+it provides nice access to the
+Bitcoin blockchain by using \gls{api}s arranged
+by \url{blockchain.info}, allowing the retrieval
+of all the information stored in a block and transaction,
+plus its enormous amount of libraries grants
+a vast flexibility on which machine learning algorithms
+to apply or whatever plotting system to use. 
+\subsection{}
 %TODO: ============ RETRIEVING DATA =============
 %TODO: The instability of the the connection and the \gls{api}'s given from Bitcoin, collecting data was extremely difficult and time consuming. We analyzed and collected data from #DATE to #DATE with more than # blocks and # transactions
 
@@ -1314,35 +1368,19 @@ susceptible to the influence of outliers.
 %TODO: Once data are gathered and the dataset is created, the first step is to determine the outliers.
 %TODO: How to deal with outliers? We can segregate them out and train on them as a separate class
 %TODO: Dealing with categorical attributes, as the number of attributes grows, the complexity of dealing with them mounts, also, most of binary tree algorithms, which are the basis for ensamble methods, have a cutoff on how many categories they can handle\,\cite{bowles2015MLIP}. Random Forest package written by Breiman and Cutler has a cutoff of 32 categories\,\cite{Breiman:2001:RF}.
-%There are many websites that observe and make analysis on the existing blockchains. The most
-%popular websites for Bitcoin and Ethereum blockchain analysis are \url{blockchain.info}\,\cite{bitcoin_blockchain}
-%for Bitcoin, \url{etherscan.io}\,\cite{ethereum_bc_analysis} and \url{etherchain.org}\,\cite{ethereum_blockchain}
-%for Ethereum.
-%Remote \gls{api} on the Bitcoin blockchain could be found at \url{blockchain.info}
-%in the \gls{api} section. These are \gls{api} to retrieve data directly from
-%the website and they can be used in a Python application simply as a HTTP request/response.
-%The system we implemented retrieves data from the Bitcoin blockchain, using the \gls{api}
-%provided from \url{https://github.com/blockchain/api-v1-client-python}. This \gls{api} is well suited
-%for Python and provides a nice access to the Bitcoin blockchain, allowing the retrieval
-%of all the information stored in a block and in a transaction.
-%
-%In the api-v1-client-python mentioned above, the class containing the
-%structure of a block and transaction, used for data retrieval and
-%analysis is \emph{blockexplorer.py}. The object structures of a block and a
-%transaction in Python language are represented in Appendix~\ref{lst:block},~\ref{lst:transaction}.
-%Furthermore, in Appendix~\ref{lst:block-json} is showed a JSON representation of the block which is
-%returned from the \gls{api} call.
+
 
 \section{System Architecture}
 \label{sec:implementation}
 
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=1\textwidth]{img/architecture}
-%	\caption{Architecture of the developed system for blockchain analysis.}
-%	\label{fig:architecture}
-%\end{figure}
-%
+%TODO: Re-design system architecture
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/architecture}
+	\caption{Architecture of the blockchain analytics system.}
+	\label{fig:architecture}
+\end{figure}
+
 %The architecture of our blockchain analytic system is showed in Figure~\ref{fig:architecture}. The system 
 %is run mainly locally, importing Bitcoin \gls{api} and using them for data retrieval to the
 %local system. The website \url{blockchain.info} provides \gls{api} to be used remotely with an
@@ -1375,13 +1413,6 @@ susceptible to the influence of outliers.
 %	in the network.
 %\end{description}
 %
-%The application for blockchain analysis is implemented in the file  \emph{observ.py}, it provides
-%to call \gls{api} functions and to generates all the output files. A small
-%example of how the \gls{api} calls work in the system is showed in Appendix~\ref{lst:api-python}.
-%Our blockchain analytic system was implemented on a MacBook Pro with MacOS Sierra \emph{v$10.12.1$},
-%with a $2.8$\,GHz Intel Core i$7$ processor and $16$\,GB~$1600$\,MHz DDR3 of RAM, using
-%JetBrains PyCharm (\emph{v$2016.2.3$}) software as text editor and \emph{Python v$2.7.12$}
-%as programming language.
 
 \subsection{Data Retrieval}
 \label{sec:data_retrieval}
