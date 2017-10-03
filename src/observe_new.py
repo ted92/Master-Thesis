@@ -1466,24 +1466,22 @@ def plot(miner=1):
 
 
     # -------------- FEE - INPUT MINERS CALCULATIONS --------------------
-    """
-    info = "plot/fee_input_miners"
-    df_fee_per = remove_minor_miners(df, 10)
-    df_fee_per['t_per'] = calculate_percentage_txs_fee(df_fee_per)
-
-    print df_fee_per['t_per']
-
-    df_inputtxs = df_fee_per[['t_in', 't_f', 'B_mi', 't_per']]
-    df_inputtxs = df_inputtxs.groupby('B_mi').median().reset_index()
-    df_inputtxs['t_in'] = df_inputtxs['t_in'].apply(satoshi_bitcoin)
-    df_inputtxs['t_f'] = df_inputtxs['t_f'].apply(satoshi_bitcoin)
-    print df_inputtxs
-    # sns.pointplot(x="B_mi", y="t_f", data=df_inputtxs, color="green")
-    # sns.pointplot(x="B_mi", y="t_in", data=df_inputtxs, color="red")
-    g = sns.pointplot(x="B_mi", y="t_per", data=df_inputtxs, color="green")
-    g.set(xlabel='major miners', ylabel='$t_f$ %')
-    g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    """
+    # info = "plot/fee_input_miners"
+    # df_fee_per = remove_minor_miners(df, 20)
+    # df_fee_per['t_per'] = calculate_percentage_txs_fee(df_fee_per)
+    #
+    # print df_fee_per['t_per']
+    #
+    # df_inputtxs = df_fee_per[['t_in', 't_f', 'B_mi', 't_per']]
+    # df_inputtxs = df_inputtxs.groupby('B_mi').median().reset_index()
+    # df_inputtxs['t_in'] = df_inputtxs['t_in'].apply(satoshi_bitcoin)
+    # df_inputtxs['t_f'] = df_inputtxs['t_f'].apply(satoshi_bitcoin)
+    # print df_inputtxs
+    # # sns.pointplot(x="B_mi", y="t_f", data=df_inputtxs, color="green")
+    # # sns.pointplot(x="B_mi", y="t_in", data=df_inputtxs, color="red")
+    # g = sns.pointplot(x="B_mi", y="t_per", data=df_inputtxs, color="green")
+    # g.set(xlabel='major miners', ylabel='$t_f$ %')
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
     # -------------------------------------------------------------------
 
     # ------------- FEE PAID WITH DIFFERENT MINERS ---------------
@@ -1496,27 +1494,107 @@ def plot(miner=1):
     """
     # ------------------------------------------------------------
 
+    # ----------- TOP MINERS EVERY MONTH -------------------------
+    info = "plot/top_miners_montly"
+    df_topminers = df[['B_ep', 'B_mi']]
+    df_topminers = epoch_date_mm(df_topminers)
+
+    df_grouped = df_topminers.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+
+    print df_grouped
+
+    # for each month put the date as column and the miner as row
+    dates = df_grouped['date'].values
+    miners = df_grouped['B_mi'].values
+    txs = df_grouped['size'].values
+
+    prev_date = dates[0]
+
+    # new_df = pd.DataFrame()
+    new_dates = []
+    new_dates.append(prev_date)
+    for d in dates:
+        if(d == prev_date):
+            # do not add a new column
+            pass
+        else:
+            new_dates.append(d)
+            # new_df[d] = ""
+            prev_date = d
+
+    new_df = pd.DataFrame(np.nan, index=miners, columns=new_dates)
+    # df created with nan calues
+    print new_df
+    # for every miner create a list containing the miner and the size
+    miners_per_date = []
+    miners_complete_list = []
+
+    prev_date = dates[0]
+    for d, m, t in zip(dates, miners, txs):
+        pair_miner_size = []
+        if(d == prev_date):
+            # column must stay the same one
+            # add miners
+            pair_miner_size.append(m)
+            pair_miner_size.append(t)
+            miners_per_date.append(pair_miner_size)
+        else:
+            miners_complete_list.append(miners_per_date)
+            miners_per_date = []
+            pair_miner_size.append(m)
+            pair_miner_size.append(t)
+            miners_per_date.append(pair_miner_size)
+            prev_date = d
+            # column change
+    miners_complete_list.append(miners_per_date)
+    print miners_complete_list
+
+    # insert all in the new df
+    i = 0
+    print len(miners_complete_list)
+    print len(list(new_df.columns.values))
+    for d in range(len(miners_complete_list)):
+        for m in range(len(miners_complete_list[d])):
+            # add in column d
+            new_df.iloc[i, new_df.columns.get_loc(list(new_df.columns.values)[d])] = miners_complete_list[d][m][1]
+            i += 1
+
+    print new_df
+
+    new_df = new_df.groupby(new_df.index).sum().reset_index()
+    new_df = new_df.fillna(0)
+    print new_df
+
+    # new_df = new_df.astype(float)
+    #
+    # matplotlib.style.use('ggplot')
+    # ax = new_df.transpose().plot(kind='line', title="Trendy miners",
+    #                                              figsize=(15, 10), legend=True, fontsize=12)
+    # ax.set_xlabel("Date", fontsize=12)
+    # ax.set_ylabel("Transactions", fontsize=12)
+    # plt.show()
+
+
+    writer = pd.ExcelWriter('output.xlsx')
+    new_df.to_excel(writer, 'Sheet1')
+    writer.save()
+
+    # ------------------------------------------------------------
 
     # ----------- TRENDY MINERS IN DIFFERENT EPOCHS --------------
-    info = "plot/trendy_miners"
-    # add date to df from epoch
-    df['date'] = df['B_ep'].apply(epoch_datetime)
-    df['date'] = df['date'].apply(revert_date_time)
-
-    # split date to have yyyy-mm
-    df['date'] = df['date'].str.slice(start=0, stop=7)
-
-    print df['date']
-    # groub by date and then miners, count how many transactions a miner approved in a certain month
-    df_grouped = df.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
-
-    # remove minor miners
-    df_grouped = remove_minor_miners(df_grouped, 8)
-
-    # calculate how many transactions were apprved by each miner in every year
-    g = sns.pointplot(x="date", y="size", hue="B_mi", data=df_grouped)
-    g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    g.set(xlabel='date', ylabel='transactions approved')
+    # info = "plot/trendy_miners"
+    # # add date to df from epoch
+    # df = remove_minor_miners(df, 9)
+    # df = df[['B_ep', 'date', 'B_mi']]
+    # df = epoch_date_mm(df)
+    #
+    # # groub by date and then miners, count how many transactions a miner approved in a certain month
+    # df_grouped = df.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+    #
+    # # calculate how many transactions were apprved by each miner in every year
+    # g = sns.pointplot(x="date", y="size", hue="B_mi", data=df_grouped, ylim=(0.0,))
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='date', ylabel='transactions approved')
 
     # ------------------------------------------------------------
 
@@ -1602,7 +1680,7 @@ def plot(miner=1):
     #
     # df_parcord = df_parcord.groupby('B_mi', as_index=False)
     # df_parcord = df_parcord.median()
-    # 
+    #
     # miners = df['B_mi'].value_counts()  # count miners
     # miners = miners.sort_index()
     #

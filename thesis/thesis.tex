@@ -109,7 +109,6 @@
 %\epigraphitem{Simplicity is prerequisite for reliability.}{Edsger Dijkstra}
 %\epigraphitem{Beware of bugs in the above code;\\I have only proved it correct, not tried it.}{Donald Knuth}
 %\end{epigraph}
-
 %TODO: SUBSTITUTE ALL THE # WITH CORRECT NUMBERS
 \begin{abstract}
 \label{sec:abstract}
@@ -128,7 +127,7 @@ for applications that require highly reliable communication.
 However, sending messages over existing blockchains can be cumbersome
 and costly as miners require payment to establish consensus on the
 sequence of messages. The blockchain protocol requires an always
-growing size of the informations stored in it so its \emph{scalability} is
+growing size of the information stored in it so its \emph{scalability} is
 the biggest problem. For that reason we collected data to be analyzed and
 stored in our own dataframe, saving up to $x10$ space
 for the analysis.
@@ -173,7 +172,7 @@ Bitcoin blockchain has been analyzed with a blockchain analytics system,
 developed using Bitcoin's API and data were collected both by using the
 API and parsing \url{blockchain.info} HTML pages.
 A total of \# transactions has been evaluated, more transactions than ever were
-considered before and useful informations about the Bitcoin blockchain emerged.
+considered before and useful information about the Bitcoin blockchain emerged.
 This thesis gives also a measurement about accuracy of data
 provided from \url{blockchain.info}.
 \end{abstract}
@@ -401,7 +400,6 @@ influence the whole network performance.
 
 \section{Method / Context}
 \label{sec:method}
-\cite{forex-python}
 
 %TODO: REVIEW THIS
 In this thesis we analyze a considerable part of the blockchain.
@@ -429,14 +427,14 @@ in the public ledger of data and which miners are the more trendy and
 which usually requires more fee by retrieving and analyzing only a portion
 of the blockchain, but having in that way a finer
 granularity than the one represented in the Bitcoin website. In that
-way we hope to gain more informations out of it.
+way we hope to gain more information out of it.
 Moreover, sampling data from a single node in the blockchain gives statistics
 representative of the whole system.
 
 For the analysis, data are retrieved block per block and part of the blockchain
 is saved in a text file. This finer granularity allows us to have
-a lot of informations that may be hidden in the statistical analysis
-provided from Bitcoin. It is also possible to use the informations retrieved
+a lot of information that may be hidden in the statistical analysis
+provided from Bitcoin. It is also possible to use the information retrieved
 to make future predictions about how much the 
 Bitcoin blockchain will grow, using polynomial interpolation on the data. According
 on how many blocks ago are fetched, it is possible to have an accurate prediction
@@ -713,8 +711,8 @@ $2012$ and May $2013$, then to answer question $(2)$ they
 compute for each transaction the holding time, which is the period
 until the output was spent again, and compared their fees to see if
 they are higher. To answer question $(3)$ is necessary get
-informations about major mining pools. They used data
-from \url{blockchain.info} to retrieve useful informations about miners
+information about major mining pools. They used data
+from \url{blockchain.info} to retrieve useful information about miners
 and major miners were analyzed such as \emph{AntPool}, \emph{50BTC},
 \emph{BitMinter}, \emph{Slush}, \emph{ASICMiner} and more.
 \subsection{Results}
@@ -971,7 +969,7 @@ are related to blockchain scalability, performance and
 see whether the constant increasing amount of transactions
 per day affects the way miners include transactions
 or the way clients offer fees to miners.
-We assume then, having informations from the
+We assume then, having information from the
 previous listed papers, that analyzing the last $3$\,years
 of transactions might produce interesting
 results about how this (not anymore) new but still
@@ -1136,8 +1134,8 @@ to be included in a block.
 \section{Machine Learning}
 \label{sec:machinelearning}
 Once a new node first joins the Bitcoin network, it has to download
-all the useful informations to process transactions and to
-verify them. These informations consist in a huge quantity
+all the useful information to process transactions and to
+verify them. These information consist in a huge quantity
 of data, nowadays $\sim$\,$125$\,GB, and it grows over time.
 A full node might require more than four days to 
 downloads the entire ledger. It is obvious to think then that once you
@@ -1145,7 +1143,7 @@ collected all the data, a proper way of analyzing them is necessary.
 We want to explain some of the most common and
 fundamental techniques of machine learning which were
 useful for our purpose of analyzing the Bitcoin blockchain.
-These informations were collected from Bowles' book\,\cite{bowles2015machine}.
+These information were collected from Bowles' book\,\cite{bowles2015machine}.
 It is very important, to be able to verify our assumptions made in
 Table\,\ref{tab:possiblerelations}, to check how much
 a pair of attributes will be related to each other.
@@ -1271,10 +1269,10 @@ rate for the attributes rather than an attribute itself.
 
 \subsection{Visualizing Data}
 When analyzing big datasets, finding a smooth and nice way of
-representing informations of them might be tricky. For example, if
+representing information of them might be tricky. For example, if
 you have millions or billions of samples it will result
 almost impossible to get any information by simply plotting these data.
-When analyzing longitudinal data for example, informations
+When analyzing longitudinal data for example, information
 might be showed daily, monthly or even yearly-wise, then the
 \emph{mean} for every portion is applied. However, bigger
 is the dataset and most likely it will contain \emph{outliers}.
@@ -1292,7 +1290,7 @@ to test and make experiments on the blockchain, a complete data analytic
 system was designed and implemented. In our thesis, thanks to
 this system, we were able to run a longitudinal study
 on the Bitcoin blcokchain, collecting useful
-informations from $2014$ to $2017$, analyzing more
+information from $2014$ to $2017$, analyzing more
 than $100$\,millions of transactions corresponding
 to the $50\%$ of the entire blockchain in between that period.
 This chapter will explain how our studies on the Bitcoin
@@ -1312,12 +1310,12 @@ These websites provide also remote \gls{api}
 that allows you to retrieve data directly from
 the website and they can be used in a Python application
 as a HTTP request/response. Furthermore, websites like
-\url{coinbase.com} provide useful informations about the
+\url{coinbase.com} provide useful information about the
 money exchange price and they arrange \gls{api} along with
 libraries like the one we used called
 \emph{forex-python}\,\cite{forex-python}.
 One of the most popular system that could be used
-to make analysis on Bitcoin is its client, \emph{Bitcoin Core}.
+to make analysis on Bitcoin is its client, \emph{Bitcoin Core}\,\cite{bitcoincore}.
 However, its gigantic quantity of data to download before you
 even get started might be disheartening, since you first
 have to download the whole raw data of Bitcoin blockchain, which
@@ -1328,7 +1326,7 @@ we didn't have the need to run a full node,
 we developed a system for blockchain retrieval and analysis.
 This system allows to fetch a portion of the blockchain, it
 stores data in a pandas dataframe\,\cite{pandas} in a way to save
-up to $x10$ space on disk but still storing all the informations
+up to $x10$ space on disk but still storing all the information
 we need and finally, it displays all the knowledge acquired
 analyzing data and applying machine learning technique
 on those, using Python libraries
@@ -1349,49 +1347,107 @@ of all the information stored in a block and transaction,
 plus its enormous amount of libraries grants
 a vast flexibility on which machine learning algorithms
 to apply or whatever plotting system to use. 
-\subsection{}
-%TODO: ============ RETRIEVING DATA =============
-%TODO: The instability of the the connection and the \gls{api}'s given from Bitcoin, collecting data was extremely difficult and time consuming. We analyzed and collected data from #DATE to #DATE with more than # blocks and # transactions
-
-%TODO: talk about how and from where data were collected. blockchain.info, json etc.. which kind of data were collected from each source and why. Use maybe coindesk.com for the avg USD bitcoin price.
-
-%TODO: Talk about the time range selected and why. Read "a longitudinal study of bitcoin transaction fees" the section Data and Methods
-
-%TODO: =========== ORGANIZING DATA ==============
-%TODO: The Pandas package makes it possible to read data into a specialized data structure called a \emph{data frame}\,\cite{pandas}.
-%TODO: As Michael Bowles\,\cite{bowles2015MLIP} says, you can think of a data frame as a table or matrix-like structure oriented with a row representing a single case or observation and columns representing particular attributes. We decided to use a data frame structure and not a matrix one becuase even though the data frame structure is matrix-like, its elements in various columns may be of different types. For statistical problems, the matrix is too confining because statistical samples typically have a mix of different types, plus, Pandas package makes it possible to automate the steps of calculating mean, variance, and quantiles offers and a nice and smooth control over your data. Our dataset contains both, numeric and categorical (or factors) variables.
-%TODO: Structure in the way the data are stored might need to be factored into your approach for doing subsequential sampling. This is the reason why we stored transactions ordered by block and each block ordered by height/epoch, in that way we have the data set ordered by block creation with all its transactions in it and it will be much easier to make analysis or sampling data following a cronological order.
-
-%TODO: Our dataframe allows us to collect all the useful informations without storing the whole raw blockchain like current systems for blockchain analysis do, see \emph{BitcoinCore}\,\cite{bitcoincore}. Raw data are collected in \gls{json}, analyzed, printed in our dataframe and then deleted. This gave us a $10x$ space saving on the blockchain, storing in a $1$\,GB dataframe what the raw files from \emph{bitcoin.info} store in $10$\,GB space. Plus, we believe that analyzing a small percentage of the blockchain everyday would give us relevant informations about the whole system, and due to time limitations we could collect only #% of the data, every day.
-
-%TODO: ============= VISUALIZING DATA ============
-%TODO: Once data are gathered and the dataset is created, the first step is to determine the outliers.
-%TODO: How to deal with outliers? We can segregate them out and train on them as a separate class
-%TODO: Dealing with categorical attributes, as the number of attributes grows, the complexity of dealing with them mounts, also, most of binary tree algorithms, which are the basis for ensamble methods, have a cutoff on how many categories they can handle\,\cite{bowles2015MLIP}. Random Forest package written by Breiman and Cutler has a cutoff of 32 categories\,\cite{Breiman:2001:RF}.
-
-
-\section{System Architecture}
-\label{sec:implementation}
-
-%TODO: Re-design system architecture
-\begin{figure}[h]
+\subsection{Data Retrieval}
+\label{sec:dataretrieval}
+Bitcoin Core takes too much disk space and uses resources
+that we won't need and we will never use. Because of that we
+decided to implement a simple system for data retrieval.
+With this we only save the most relevant data
+for our purpose and create a data structure which
+is easy to read and to extract the information from it.
+The system imports Bitcoin \gls{api}s and uses
+them for data retrieval. The website \url{blockchain.info}
+also provides \gls{api}s to be used remotely with an
+HTTP request, returning \gls{json} data.
+The website \url{blockchain.info} is monitoring $24$-$7$ the blockchain,
+producing graphs and
+statistical analysis on data present in the
+actual Bitcoin network. The local
+application is monitoring these data as well,
+producing graphs that are not taken into
+consideration from this website,
+using a finer granularity that represents
+the data, allowing us to an in-depth analysis
+on those.
+For our analysis we select a time range from \# to
+September~$2017$, considering more than \#~transactions
+and \#~blocks. Earlier than that,some analysis were
+done already\,\cite{croman2016, RePEc:gat:wpaper:1407,
+	Moser2015, Rizun:2015:blocksizelimit}
+plus the popularity of the system before
+$2011$ was low and interpreting this early data would
+be not useful to understand system behavior.
+\begin{table}
 	\centering
-	\includegraphics[width=1\textwidth]{img/architecture}
-	\caption{Architecture of the blockchain analytics system.}
-	\label{fig:architecture}
-\end{figure}
+		\caption{Data sources and information gathered}
+		\label{tab:datasources}
+	\begin{tabular}{|p{3cm}p{3cm}p{4cm}|} \hline
+			\centering
+			\textbf{Source}&\textbf{Entity}& \textbf{Information}\\
+			\hline
+			Blockchain.info \gls{api}s&Block, Transaction&$B_{ha}$, $t_{ha}$, $B_h$, $B_h$, $\mathcal{T}$, $Q$, $t_{in}$, $t_{ou}$, $t_q$, $B_{epoch}$, $t_{epoch}$, \#$t_{B}$\\
+			\hline
+			Blockchain.info HTTP parsing&Miner& $B_{mi}$\\
+			\hline
+			Coindesk.com&Price&\gls{usd} and \bitcoin~value\\
+			\hline
+			Dataframe&Block, Transaction, Miner, Price&$\tau$, $t_f$, $t_l$, $\gamma$, $\rho$, $t_\%$\\
+			\hline
+		\end{tabular}
+\end{table}
 
-%The architecture of our blockchain analytic system is showed in Figure~\ref{fig:architecture}. The system 
-%is run mainly locally, importing Bitcoin \gls{api} and using them for data retrieval to the
-%local system. The website \url{blockchain.info} provides \gls{api} to be used remotely with an
-%HTTP request, and they can be easily integrated in the application with a HTTP
-%request/response mechanism. The website \url{blockchain.info} contains all the information
-%concerning the Bitcoin blockchain and it could be queried both through Python \gls{api}
-%and web \gls{api}. This website is monitoring 24-7 the blockchain, producing graphs and
-%statistical analysis on the data observed in the real decentralized network. The local
-%application is monitoring these data as well, producing graphs that are not taken into
-%consideration from the \url{blockchain.info} website, using a finer granularity that represent
-%the data. Moreover, the application generates three text files:
+To be able to study and have a general idea of the entire Bitcoin
+network, we combine data from different sources. As Table~\ref{tab:datasources}
+shows, we use both, \url{blockchain.info} \gls{api}s and HTTP parsing
+on it to gather information about blocks, transactions and miners,
+plus we used \url{coindesk.com}~\gls{api}s\,\cite{coindesk, forex-python}
+to have information about the pricing of \gls{usd} and \bitcoin.
+Finally, we generate a dataframe, that we will call $\delta$
+from now on, with data collected and we
+can obtain more information out of it such as fee density ($\rho$)
+or throughput ($\gamma$).
+
+\gls{api}s from \url{blockchain.info} allow us to
+retrieve almost every information we need, however,
+knowledge regarding miners is
+not included in the blockchain, then we
+need to get these information by parsing
+web pages on \url{blockchain.info}.
+Derived data useful for analysis are obtained using $\delta$,
+generated by the analytic system. $\delta$ contains
+both numerical and categorical variables, it has a
+size of roughly $\sim$$22$\,GB and it saves an average
+$x5$ space on disk, reaching peaks of $x10$ for some blocks.
+In $\delta$ information are stored in a bi-dimensional table,
+with transaction samples accumulated in rows and its attributes in columns.
+If we consider $X$ our attributes set and $Y$ our samples set, then
+we have
+\[
+X = \{ a_1, a_2, \dots, a_m \}
+\]
+and
+\[
+Y = \{ t_1, t_2, \dots, t_n \}.
+\]
+Our dataframe $\delta$ will be then a table with $|\delta| = (m * n)$
+and structured in that way:
+\begin{equation}
+\label{eq:dataframe}
+\delta = \begin{bmatrix}
+t_{1a_1} & t_{1a_2}  & \dots & t_{1a_m}\\
+t_{21} & t_{22} & \dots & t_{2a_m}\\
+\vdots & \vdots & \ddots& \vdots\\
+t_{na_1} & t_{na_2} & \dots & t_{na_m}
+\end{bmatrix}
+\end{equation}
+Once defined the structure for our dataset $\delta$,
+we consider a set $X$ having the following
+attributes (Appendix\,\ref{app:LOS}):
+\[
+X = \{ t_{ha}, t_{in}, t_{ou}, t_f, t_q, t_\%, t_l, Q, \mathcal{T}, B_h, B_{epoch}, B_t, B_{ha}, B_{mi} \}.
+\]
+%TODO: Talk about how data are combiningly retrieved, show a table of how they were retrieved and collected.
+%
 %\begin{description}
 %	\item [blockchain.txt:] text file containing information about the portion
 %	of the blockchain retrieved, including block hash, height, size, fee and
@@ -1412,10 +1468,45 @@ to apply or whatever plotting system to use.
 %	\item [nodes\_in\_the\_network.txt:] text file containing all the IP addresses involved in relaying transactions
 %	in the network.
 %\end{description}
-%
 
-\subsection{Data Retrieval}
-\label{sec:data_retrieval}
+%TODO: The instability of the the connection and the \gls{api}'s given from Bitcoin, collecting data was extremely difficult and time consuming. We analyzed and collected data from #DATE to #DATE with more than # blocks and # transactions
+
+%TODO: talk about how and from where data were collected. blockchain.info, json etc.. which kind of data were collected from each source and why. Use maybe coindesk.com for the avg USD bitcoin price.
+
+%TODO: Talk about the time range selected and why. Read "a longitudinal study of bitcoin transaction fees" the section Data and Methods
+
+\subsection{Data Organization}
+\label{sec:dataorganization}
+%TODO: =========== ORGANIZING DATA ==============
+%TODO: The Pandas package makes it possible to read data into a specialized data structure called a \emph{data frame}\,\cite{pandas}.
+%TODO: As Michael Bowles\,\cite{bowles2015MLIP} says, you can think of a data frame as a table or matrix-like structure oriented with a row representing a single case or observation and columns representing particular attributes. We decided to use a data frame structure and not a matrix one becuase even though the data frame structure is matrix-like, its elements in various columns may be of different types. For statistical problems, the matrix is too confining because statistical samples typically have a mix of different types, plus, Pandas package makes it possible to automate the steps of calculating mean, variance, and quantiles offers and a nice and smooth control over your data. Our dataset contains both, numeric and categorical (or factors) variables.
+%TODO: Structure in the way the data are stored might need to be factored into your approach for doing subsequential sampling. This is the reason why we stored transactions ordered by block and each block ordered by height/epoch, in that way we have the data set ordered by block creation with all its transactions in it and it will be much easier to make analysis or sampling data following a cronological order.
+
+%TODO: Our dataframe allows us to collect all the useful information without storing the whole raw blockchain like current systems for blockchain analysis do, see \emph{BitcoinCore}\,\cite{bitcoincore}. Raw data are collected in \gls{json}, analyzed, printed in our dataframe and then deleted. This gave us a $10x$ space saving on the blockchain, storing in a $1$\,GB dataframe what the raw files from \emph{bitcoin.info} store in $10$\,GB space. Plus, we believe that analyzing a small percentage of the blockchain everyday would give us relevant information about the whole system, and due to time limitations we could collect only #% of the data, every day.
+
+\subsection{Data Visualization}
+\label{sec:datavisualization}
+%TODO: ============= VISUALIZING DATA ============
+%TODO: Once data are gathered and the dataset is created, the first step is to determine the outliers.
+%TODO: How to deal with outliers? We can segregate them out and train on them as a separate class
+%TODO: Dealing with categorical attributes, as the number of attributes grows, the complexity of dealing with them mounts, also, most of binary tree algorithms, which are the basis for ensamble methods, have a cutoff on how many categories they can handle\,\cite{bowles2015MLIP}. Random Forest package written by Breiman and Cutler has a cutoff of 32 categories\,\cite{Breiman:2001:RF}.
+
+
+\section{System Architecture}
+\label{sec:implementation}
+
+%TODO: Re-design system architecture
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/architecture}
+	\caption{Architecture of the blockchain analytics system.}
+	\label{fig:architecture}
+\end{figure}
+
+%The architecture of our blockchain analytic system is showed in Figure~\ref{fig:architecture}. 
+
+%\subsection{Data Retrieval}
+%\label{sec:data_retrieval}
 
 %TODO: Show a table that list how data where retrieved, from where and why: SOURCE - ENTITY - INFORMATION table
 %Data in the blockchain can be retrieved in different ways: blocks can be added to
@@ -1557,11 +1648,11 @@ to apply or whatever plotting system to use.
 %	manipulation. It creates a list, given an attribute as input. Such attribute is a block information stored in the
 %	local blockchain and the list generated contains all the values from every block, concerning that
 %	particular  attribute.
-%	Lets say that informations about the block hash want to be analyzed, then it would only be necessary
+%	Lets say that information about the block hash want to be analyzed, then it would only be necessary
 %	to make a call to this method giving as attribute the string \emph{"hash"}, like showed in Appendix~\ref{lst:get-data-from-file}.
 %	In that way the return list will contain hashes about all the blocks retrieved with the most recent hash In list[$0$].
 %	Regular expression\,\cite{Aho:1992:FCS} is used to analyze the file and read from it, in this way is possible
-%	to interact with the saved data and get informations from them. This method allows the
+%	to interact with the saved data and get information from them. This method allows the
 %	function plot\_data() to easily display statistics.
 %	\item [\emph{plot\_data(d, n, [r], [s], [e])}:] this method gets the data from the
 %	txt file and then plots all the information retrieved using Matplotlib libraries\,\cite{matplotlib}. It has
@@ -1635,7 +1726,7 @@ to apply or whatever plotting system to use.
 
 \chapter{Blockchain Observations}
 \label{chap:evaluation}
-%TODO: Our observations could be miners oriented or epoch oriented. Analyzing categorical data such as mining pools we could determine which ones are more effective than others and why a block should most likely be mined by a certain mining pool rather than another. Studying the epoch instead, gave us useful informations about the changes and the development of the blockchain during time.
+%TODO: Our observations could be miners oriented or epoch oriented. Analyzing categorical data such as mining pools we could determine which ones are more effective than others and why a block should most likely be mined by a certain mining pool rather than another. Studying the epoch instead, gave us useful information about the changes and the development of the blockchain during time.
 
 %TODO: In our studies, we focused on finding any correlation between attributes using heat map with \emph{seaborn}\,\cite{michael_waskom_seaborn}. If the heat map chart shows any possible correlation then we study the degree of correlation between two attributes, $corr(u,v)$, which can be quantified using Pearson's correlation coefficient showed in Eq.\,\ref{eq:pearson}. However, calculating the correlations and printing them or drawing cross-plots works fine for few correlations, but it is difficult to get a grasp of a large table of numbers, and it is difficult to squeeze all the cross plots onto a page if the problem has a large number of attributes. For that reason we use a heat map with Pearson's correlation coefficient for pairs of attributes arranged into a matrix where the $m_{ij}$ entry is the correlation between the $i^{th}$ attribute and the $j^{th}$ attribute.
 
@@ -2044,7 +2135,7 @@ to apply or whatever plotting system to use.
 %
 %In future implementation more data from each block could be considered, such
 %as the correctness of every block created. Correctness for each block is a value obtained
-%putting all the most important informations of a block in a multidimensional vector, in the
+%putting all the most important information of a block in a multidimensional vector, in the
 %following way:
 %\begin{equation}
 %\label{eq:correctness_vector}
@@ -2142,10 +2233,15 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 	\item [$t_{f}$] transaction fee (\bitcoin). $t_{in} - t_{ou}$.
 	\item [$t_q$] transaction size, in bytes.
 	\item [$t_l$] commit latency of a single transaction. $B_{epoch} - t_{epoch}$.
+	\item [$t_h$] transaction height. Height of the block in which the transaction is included.
+	\item [$t_{ha}$] transaction hash.
+	\item [$t_\%$] percentage of $t_{in}$ paid in fee, $t_f$.
 	\item [$\mathcal{T}$] expected block interval time~($\sim$\,$10$\,min)
 	\item [$\mathbb{P}_{orphan}$] probability that given a block is orphaned.
 	\item [$\tau$] block solution propagation time, we consider a $\tau = 10$\,
 	seconds according to Decker\,\cite{Decker2013IPBN}. %TODO: analyze recent data form Croman
+	\item [$t_{epoch}$] timestamp of a transaction $t$.
+	Epoch of when $t$ was first seen in the network
 	\item [$\eta$] cost per hash.
 	\item [$\langle \Pi \rangle$] expectation value of a miner’s profit per block.
 	\item [$\langle V\rangle$] expectation value of a miner’s revenue per block.
@@ -2166,9 +2262,11 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 	\item [$B_t$] transaction root that links to every transaction in a block $B$.
 	\item [$B_{epoch}$] timestamp of a block $B$.
 	Epoch of when the block was included in the blockchain
-	\item [$t_{epoch}$] timestamp of a transaction $t$.
-	Epoch of when $t$ was first seen in the network
+	\item [$B_h$] block height.
+	\item [$B_{ha}$] block hash.
+	\item [$B_{mi}$] miner which mined the block $B$.
 	\item [$\gamma$] throughput of Bitcoin network, measured in txs/sec.
+	\item [$\delta$] dataframe generated by the analytic system.
 \end{description}
 
 	\chapter{Listing}
@@ -2480,7 +2578,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 %\begin{lstlisting}[float, caption={How the file.write is performed in the blockchain analytics system. Differences with add and append.}]
 %if(append):
 %  for i in range(n):
-%    file.write("block_informations")
+%    file.write("block_information")
 %
 %else: # add on top
 %  hash_list_in_file = get_list_from_file("hash")
@@ -2500,7 +2598,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 %        met_first = True
 %      while((met_first == False) and (i < n)):
 %        # append on top
-%        file.write("block_informations")
+%        file.write("block_information")
 %        i = i + 1
 %        if ((i < n) and (first_hash == hash[i])):
 %          met_first = True
@@ -2539,7 +2637,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 %	numbers=left,
 %	frame=single
 %}
-%\begin{lstlisting}[float, caption={Method that allows, given an attribute present in the blockchain.txt file, to create a list containing informations only about this quality using \emph{regular expressions}.}]
+%\begin{lstlisting}[float, caption={Method that allows, given an attribute present in the blockchain.txt file, to create a list containing information only about this quality using \emph{regular expressions}.}]
 %hash_list = get_list_from_file("hash")
 %
 %def get_list_from_file(attribute):
