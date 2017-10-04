@@ -129,7 +129,7 @@ and costly as miners require payment to establish consensus on the
 sequence of messages. The blockchain protocol requires an always
 growing size of the information stored in it so its \emph{scalability} is
 the biggest problem. For that reason we collected data to be analyzed and
-stored in our own dataframe, saving up to $x10$ space
+stored in our own data frame, saving up to $x10$ space
 for the analysis.
 
 %TODO: Previous works, problems on blockchain and what we did so far
@@ -304,10 +304,6 @@ or technical\,\cite{Nakamoto_bitcoin, ethereum_white_paper}.
  description.
 \section{Problem Statement}
 \label{sec:probdefinition}
-%TODO: Say that we state and focus on three major problems on the blockchain: 1- Scalability, 2- Performance, 3- profit of the participant in the network.
- 
-%TODO: One of the most recent debate on Bitcoin blockchain is wether the block size $Q$ should be increased or not. Rizun\,\cite{Rizun:2015:blocksizelimit} in his paper explained how challenging might be the increment of the block size and it defines an optimal size of~$\sim$\,$1$\,Mb. Anyway there are arguments in favor of increasing the block size, we analyzed these arguments and discuss whether and where is conveninet to increase the $Q$. Pros: More transactions per second, higher throughput. Less fees. Cons: miner won't get enough fee. Higher (exponential) risk of orphaning.
-
 While doing research, studying and reading papers related to blockchains,
 it turned out that the most urgent concerns are related to
 its scalability, performance and a profit optimization from participant
@@ -373,7 +369,6 @@ In this thesis we discuss how much scalability affects
 centralization in Bitcoin network and how much it will
 impact in the next couple of years the blockchain
 growth.
-%TODO: Transactions-wise experiments or blocks-wise experiment
 
 \subsection{Performance}
 Centralized schemes, like VISA are immediate, while having a
@@ -388,15 +383,29 @@ In this thesis we also want to update at $2017$ this statment
 and see how much a block size change might
 influence the whole network performance.
 
-%TODO: Sentences:
-% You can't build something that works without having a certain level of centralization, there always should
-% be a compromise between centralization and how much you can trust spontaneous orders to take over.
+\subsection{Questions}
+\label{sec:questions}
+By doing transactions-wise and block-wise experiments
+we state and focus on three major problems of the
+blockchain:
+\begin{enumerate}[noitemsep]
+	\item Scalability
+	\item Performance
+	\item Fees and Tolls
+\end{enumerate}
 
+%TODO: CONTINUE!!
+
+%TODO: One of the most recent debate on Bitcoin blockchain is wether the block size $Q$ should be increased or not. Rizun\,\cite{Rizun:2015:blocksizelimit} in his paper explained how challenging might be the increment of the block size and it defines an optimal size of~$\sim$\,$1$\,Mb. Anyway there are arguments in favor of increasing the block size, we analyzed these arguments and discuss whether and where is conveninet to increase the $Q$. Pros: More transactions per second, higher throughput. Less fees. Cons: miner won't get enough fee. Higher (exponential) risk of orphaning.
+
+%TODO?: Ask questions like: "Is it possible to pay for bandwidth in Bitcoin?" or "How much fee influence the transaction latency?" or "Do any major mining pools systematically exclude zero-fee transactions?" or "Will Bitcoin blockchain manage the constant increment of transactions to approve per day?"
+
+%TODO: Sentences:
+% You can't build something that works without having a certain level of centralization, there always should be a compromise between centralization and how much you can trust spontaneous orders to take over.
 %\begin{quote}
 %\emph
 %{applications can control available bandwidth by paying mining fees.}
 %\end{quote}
-
 
 \section{Method / Context}
 \label{sec:method}
@@ -408,7 +417,8 @@ they analyze tips and tolls in Bitcoin blockchain, they collected data until $20
 and they analyze more than $9$\,million of transactions.
 At that time there were a total of $100$\,thousands
 transactions per day, while today we count about $350$\,thousands
-txs/day, so the retrieving part turned out to be more time consuming than expected.
+on daily bases, so the retrieving part turned
+out to be more time consuming than expected.
 Despite that, we aim to collect even
 a larger portion of the blockchain, storing data smartly in a
 \emph{data frame}, which allows us to spare
@@ -465,7 +475,7 @@ if there are any abnormalities in the ledger of public data.
 
 \chapter{Related Works - SotA}
 \label{chap:prev_works}
-As mentioned in Chapter\,\ref{chap:introduction},
+As mentioned in Chapter~\ref{chap:introduction},
 scalability and analysis on the blockchain has been taken into consideration
 by many researchers in the past years.
 This chapter summarizes the most relevant papers or
@@ -998,8 +1008,8 @@ changing the way miners select transactions.
 We will also talk about some machine learning
 techniques and data structures.
 
-It should be clear before reading, the differences
-between a \emph{centralized} and a \emph{decentralized} digital currencies.
+Should be clear, before reading, the differences
+between \emph{centralized} and \emph{decentralized} digital currencies.
 These differences are summarized in Table~\ref{tab:centralized_vs_decentralized}.
 As mentioned in Chapter~\ref{chap:introduction}, more decentralized
 digital currencies are emerging nowadays, and they aim
@@ -1325,7 +1335,7 @@ be able to select data we wished to analyze and
 we didn't have the need to run a full node,
 we developed a system for blockchain retrieval and analysis.
 This system allows to fetch a portion of the blockchain, it
-stores data in a pandas dataframe\,\cite{pandas} in a way to save
+stores data in a pandas data frame\,\cite{pandas} in a way to save
 up to $x10$ space on disk but still storing all the information
 we need and finally, it displays all the knowledge acquired
 analyzing data and applying machine learning technique
@@ -1385,13 +1395,13 @@ be not useful to understand system behavior.
 			\centering
 			\textbf{Source}&\textbf{Entity}& \textbf{Information}\\
 			\hline
-			Blockchain.info \gls{api}s&Block, Transaction&$B_{ha}$, $t_{ha}$, $B_h$, $B_h$, $\mathcal{T}$, $Q$, $t_{in}$, $t_{ou}$, $t_q$, $B_{epoch}$, $t_{epoch}$, \#$t_{B}$\\
+			Blockchain.info \gls{api}s&Block, Transaction&$B_{ha}$, $t_{ha}$, $B_h$, $B_h$, $\mathcal{T}$, $Q$, $t_{in}$, $t_{ou}$, $t_q$, $B_{epoch}$, $t_{epoch}$\\
 			\hline
 			Blockchain.info HTTP parsing&Miner& $B_{mi}$\\
 			\hline
 			Coindesk.com&Price&\gls{usd} and \bitcoin~value\\
 			\hline
-			Dataframe&Block, Transaction, Miner, Price&$\tau$, $t_f$, $t_l$, $\gamma$, $\rho$, $t_\%$\\
+			Data frame $\delta$&Block, Transaction, Miner, Price&$\tau$, $t_f$, $t_l$, $\gamma$, $\rho$, $t_\%$\\
 			\hline
 		\end{tabular}
 \end{table}
@@ -1402,26 +1412,127 @@ shows, we use both, \url{blockchain.info} \gls{api}s and HTTP parsing
 on it to gather information about blocks, transactions and miners,
 plus we used \url{coindesk.com}~\gls{api}s\,\cite{coindesk, forex-python}
 to have information about the pricing of \gls{usd} and \bitcoin.
-Finally, we generate a dataframe, that we will call $\delta$
-from now on, with data collected and we
-can obtain more information out of it such as fee density ($\rho$)
-or throughput ($\gamma$).
-
-\gls{api}s from \url{blockchain.info} allow us to
-retrieve almost every information we need, however,
+Even though \gls{api}s from \url{blockchain.info} allow us to
+retrieve almost every information we need,
 knowledge regarding miners is
 not included in the blockchain, then we
 need to get these information by parsing
-web pages on \url{blockchain.info}.
-Derived data useful for analysis are obtained using $\delta$,
-generated by the analytic system. $\delta$ contains
+web pages on \url{blockchain.info} as already mentioned
+earlier. Finally, other useful information such as
+$\gamma$ or $t_f$ are obtained using our
+data structure (Chapter~\ref{sec:dataorganization}),
+containing all the other information put together.
+During our studies we had different ideas of
+how data could be nicely retrieved and below are
+listed the most used for this thesis.
+
+\subsubsection{First idea, Blockchain Considered Seen as Object}
+Data retrieval has been one of our first concern according
+of being able to represent significant information about
+the Bitcoin blockchain. Because of the relevant size
+and its fast growth, we considered the blockchain like
+an object and we thought that analyzing different
+parts during time following a certain pattern would
+give us an accurate overall of the whole system. We
+started retrieving data by dividing the blockchain in
+$k$ portions.
+Let's suppose that $m$ is the last
+block's height, then we divide
+all in $k$ portions, having $p = m / k$.
+While retrieving $b$ blocks, they are
+retrieved and stored in the following way:
+\[\langle 1 \dots b\rangle, \langle p \dots p+b\rangle, \langle 2p \dots 2p + b \rangle, \dots , \langle kp \dots kp+b\rangle.\]
+Retrieving blocks in such portions gives
+statistics representative of the whole system.
+Like Figure\,\ref{fig:portions} shows,
+every new $b$ blocks added to the
+blockchain will be added respectively to the indexes:
+\begin{equation}
+ip + b\textrm{ }
+\begin{cases}
+\textrm{for } i = 0 \textrm{ to } k.
+\end{cases}
+\end{equation}
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/portions}
+	\caption{Science of Bitcoin blockchain, the entire blockchain considered as
+		an object and divided in $k$ portions. One of the first attempts of data
+	retrieval on Bitcoin blokchain.}
+	\label{fig:portions}
+\end{figure*}
+Retrieving data in this way gave us a big space saving and still
+relevant information about the whole system. However, data
+collected using this methods weren't enough for our purpose
+of longitudinal study and analysis, but this technique gave us
+a spark for the next data retrieval attempt.
+
+\subsubsection{Fragmented Blockchain}
+In the other idea, to collect data we use a way smaller
+interval between each portion
+retrieved, called also jump or $J$. Plus
+we don't retrieve the earliest part of the
+blockchain, the one from $2009$ to $2013$.
+With retrieval of $10$ blocks per time,
+according to the granularity of $J$ we can
+have a more or less precise analysis. To balance
+disk space and precision we choose a $J = 10$ blocks
+and a fixed $b = 10$ of blocks retrieved each time,
+which means that every $10$ blocks retrieved there is
+a jump of other $10$ blocks, $\sim$$50\%$ of the entire
+blockchain but analyzed daily. Figure\,\ref{fig:portions_new}
+shows how our last data fetching has been implemented,
+so $\delta$ is generated accordingly, collecting transactions
+for $\sim$$100$\,min then $\sim$$100$\,min of gap.
+By doing that we manage to collect relevant
+information from $2013$ to $2017$ by only
+using $\sim$$25$\,GB of disk space.
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/portions_new}
+	\caption{Fragmented blockchain divided in smaller portions with
+	a jump of $J$ blocks.}
+	\label{fig:portions_new}
+\end{figure*}
+Then, the pattern we followed to store
+transactions it is the following:
+\[\langle m \dots m-b\rangle, \langle m-2b \dots m-3b\rangle,, \dots , \langle m-2kb \dots m - b(2k-1)\rangle.\]
+Having $m$ the height of the last block retrieved and $k$ number
+of portions.
+\subsection{Data Organization}
+\label{sec:dataorganization}
+%TODO: =========== ORGANIZING DATA ==============
+The Pandas package makes it possible
+to read data into a specialized data structure
+called \emph{data frame}\,\cite{pandas}.
+As Michael Bowles\,\cite{bowles2015machine} says,
+you can think of a data frame as a table or matrix-like
+structure oriented with a row representing a single case
+or observation and columns representing particular attributes.
+We decided to use a data frame structure and not a
+matrix one becuase even though the data frame structure
+is matrix-like, its elements in various columns may be of
+different types. For statistical problems, the matrix is too
+confining because statistical samples typically have a mix
+of different types, plus, Pandas package makes it possible
+to automate the steps of calculating \emph{mean}, \emph{variance},
+\emph{median}, \emph{group-by} elements and it
+offers a nice and smooth control over your data. 
+
+Finally, once data are
+retrieved and collected, they are saved in a data frame
+structure that we call $\delta$.
+Derived data such as $\gamma$ or $\rho$,
+useful for the blockchain analysis, are obtained using $\delta$.
+This data structure contains
 both numerical and categorical variables, it has a
-size of roughly $\sim$$22$\,GB and it saves an average
-$x5$ space on disk, reaching peaks of $x10$ for some blocks.
+size of roughly $\sim$$25$\,GB and it saves an average
+of $x5$ space on disk, reaching peaks of $x10$ for some blocks.
 In $\delta$ information are stored in a bi-dimensional table,
-with transaction samples accumulated in rows and its attributes in columns.
-If we consider $X$ our attributes set and $Y$ our samples set, then
-we have
+with transaction samples represented in
+rows and their attributes in columns.
+If we consider $X$ our attributes set and $Y$ our samples set
+of transactions, then we have
 \[
 X = \{ a_1, a_2, \dots, a_m \}
 \]
@@ -1429,8 +1540,8 @@ and
 \[
 Y = \{ t_1, t_2, \dots, t_n \}.
 \]
-Our dataframe $\delta$ will be then a table with $|\delta| = (m * n)$
-and structured in that way:
+Our data frame $\delta$ will be then a table with $|\delta| = (m * n)$
+and structured in the following way:
 \begin{equation}
 \label{eq:dataframe}
 \delta = \begin{bmatrix}
@@ -1446,47 +1557,19 @@ attributes (Appendix\,\ref{app:LOS}):
 \[
 X = \{ t_{ha}, t_{in}, t_{ou}, t_f, t_q, t_\%, t_l, Q, \mathcal{T}, B_h, B_{epoch}, B_t, B_{ha}, B_{mi} \}.
 \]
-%TODO: Talk about how data are combiningly retrieved, show a table of how they were retrieved and collected.
-%
-%\begin{description}
-%	\item [blockchain.txt:] text file containing information about the portion
-%	of the blockchain retrieved, including block hash, height, size, fee and
-%	time for each block. These data are important for the later analysis and the file is structured like the following:
-%	\begin{lstlisting}
-%hash:		block_hash
-%epoch:		block_epoch
-%creation_time: 	time_mining_block (s)
-%size: 		block_size (byte)
-%fee: 		block_fee (satoshi)
-%height: 	block_height (block_number)
-%bandwidth: 	read_bandwidth (MB/s)
-%transactions: 	number_transactions_in_block
-%avgttime: 	avg_tr_time (s)
-%	\end{lstlisting}
-%	\item [mining\_nodes.txt:] text file containing all the IP addresses of mining nodes or pools
-%	concerning the blocks in the file "blockchain.txt".
-%	\item [nodes\_in\_the\_network.txt:] text file containing all the IP addresses involved in relaying transactions
-%	in the network.
-%\end{description}
 
-%TODO: The instability of the the connection and the \gls{api}'s given from Bitcoin, collecting data was extremely difficult and time consuming. We analyzed and collected data from #DATE to #DATE with more than # blocks and # transactions
 
-%TODO: talk about how and from where data were collected. blockchain.info, json etc.. which kind of data were collected from each source and why. Use maybe coindesk.com for the avg USD bitcoin price.
+%TODO: data are stored in different files with an overall size of $\sim$$25$\,GB.
 
-%TODO: Talk about the time range selected and why. Read "a longitudinal study of bitcoin transaction fees" the section Data and Methods
-
-\subsection{Data Organization}
-\label{sec:dataorganization}
-%TODO: =========== ORGANIZING DATA ==============
-%TODO: The Pandas package makes it possible to read data into a specialized data structure called a \emph{data frame}\,\cite{pandas}.
-%TODO: As Michael Bowles\,\cite{bowles2015MLIP} says, you can think of a data frame as a table or matrix-like structure oriented with a row representing a single case or observation and columns representing particular attributes. We decided to use a data frame structure and not a matrix one becuase even though the data frame structure is matrix-like, its elements in various columns may be of different types. For statistical problems, the matrix is too confining because statistical samples typically have a mix of different types, plus, Pandas package makes it possible to automate the steps of calculating mean, variance, and quantiles offers and a nice and smooth control over your data. Our dataset contains both, numeric and categorical (or factors) variables.
 %TODO: Structure in the way the data are stored might need to be factored into your approach for doing subsequential sampling. This is the reason why we stored transactions ordered by block and each block ordered by height/epoch, in that way we have the data set ordered by block creation with all its transactions in it and it will be much easier to make analysis or sampling data following a cronological order.
 
-%TODO: Our dataframe allows us to collect all the useful information without storing the whole raw blockchain like current systems for blockchain analysis do, see \emph{BitcoinCore}\,\cite{bitcoincore}. Raw data are collected in \gls{json}, analyzed, printed in our dataframe and then deleted. This gave us a $10x$ space saving on the blockchain, storing in a $1$\,GB dataframe what the raw files from \emph{bitcoin.info} store in $10$\,GB space. Plus, we believe that analyzing a small percentage of the blockchain everyday would give us relevant information about the whole system, and due to time limitations we could collect only #% of the data, every day.
+%TODO: Our data frame allows us to collect all the useful information without storing the whole raw blockchain like current systems for blockchain analysis do, see \emph{BitcoinCore}\,\cite{bitcoincore}. Raw data are collected in \gls{json}, analyzed, printed in our data frame and then deleted. This gave us a $10x$ space saving on the blockchain, storing in a $1$\,GB data frame what the raw files from \emph{bitcoin.info} store in $10$\,GB space. Plus, we believe that analyzing a small percentage of the blockchain everyday would give us relevant information about the whole system, and due to time limitations we could collect only #% of the data, every day.
 
 \subsection{Data Visualization}
 \label{sec:datavisualization}
 %TODO: ============= VISUALIZING DATA ============
+%TODO: Pandas offer even a pretty plotting for our data
+%TODO: Visualizing big data might be time consuming
 %TODO: Once data are gathered and the dataset is created, the first step is to determine the outliers.
 %TODO: How to deal with outliers? We can segregate them out and train on them as a separate class
 %TODO: Dealing with categorical attributes, as the number of attributes grows, the complexity of dealing with them mounts, also, most of binary tree algorithms, which are the basis for ensamble methods, have a cutoff on how many categories they can handle\,\cite{bowles2015MLIP}. Random Forest package written by Breiman and Cutler has a cutoff of 32 categories\,\cite{Breiman:2001:RF}.
@@ -2266,7 +2349,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 	\item [$B_{ha}$] block hash.
 	\item [$B_{mi}$] miner which mined the block $B$.
 	\item [$\gamma$] throughput of Bitcoin network, measured in txs/sec.
-	\item [$\delta$] dataframe generated by the analytic system.
+	\item [$\delta$] data frame generated by the analytic system.
 \end{description}
 
 	\chapter{Listing}
