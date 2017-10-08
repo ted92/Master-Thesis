@@ -496,9 +496,11 @@ def epoch_date_mm(df):
 
 def epoch_date_dd(df):
     """
-    get a df with a column of epoch, returns another column with the date yyyy-mm-dd so it orders the date by day
-    :param df:
-    :return:
+    get a df with a column of epoch 'B_ep', returns
+    another column with the date yyyy-mm-dd so it
+    orders the date by day
+    :param df:  dataframe in input
+    :return:    new dataframe containing the 'date' attribute
     """
     df['date'] = df['B_ep'].apply(epoch_datetime)
     df['date'] = df['date'].apply(revert_date_time)
@@ -1229,6 +1231,10 @@ def plot(miner=1):
     # ax = percent.plot.area(x = 'date')
     # ax.set_ylim(0, 100)
     # ax.set_ylabel("%")
+    #
+    # writer = pd.ExcelWriter('txs_feedensity_distribution.xlsx')
+    # new_df.to_excel(writer, 'Sheet1')
+    # writer.save()
 
     # ---------------------------------------------------------------------------
 
@@ -1495,89 +1501,90 @@ def plot(miner=1):
     # ------------------------------------------------------------
 
     # ----------- TOP MINERS EVERY MONTH -------------------------
-    info = "plot/top_miners_montly"
-    df_topminers = df[['B_ep', 'B_mi']]
-    df_topminers = epoch_date_mm(df_topminers)
-
-    df_grouped = df_topminers.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
-
-    print df_grouped
-
-    # for each month put the date as column and the miner as row
-    dates = df_grouped['date'].values
-    miners = df_grouped['B_mi'].values
-    txs = df_grouped['size'].values
-
-    prev_date = dates[0]
-
-    # new_df = pd.DataFrame()
-    new_dates = []
-    new_dates.append(prev_date)
-    for d in dates:
-        if(d == prev_date):
-            # do not add a new column
-            pass
-        else:
-            new_dates.append(d)
-            # new_df[d] = ""
-            prev_date = d
-
-    new_df = pd.DataFrame(np.nan, index=miners, columns=new_dates)
-    # df created with nan calues
-    print new_df
-    # for every miner create a list containing the miner and the size
-    miners_per_date = []
-    miners_complete_list = []
-
-    prev_date = dates[0]
-    for d, m, t in zip(dates, miners, txs):
-        pair_miner_size = []
-        if(d == prev_date):
-            # column must stay the same one
-            # add miners
-            pair_miner_size.append(m)
-            pair_miner_size.append(t)
-            miners_per_date.append(pair_miner_size)
-        else:
-            miners_complete_list.append(miners_per_date)
-            miners_per_date = []
-            pair_miner_size.append(m)
-            pair_miner_size.append(t)
-            miners_per_date.append(pair_miner_size)
-            prev_date = d
-            # column change
-    miners_complete_list.append(miners_per_date)
-    print miners_complete_list
-
-    # insert all in the new df
-    i = 0
-    print len(miners_complete_list)
-    print len(list(new_df.columns.values))
-    for d in range(len(miners_complete_list)):
-        for m in range(len(miners_complete_list[d])):
-            # add in column d
-            new_df.iloc[i, new_df.columns.get_loc(list(new_df.columns.values)[d])] = miners_complete_list[d][m][1]
-            i += 1
-
-    print new_df
-
-    new_df = new_df.groupby(new_df.index).sum().reset_index()
-    new_df = new_df.fillna(0)
-    print new_df
-
-    # new_df = new_df.astype(float)
+    # TODO: Find a way to plot data from it
+    # info = "plot/top_miners_montly"
+    # df_topminers = df[['B_ep', 'B_mi']]
+    # df_topminers = epoch_date_mm(df_topminers)
     #
-    # matplotlib.style.use('ggplot')
-    # ax = new_df.transpose().plot(kind='line', title="Trendy miners",
-    #                                              figsize=(15, 10), legend=True, fontsize=12)
-    # ax.set_xlabel("Date", fontsize=12)
-    # ax.set_ylabel("Transactions", fontsize=12)
-    # plt.show()
-
-
-    writer = pd.ExcelWriter('output.xlsx')
-    new_df.to_excel(writer, 'Sheet1')
-    writer.save()
+    # df_grouped = df_topminers.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+    #
+    # print df_grouped
+    #
+    # # for each month put the date as column and the miner as row
+    # dates = df_grouped['date'].values
+    # miners = df_grouped['B_mi'].values
+    # txs = df_grouped['size'].values
+    #
+    # prev_date = dates[0]
+    #
+    # # new_df = pd.DataFrame()
+    # new_dates = []
+    # new_dates.append(prev_date)
+    # for d in dates:
+    #     if(d == prev_date):
+    #         # do not add a new column
+    #         pass
+    #     else:
+    #         new_dates.append(d)
+    #         # new_df[d] = ""
+    #         prev_date = d
+    #
+    # new_df = pd.DataFrame(np.nan, index=miners, columns=new_dates)
+    # # df created with nan calues
+    # print new_df
+    # # for every miner create a list containing the miner and the size
+    # miners_per_date = []
+    # miners_complete_list = []
+    #
+    # prev_date = dates[0]
+    # for d, m, t in zip(dates, miners, txs):
+    #     pair_miner_size = []
+    #     if(d == prev_date):
+    #         # column must stay the same one
+    #         # add miners
+    #         pair_miner_size.append(m)
+    #         pair_miner_size.append(t)
+    #         miners_per_date.append(pair_miner_size)
+    #     else:
+    #         miners_complete_list.append(miners_per_date)
+    #         miners_per_date = []
+    #         pair_miner_size.append(m)
+    #         pair_miner_size.append(t)
+    #         miners_per_date.append(pair_miner_size)
+    #         prev_date = d
+    #         # column change
+    # miners_complete_list.append(miners_per_date)
+    # print miners_complete_list
+    #
+    # # insert all in the new df
+    # i = 0
+    # print len(miners_complete_list)
+    # print len(list(new_df.columns.values))
+    # for d in range(len(miners_complete_list)):
+    #     for m in range(len(miners_complete_list[d])):
+    #         # add in column d
+    #         new_df.iloc[i, new_df.columns.get_loc(list(new_df.columns.values)[d])] = miners_complete_list[d][m][1]
+    #         i += 1
+    #
+    # print new_df
+    #
+    # new_df = new_df.groupby(new_df.index).sum().reset_index()
+    # new_df = new_df.fillna(0)
+    # print new_df
+    #
+    # # new_df = new_df.astype(float)
+    # #
+    # # matplotlib.style.use('ggplot')
+    # # ax = new_df.transpose().plot(kind='line', title="Trendy miners",
+    # #                                              figsize=(15, 10), legend=True, fontsize=12)
+    # # ax.set_xlabel("Date", fontsize=12)
+    # # ax.set_ylabel("Transactions", fontsize=12)
+    # # plt.show()
+    #
+    #
+    # writer = pd.ExcelWriter('top_miners_montly.xlsx')
+    # new_df.to_excel(writer, 'Sheet1')
+    # writer.save()
 
     # ------------------------------------------------------------
 
@@ -1670,7 +1677,7 @@ def plot(miner=1):
 
     # ------------- PARALLEL COORDINATES
     #
-    # info = "plot/parallel_coordinates"
+    # info = "plot/parallel_coordinates_miners"
     # plt.figure()
     # df_parcord = df[['t_f', 't_q', 't_%', 't_l', 'B_T', 'B_mi']]
     # df_parcord['t_f'] = df_parcord['t_f'].apply(satoshi_bitcoin)
@@ -1697,6 +1704,38 @@ def plot(miner=1):
     #
     # parallel_coordinates(df_parcord, 'B_mi')
 
+    # --------------------------------------------
+
+    # ------------- PARALLEL COORDINATES TIME
+
+    info = "plot/parallel_coordinates_time"
+    plt.figure()
+    df_parcord = df[['t_%', 't_l', 'B_T', 'B_ep', 'Q']]
+    df_parcord['Q'] = df_parcord['Q'].apply(byte_megabyte)
+    df_parcord['t_l'] = df_parcord['t_l'].apply(sec_hours)
+    df_parcord['B_T'] = df_parcord['B_T'].apply(sec_hours)
+
+    df_parcord = epoch_date_mm(df_parcord)
+
+    df_parcord = df_parcord.groupby('date', as_index=False).median().reset_index(drop=True)
+    del df_parcord['B_ep']
+
+    print df_parcord
+    df_parcord = df_parcord.T
+    new_header = df_parcord.iloc[0]     # grab the first row for the header
+    df_parcord = df_parcord[1:]         # take the data less the header row
+    df_parcord.columns = new_header     # set the header row as the df header
+
+    df_parcord['index_col'] = df_parcord.index
+    print df_parcord
+    # indexes = df_parcord.index.get_level_values(0)
+    #print df_parcord
+
+
+    ax = parallel_coordinates(df_parcord, 'index_col')
+    labels = ax.get_xticklabels()
+
+    ax.set_xticklabels(labels, rotation=50)
     # --------------------------------------------
 
     block_epoch = df['B_ep'].values
