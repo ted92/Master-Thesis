@@ -27,6 +27,7 @@
 \usepackage{listings}
 \usepackage{amssymb}
 \usepackage{enumitem}  
+\usepackage{color, colortbl}
 
 \usepackage{glossaries}
 
@@ -53,6 +54,13 @@
   },
 }
 
+\definecolor{TablesColor}{rgb}{0.75, 0.8, 0.85}
+\definecolor{AntPool}{rgb}{1, 0.647059, 0} %orange
+\definecolor{F2Pool}{rgb}{0.564706, 0.933333, 0.564706} %lightgreen
+\definecolor{BTCC Pool}{rgb}{1, 0.843137, 0} %gold
+\definecolor{BitFury}{rgb}{1, 0.627451, 0.478431}	%lightsalmon
+\definecolor{BW.COM}{rgb}{0.737255, 0.560784, 0.560784} %rosybrown
+\definecolor{SlushPool}{rgb}{0.443137, 0.776471, 0.443137} %sgichartreuse
 
 \newcommand{\listdefinitionname}{My list of definitions}
 \newlistof{definition}{def}{\listdefinitionname}
@@ -279,10 +287,15 @@ tamper-proof digital identities for themselves.
 Blockchain technology opens up to usages in several important sectors
 such as trading, file storage, and identity management.
 
-Blockchains essentially implements a distributed consensus protocols that enable a set of untrusted processes to agree on the content of an append only data structures. 
+Blockchains essentially implements a distributed
+consensus protocols that enable a set of untrusted
+processes to agree on the content of an append only data structures. 
 These ledgers are divided into blocks and linked together in sequence by hashes. 
-They facilitate transactions between consenting individuals who would otherwise have no means to trust each other and deal with geographical separation and interfacing difficulties 
-This technology promises a highly resilient and communication substrate where messages are kept potentially for a long time.
+They facilitate transactions between consenting individuals
+who would otherwise have no means to trust each other and
+deal with geographical separation and interfacing difficulties 
+This technology promises a highly resilient and
+communication substrate where messages are kept potentially for a long time.
 
 Nonetheless, decentralized digital currencies also have some side effects.
 The most relevant is \emph{scalability}, due to the steady growth of the
@@ -291,7 +304,8 @@ decentralized cryptocurrencies operate in open (or permissionless) networks
 in which the ledger of data could be manipulated from arbitrary adversaries and
 according also to the paper from University of Singapore\,\cite{Luu:2016}
 security of smart contracts has not received much attention yet. And since the
-only part not protected from cryptography is the \emph{order of transactions}\,\cite{ethereum_white_paper},
+only part not protected from cryptography
+is the \emph{order of transactions}\,\cite{ethereum_white_paper},
 an attacker would try to convince the network that a transaction
 occurred earlier than another one to gain money.
 The security bugs in smart contracts are classified as \emph{Transaction-Ordering Dependence},
@@ -450,7 +464,8 @@ Bitcoin blockchain will grow, using polynomial interpolation on the data. Accord
 on how many blocks ago are fetched, it is possible to have an accurate prediction
 on the blockchain growth for the next few years.
 
-We are going to compare more recent data, retrieved real time, with the Bitcoin one and see the differences of the
+We are going to compare more recent data, retrieved
+real time, with the Bitcoin one and see the differences of the
 blockchain growth. Moreover, In the Bitcoin website for blockchain analysis,
 \url{blockchain.info}~\cite{bitcoin_blockchain}, the finer granularity
 shows data for the last $7$ days while we are collecting and monitoring data
@@ -572,12 +587,18 @@ expectation value of a miner's revenue per block, this value is represented with
 and is equal to the amount he would earn if he won the block multiplied by his probability of
 winning. So the expected revenue would be:
 $\langle V\rangle = (R + M) h/H$,
-where the amount he would earn is the sum of the block reward, $R$, and the transaction fees, $M$.
-His probability of winning, assuming all blocks propagating instantly, is equal to the ratio of his hash
-rate, $h$, to the total hash rate of the Bitcoin network, $H$. The problem with this equation is that it
-does not reflect the miner's diminished chances of winning if he chooses to publish a block that propagates
-slowly to the other miners. If a miner finds first a valid block, but his solution is received after most miners
-are working on another, then his block will likely be discarded. This effect is called \emph{orphaning}. The
+where the amount he would earn is the sum of
+the block reward, $R$, and the transaction fees, $M$.
+His probability of winning, assuming all blocks propagating
+instantly, is equal to the ratio of his hash
+rate, $h$, to the total hash rate of the Bitcoin network,
+$H$. The problem with this equation is that it
+does not reflect the miner's diminished chances of
+winning if he chooses to publish a block that propagates
+slowly to the other miners. If a miner finds first a valid block,
+but his solution is received after most miners
+are working on another, then his block will likely be discarded.
+This effect is called \emph{orphaning}. The
 equation, considering the orphaning factor, $\mathbb{P}_{orphan}$, is the following:
 \begin{equation}
 \label{eq:expectedrevenue}
@@ -637,14 +658,16 @@ a miner can claim by producing a given quantity $Q(b)$ of blockspace.
 \label{sec:blockspacesupply}
 The size of the block a miner elects to produce controls the fees he attempts to claim, $M(Q)$,
 and the propagation time he chooses to risk, $\tau(Q)$. The block space supply curve represents
-the fees a miner requires to cover the additional cost of supplying block space $Q$. This cost grows
-exponentially with the propagation time. The equation which represents this curve is the
-following:
+the fees a miner requires to cover the additional cost of
+supplying block space $Q$. This cost grows
+exponentially with the propagation time. The equation which
+represents this curve is the following:
 \begin{equation}
 \label{eq:blockspacesupply}
 M_{supply}(Q) = R\left(e^{\frac{\Delta \tau (Q)}{T}} - 1\right),
 \end{equation}
-where $\Delta \tau (Q) \equiv \tau(Q) - \tau(0)$. The propagation time ,$\tau$, is just an esteem from
+where $\Delta \tau (Q) \equiv \tau(Q) - \tau(0)$.
+The propagation time ,$\tau$, is just an esteem from
 the propagation delay versus the block size.
 
 \subsubsection{Maximizing the Miner's Profit}
@@ -1033,21 +1056,26 @@ according to keep an average $\mathcal{T}$ of $10$\,minutes.
 \begin{table}
 	\caption{Centralized vs Decentralized digital currencies}
 	\label{tab:centralized_vs_decentralized}
-	\begin{tabular}{|p{5.8cm}|p{5.8cm}|} \hline
-		\centering
+	\centering 
+	\begin{tabular}{|p{5.8cm}|p{5.8cm}|}\hline
 		\textbf{Centralized}&\textbf{Decentralized}\\
 		\hline
-		Under the control of a central authority & Requires consensous among users to make changes\\
+		Under the control of a central authority & Requires
+		consensous among users to make changes\\
 		\hline
-		Users are dependent from the control given from the \gls{ca} & Users have full control over their assets/data\\
+		Users are dependent from the control given from the
+		\gls{ca} & Users have full control over their assets/data\\
 		\hline
 		No need to enforce cryptography or to create keys & User’s data is uniquely identified by private key \\
 		\hline
 		Only users allowed by \gls{ca} can participate & Anyone can join and use ledger \\
 		\hline
-		Historic transactions can be changed by the \gls{ca} & Historic transactions are unalterable and permanent\\
+		Historic transactions can be changed by the \gls{ca} &
+		Historic transactions are unalterable and permanent\\
 		\hline
-		Can be run very efficiently using relational databases that fit the need of the applications & Inefficient for the cost of mining \\
+		Can be run very efficiently using relational
+		databases that fit the need of the applications & Inefficient
+		for the cost of mining \\
 		\hline		
 	\end{tabular}
 \end{table}
@@ -1097,7 +1125,7 @@ the following properties of the Bitcoin systems may vary if other
 properties are changing as well. We tried to classify the main
 properties of the system and make assumptions on how they
 may vary. This attributes are $Q$, $\mathcal{T}$, $\tau$,
-$\gamma$, $t_f$, $\langle C\rangle$ and $\mathbb{P}_{orphan}$, and
+$\gamma$, $t_f$, $\langle C\rangle$, $\mathbb{P}_{orphan}$ and $t_l$ and
 our assumptions are summarized in Table~\ref{tab:possiblerelations}. For
 each property, its row is telling what happens to other attributes
 if the attribute considered is increased/decreased. White space
@@ -1112,30 +1140,34 @@ to be included in a block.
 	\begin{threeparttable}
 	\caption{Possible Relations Between Major Attributes}
 	\label{tab:possiblerelations}
-	\begin{tabular}{|p{1.5cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|p{1.1cm}|} \hline
-		\centering
-		&\textbf{$Q$}&\textbf{$\mathcal{T}$}&\textbf{$\tau$}&\textbf{$\gamma$}&	\textbf{$t_f$}&\textbf{$\langle C\rangle$}&	\textbf{$\mathbb{P}_{orphan}$} \\
+	\centering
+	\begin{tabular}{|p{1.4cm}|p{0.8cm}|p{0.8cm}|p{0.8cm}|p{0.8cm}|p{0.8cm}|p{0.8cm}|p{1.1cm}|p{0.8cm}|} \hline
+		&\textbf{$Q$}&\textbf{$\mathcal{T}$}&\textbf{$\tau$}&\textbf{$\gamma$}&	\textbf{$t_f$}&\textbf{$\langle C\rangle$}&	\textbf{$\mathbb{P}_{orphan}$} &\textbf{$t_l$} \\
 		\hline
-		\textbf{$Q\uparrow$}& \cellcolor{gray!25}& &$\uparrow\uparrow$ &$\uparrow$ &$(\downarrow)$ &$\uparrow$ &$\uparrow\uparrow$\\
+		\textbf{$Q\uparrow$}& \cellcolor{gray!25}& &$\uparrow\uparrow$ &$\uparrow$ &$(\downarrow)$ &$\uparrow$ &$\uparrow\uparrow$ &$(\downarrow)$\\
 		\hline
-		 \textbf{$\mathcal{T}\uparrow$}&$(\uparrow)$&\cellcolor{gray!25}&&$\downarrow$&&&\\
+		 \textbf{$\mathcal{T}\uparrow$}&$(\uparrow)$&\cellcolor{gray!25}&&$\downarrow$
+		 &&&&$\uparrow$\\
 		\hline
-		\textbf{$\tau\uparrow$}&$\uparrow\uparrow$&&\cellcolor{gray!25}&$\downarrow$&$(\downarrow)$&$(\uparrow)$&$\uparrow$$\uparrow$ \\
+		\textbf{$\tau\uparrow$}&$\uparrow\uparrow$&&\cellcolor{gray!25}&$\downarrow$&$(\downarrow)$&$(\uparrow)$&$\uparrow$$\uparrow$ &$\uparrow$\\
 		\hline
-		\textbf{$\gamma\uparrow$}&$\uparrow$&$\downarrow$&&\cellcolor{gray!25}&$(\downarrow)$&$\uparrow$&$(\uparrow)$ \\
+		\textbf{$\gamma\uparrow$}&$\uparrow$&$\downarrow$&&\cellcolor{gray!25}&$(\downarrow)$&$\uparrow$&$(\uparrow)$& $\downarrow$\\
 		\hline
-		\textbf{$t_f\downarrow$}&&&$(\uparrow)$&&\cellcolor{gray!25}&$\uparrow$&\\
+		\textbf{$t_f\downarrow$}&&&$(\uparrow)$&&\cellcolor{gray!25}&$\uparrow$&&
+		$\uparrow$\\
 		\hline
-		\textbf{$\langle C\rangle\downarrow$}&$\downarrow$&&&&$\uparrow$&\cellcolor{gray!25}&\\
+		\textbf{$\langle C\rangle\downarrow$}&$\downarrow$&&&&$\uparrow$&\cellcolor{gray!25}
+		&&$(\downarrow)$\\
 		\hline
-	\textbf{$\mathbb{P}_{orphan}\downarrow$}&$\downarrow$&&&&&$\downarrow$& \cellcolor{gray!25}\\
+	\textbf{$\mathbb{P}_{orphan}\downarrow$}&$\downarrow$&&&&&$\downarrow$& \cellcolor{gray!25}&\\
 		\hline
 	\end{tabular}
  \begin{tablenotes}
- 	\item[1] $\uparrow\uparrow$, $\downarrow\downarrow$: exponential or more than linear
+ 	\item[1] $\uparrow\uparrow$/$\downarrow\downarrow$: more than linear or
+ 	even exponential
  	increase/decrease
-	\item[2] $\uparrow$, $\downarrow$: increase/decrease.
-	\item[3] $(\uparrow)$, $(\downarrow)$: might increase/decrease.
+	\item[2] $\uparrow$/$\downarrow$: increase/decrease.
+	\item[3] $(\uparrow)$/$(\downarrow)$: might increase/decrease.
 
 \end{tablenotes}
 \end{threeparttable}
@@ -1206,16 +1238,7 @@ in Equation\,\ref{eq:pearson}:
 corr(u,v) = \frac{\Delta{u^{T}} * \Delta{v}}{\sqrt{(\Delta{u^{T}}*\Delta{u})*(\Delta{v^{T}}*\Delta{v})}}
 \end{equation}
 
-%\subsubsection{Logit Transform}
-%Working with huge amount of data,
-%with different attributes having all different values it might be
-%useful to transform them with a function in a range of values
-%such as $(0,1)$. This function is defined in Eq.\,\ref{eq:logit}
-%and is called \emph{logit transform}.
-%\begin{equation}
-%\label{eq:logit}
-%\text{\emph{logit transform}}(x) = \frac{1}{(1 + e^{-x})}
-%\end{equation}
+
 
 \subsection{Training a Dataset}
 \label{sec:trainingdataset}
@@ -1379,10 +1402,11 @@ consideration from this website,
 using a finer granularity that represents
 the data, allowing us to an in-depth analysis
 on those.
-For our analysis we select a time range from \# to
-September~$2017$, considering more than \#~transactions
-and \#~blocks. Earlier than that,some analysis were
-done already\,\cite{croman2016, RePEc:gat:wpaper:1407,
+For our analysis we select a time range from \#October~$2013$ to
+September~$2017$, considering more than $120$\,million of transactions
+and $100$\,thousands of blocks. Earlier than $2013$, analysis
+on the system were already performed and
+evaluated\,\cite{croman2016, RePEc:gat:wpaper:1407,
 	Moser2015, Rizun:2015:blocksizelimit}
 plus the popularity of the system before
 $2011$ was low and interpreting this early data would
@@ -1392,7 +1416,6 @@ be not useful to understand system behavior.
 		\caption{Data sources and information gathered}
 		\label{tab:datasources}
 	\begin{tabular}{|p{3cm}p{3cm}p{4cm}|} \hline
-			\centering
 			\textbf{Source}&\textbf{Entity}& \textbf{Information}\\
 			\hline
 			Blockchain.info \gls{api}s&Block, Transaction&$B_{ha}$, $t_{ha}$, $B_h$, $B_h$, $\mathcal{T}$, $Q$, $t_{in}$, $t_{ou}$, $t_q$, $B_{epoch}$, $t_{epoch}$\\
@@ -1671,7 +1694,7 @@ more knowledge out of it.
 	\label{fig:architecture}
 \end{figure}
 
-As the Figure~\ref{fig:retrieval_scheme} shows,
+As Figure~\ref{fig:retrieval_scheme} shows,
 the information retrieval works
 in a combined way, \emph{block-wise} and \emph{transaction-wise},
 then, information gathered from both sources are
@@ -1783,6 +1806,19 @@ our reference for the block propagation time $\tau$.
 
 \chapter{Blockchain Observations}
 \label{chap:evaluation}
+In this chapter we present and discuss observations of the
+Bitcoin blockchain captured by the
+analytic system outlined in Chapter~\ref{chap:expsetup}. 
+To evaluate and discuss our problem definition in Chapter~\ref{sec:probdefinition},
+we focus on considerations related to performance,
+scalability, fees and tolls.
+A large number of test has been evaluated, more than $100$ million
+of transactions over $100$ thousands blocks were collected, stored
+and analyzed. We state that %TODO: FINISH STATEMENT ACCORDING TO RESULTS
+
+%TODO: put the following also in the abstract and in the introduction
+%TODO: we show that ... events happening on the bitcoin blockchain might influence fee, tolls and the way blocks choose transactions
+
 %TODO: Our observations could be miners oriented or epoch oriented. Analyzing categorical data such as mining pools we could determine which ones are more effective than others and why a block should most likely be mined by a certain mining pool rather than another. Studying the epoch instead, gave us useful information about the changes and the development of the blockchain during time.
 
 %TODO: In our studies, we focused on finding any correlation between attributes using heat map with \emph{seaborn}\,\cite{michael_waskom_seaborn}. If the heat map chart shows any possible correlation then we study the degree of correlation between two attributes, $corr(u,v)$, which can be quantified using Pearson's correlation coefficient showed in Eq.\,\ref{eq:pearson}. However, calculating the correlations and printing them or drawing cross-plots works fine for few correlations, but it is difficult to get a grasp of a large table of numbers, and it is difficult to squeeze all the cross plots onto a page if the problem has a large number of attributes. For that reason we use a heat map with Pearson's correlation coefficient for pairs of attributes arranged into a matrix where the $m_{ij}$ entry is the correlation between the $i^{th}$ attribute and the $j^{th}$ attribute.
@@ -1801,19 +1837,252 @@ our reference for the block propagation time $\tau$.
 %TODO: In our longitudinal plot each data point visualizes aggregated data of \# blocks.
 
 %TODO: Talk about the observations during time, how the scalability of the system from # transactions per day to # transactions per day influenced the fees and tolls in the system.
-%In this chapter we present observations of the Bitcoin blockchain captured by the
-%analytics system outlined in Chapter~\ref{chap:expsetup}. 
-%To evaluate our problem definition in Chapter~\ref{sec:probdefinition}, we focus on consideration related to 
-%read/write bandwidth, the growth of the blockchain, and the relation between the fee paid and the bandwidth achieved.
-%The evaluations are made by analyzing the plots generated in the plot/
-%folder using Matplotlib\,\cite{matplotlib}. A large number of test has been
-%done, considering always a different number of blocks fetched, at different time.
-%%TODO: put the following also in the abstract and in the introduction
-%We show that the fee paid is related to the amount of time that a block needs to be mined and be visible in the whole network.
-%This affects average bandwidth available to an application.
+\section{Scalability}
+\label{sec:scalability}
+Scalability may concern the number of nodes in the network but also
+the amount of transaction's requests per second that the system faces.
+The constant growth of the cryptocurrencies' popularity rises not few
+concerns regarding the scalability of the system. The reward for miners
+brought a lot of people being interested in mining, and
+the number of nodes for this purpose highly increased
+during years.%TODO: COUNT NUMBER OF MINERS
+This brought the emerge of \emph{mining pools}, which consists in having
+a lot of miners connected together to find as fast as possible
+the solution of the puzzle and share the earned reward afterwards.
+This creates a centralization problem though, only bigger
+mining pools nowadays, such as \emph{AntPool}\,\cite{antpool},
+\emph{F2Pool}\,\cite{f2pool},
+\emph{BTCC Pool}\,\cite{btcc} or \emph{BitFury}\,\cite{bitfury},
+will find a solution to mine new blocks, discouraging a lot of small miners
+to join the network. %TODO: Show that in 2013 there were more independent node while nowadays most of the blocks mined are covered from major minin pools.
 
-\section{Blockchain Growth}
-\label{sec:blockchain_growth}
+The other scalability problem is related to the growing amount
+of transactions that need to be approved every day. It is obvious that
+with an average $t_q$ of $500$\,bytes, a fixed estimated
+$\mathcal{T}$$=$$10$ minutes
+and a maximum block size $Q$ fixed at $1$\,MB, the outside number
+of transactions the system can approve per second is roughly $3$-$4$ txs/sec.
+Compared to systems like VISA that can
+easily approve $2000$ transactions per second, Bitcoin
+or any other digital cryptocurrency using the blockchain
+protocol are still far in taking over digital systems such as VISA or
+Master Card. However we want to analyze this boundaries and understand
+what it possible to do according to improve the scalability.
+%TODO: block size limit, block creation time and transaction size.
+%TODO: Transactions increment, Blocks need more space
+
+\subsection{Miners \& Mining Pools}
+\label{sec:minersminingpools}
+In our data frame $\delta$ are stored all the information regarding
+every single transaction and which miner approved it. We analyzed and
+tracked down every active miner in the system from $2013$ to $2017$.
+With our $50\%$ of the total information we evaluate a total number
+of $6137$ miners, where $6066$ are just occasional nodes not belonging
+to any mining pool.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/number_of_miners}
+	\caption{Monthly number of active miners from $2013$ to $2017$.}
+	\label{fig:number_of_miners}
+\end{figure}
+In Figure~\ref{fig:number_of_miners} the number
+of monthly active miners from $2013$ until now is displayed.
+Even if the number is relative to the $50\%$ of the
+blockchain, we analyzed every block mined during time and we state
+that after December~$2014$ until August~$2015$
+there was a relevant drop, caused by the coming of mining
+pools, KnCMiner, AntPool and BitFury in late $2014$, and the massive
+mining power growth of SlushPool and F2Pool in mid $2015$.
+This is the main cause for occasional miners' drop in the system,
+and more mining pools will join the network, more it will be
+disheartening for smaller nodes to start mining, since the costs
+will be probably higher than the revenue.
+This creates a sort of centralization problem, since
+only the bigger mining pools could take part in the whole
+process of transactions approval.
+From our analysis we state that there are different mining pools
+joining and leaving the Bitcoin network during these years.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\linewidth]{img/trendy_miners}
+	\caption{Top $15$ mining pools from $2013$ until $2017$. In total, they approve the $\#\%$
+	of the total Bitcoin's transactions ever occurred.}
+	\label{fig:trendy_miners}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/top_miners_monthly}
+	\caption{Number of transactions approved from occasional miners and mining pools from $2013$ until $2017$.}
+	\label{fig:top_miners_monthly}
+\end{figure}
+As Figure~\ref{fig:trendy_miners} shows, the most relevant example is the \emph{GHash.IO}
+pool which was one of the major mining
+pool until mid~$2015$, then its mining power started to decrease
+slowly until its stop in October~$2016$. After some research,
+we refrain to an article from \url{coindesk.com}\,\cite{coindesk_ghash_ditched}
+which says that Bitcoin miners ditch GHash.IO pool over
+fears of $51\%$ attack. Indeed in $2014$, according to \url{blockchain.info},
+GHash.IO accounted for more than $42\%$ of Bitcoin mining power.
+Nowadays as the Table~\ref{tab:miner_share_2017} shows, AntPool has $19.53\%$ of
+the mining power, and there is no centralization risk.
+We analyzed then the major mining pools from $2013$ until $2017$, we divided
+dates analyzed in two eras, $2013$-$2015$ and $2016$-$2017$,
+selected the first $10$ miners regarding their mining power and then 
+represented in Tables~\ref{tab:miner_share_2015}-\ref{tab:miner_share_2017}.
+Table~\ref{tab:miner_share_2015} shows that a big percentage of the mining
+power comes from occasional miners and for the whole period
+between $2013$ and $2015$ GHash.IO has only a $13.3\%$ of
+mining power. We can see indeed in Figure~\ref{fig:trendy_miners}
+that this mining pool had only a short time peek in between $2013$-$2015$,
+but anyway in an overall scheme it managed to collect the $13.3\%$
+of the whole share. Table~\ref{tab:miner_share_2017} shows that
+AntPool, F2Pool and BTCC Pool are dominating the mining
+power in Bitcoin network from $2016$ until now with values
+respectively of $19.53\%$, $16.43\%$ and $10.5\%$ of share.
+If compared with Table~\ref{tab:miner_share_2015}, AntPool
+is the one which is growing faster and mining
+pools such as GHash.IO and BTC Guild stopped their activity.
+We state finally that because of these results, no miner seems to get
+even close to the GHash.IO share in $2014$ and it
+seems like we won't have
+a centralization problem in the very near future.
+However the mining power during the years
+changed from a distributed architecture to a decentralized one.
+We can see in Figure~\ref{fig:top_miners_monthly} that the
+occasional miners almost disappeared in the last two years,
+leaving their space to mining pools, while they were contributing
+for almost the $100\%$ at the end of $2013$. This brought a
+downside for individual users which want to buy
+their own hardware and start mining for themselves.
+Since Bitcoin always claimed its distribution as a 
+system's strength, this scalability issue
+might result a centralization problem in the long run,
+excluding small miners from the system and letting
+only the biggest mining pools to have informations
+about the whole blockchain. 
+\begin{table}
+	\centering
+	\caption{Mining power distribution in a scenario from $2013$ until $2015$,
+		considering only the $10$ major mining pools.}
+	\label{tab:miner_share_2015}
+	\begin{tabular}{|p{3.3cm}|p{3.3cm}|p{3.3cm}|} \hline
+		\textbf{Mining Pool}&\textbf{Mining Power (\%)}& \textbf{Blocks Mined}\\
+		\hline
+		\rowcolor{F2Pool}
+		F2Pool&$13.53$&$10,548$\\
+		\hline
+		GHash.IO&$13.3$&$10,370$\\
+		\hline
+		BTC Guild&$7.37$&$5,749$\\
+		\hline
+		\rowcolor{AntPool}
+		AntPool&$6.82$&$5,323$\\
+		\hline
+		Eligius&$4.99$&$3,889$\\
+		\hline
+		\rowcolor{BitFury}
+		BitFury&$4.73$&$3,693$\\
+		\hline
+		\rowcolor{BTCC Pool}
+		BTCC Pool&$3.9$&$3,042$\\
+		\hline
+		\rowcolor{SlushPool}
+		SlushPool&$3.37$&$2,627$\\
+		\hline
+		KNCMiner&$3.12$&$2,432$\\
+		\hline
+		\rowcolor{BW.COM}
+		BW.COM&$2.67$&$2,064$\\
+		\hline
+		\rowcolor{TablesColor}
+		\textbf{Total Analyzed}&$63.8$&$49,737$\\
+		\hline
+		\textbf{Other Miners}&$36.2$&$28,225$\\
+		\hline
+	\end{tabular}
+\end{table}
+\begin{table}
+	\centering
+	\caption{Mining power distribution in a scenario from $2016$ until $2017$,
+		considering only the $10$ major mining pools.}
+	\label{tab:miner_share_2017}
+	\begin{tabular}{|p{3.3cm}|p{3.3cm}|p{3.3cm}|} \hline
+		\textbf{Mining Pool}&\textbf{Mining Power (\%)}& \textbf{Blocks Mined}\\
+		\hline
+		\rowcolor{AntPool}
+		AntPool&$19.53$&$9,078$\\
+		\hline
+		\rowcolor{F2Pool}
+		F2Pool&$16.43$&$7,635$\\
+		\hline
+		\rowcolor{BTCC Pool}
+		BTCC Pool&$10.5$&$4,874$\\
+		\hline
+		\rowcolor{BitFury}
+		BitFury&$8.71$&$4,050$\\
+		\hline
+		\rowcolor{BW.COM}
+		BW.COM&$8$&$3,717$\\
+		\hline
+		\rowcolor{SlushPool}
+		SlushPool&$5.26$&$2,447$\\
+		\hline
+		ViaBTC&$4.8$&$2,222$\\
+		\hline
+		Bixin&$4.12$&$1,947$\\
+		\hline
+		BTC.TOP&$4$&$1,857$\\
+		\hline
+		BTC.com&$3.55$&$1,648$\\
+		\hline
+		\rowcolor{TablesColor}
+		\textbf{Total Analyzed}&$84.9$&$39,475$\\
+		\hline
+		\textbf{Other Miners}&$15.1$&$6,996$\\
+		\hline
+	\end{tabular}
+\end{table}
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[width=1\linewidth]{img/market_share_blocks_1}
+%	\caption{Mining power distribution in a scenario from $2013$ until $2015$, considering only the $5$ major mining pools.}
+%	\label{fig:market_share_blocks_1}
+%\end{figure}
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[width=1\linewidth]{img/market_share_blocks_2}
+%	\caption{Mining power distribution in a scenario from $2016$ until $2017$, considering only the $5$ major mining pools.}
+%	\label{fig:market_share_blocks_2}
+%\end{figure} 
+
+%TODO: Tendy miners graph with at least 15 mining pools
+%TODO: top_miners_monthly graph, number_of_miners graph
+\subsection{Unconfirmed Transactions}
+\label{sec:unconfirmedtxs}
+%TODO: talk about the Rizun paper, how we tested the optimal block size limit and discuss the causes that might bring to an increase or not to a block size.
+
+\section{Performance}
+\label{sec:performance}
+
+\subsection{Throughput}
+\label{sec:throughput}
+
+\subsection{Transaction Latency}
+\label{sec:txslatency}
+
+\section{Fees and Tolls}
+\label{sec:feesandtolls}
+%TODO: Proved that from 2013 to 2017 the $t_l$ is more dependent from the $t_f$ 
+
+\subsection{Miners' Profit}
+\label{sec:minersprofit}
+
+\subsection{Clients' Profit}
+\label{sec:clientprofit}
+
+
+%\section{Blockchain Growth}
+%\label{sec:blockchain_growth}
 %To understand the capacity of the Bitcoin blockchain, we first study
 %its size and how it grows over time. For this, we've been analyzing the blockchain
 %periodically from the $21^{st}$~September~$2016$ until the $11^{th}$~December~$2016$
@@ -1870,7 +2139,7 @@ our reference for the block propagation time $\tau$.
 %	\label{fig:size_comparison}
 %\end{figure}
 
-\section{Retrieval Block Time}
+%\section{Retrieval Block Time}
 %\label{sec:retrieval_block_time}
 %The biggest problem analyzing the blockchain was that the \gls{api} allows to
 %retrieve only one block per time, making the block fetching incredibly slow. This
@@ -1883,8 +2152,8 @@ our reference for the block propagation time $\tau$.
 %taking an average of~$\sim1$\,seconds to retrieve a
 %single block, and in some blocks the read bandwidth is even less than $0,5$\,MB/s.
 
-\section{Block Analysis}
-\label{sec:block_analysis}
+%\section{Block Analysis}
+%\label{sec:block_analysis}
 %The most important attributes of blocks are their size, their creation times, and the
 %number of transaction in each individual block. In this section, we will compare this
 %three attributes to see if there could be any relation between them.
@@ -1919,8 +2188,8 @@ our reference for the block propagation time $\tau$.
 %	\label{fig:efficiency}
 %\end{figure}
 
-\section{Bandwidth}
-\label{sec:bandwidth}
+%\section{Bandwidth}
+%\label{sec:bandwidth}
 %As explained in Chapter~\ref{sec:method}, the bandwidth represents the speed,
 %in MB/s, for a transaction to be visible and accepted (write bandwidth), and the speed, always in MB/s, that
 %a node has while fetching this block (read bandwidth). The Figure~\ref{fig:bandwidth}
@@ -1999,8 +2268,8 @@ our reference for the block propagation time $\tau$.
 %	\label{fig:comparison_visibility_blockcreation}
 %\end{figure}
 
-\section{Block Fee}
-\label{sec:block-fee}
+%\section{Block Fee}
+%\label{sec:block-fee}
 %In this thesis we aim to find a relation between
 %the fee paid to the miner and the block creation time. Before, we saw
 %that more a client is willing to pay for a transaction fee ($T_g$) more are
@@ -2032,8 +2301,8 @@ our reference for the block propagation time $\tau$.
 %created is showed in Chapter~\ref{sec:models} and it is generated with the
 %polynomial interpolation of the data in Figure~\ref{fig:fee_bandwidth}.
 
-\section{Models}
-\label{sec:models}
+%\section{Models}
+%\label{sec:models}
 
 %Next, we generate a model
 %that predict the future growth of the blockchain and help nodes to smartly use their bandwidth.

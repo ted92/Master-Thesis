@@ -7,7 +7,7 @@ Usage: observ.py -t number
     -i                  : gives info of the blockchain in the file .txt
     -e number           : add/retrieve <number> blocks from the last one created if the file doesn't exist.
     -p                  : plot data
-    -t number           : retrieve <number> blocks (the most recent ones) but saves only the transactions
+    -t number           : get the amount of unconfirmed transactions for <number> minutes
     -d                  : retrieve all transactions and save them in a Panda DataSet
 
 """
@@ -17,15 +17,16 @@ import numpy as np
 import string
 import re
 import os.path
-import matplotlib.pyplot as plt
 import datetime
 import time
 import statsmodels.api as sm
 import matplotlib.lines as mlines
 import matplotlib.axis as ax
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import io
 import urllib2
-import matplotlib.patches as mpatches
 import json
 import ast
 import urllib
@@ -124,16 +125,8 @@ def main(argv):
                     earliest_hash = latest_block['hash']
                 get_blockchain(number_of_blocks, earliest_hash)
                 valid_args = True
-            if (opt == "-t"):   # save transactions fee
-                height_to_start = 470000
-                b_array = get_json_request(
-                    "https://blockchain.info/block-height/" + str(height_to_start) + "?format=json")
-                #latest_block = get_json_request(latest_block_url)
-                blocks = b_array['blocks']
-                latest_block = blocks[0]
-                earliest_hash = latest_block['hash']
-                number_of_blocks = int(arg)
-                save_transactions(number_of_blocks, earliest_hash)
+            if (opt == "-t"):   # retrieve unconfirmed transactions
+                fetch_unconfirmed_txs(int(arg))
                 valid_args = True
             if (opt == "-i"):   # blockchain info
                 print blockchain_info()
@@ -156,6 +149,37 @@ def main(argv):
     except getopt.GetoptError:
         print (__doc__)
         sys.exit(2)
+
+
+def fetch_unconfirmed_txs(m):
+    """
+    for m minutes observe the trnasactions arriving in the Bitcoin network and calculate
+    how many transactions per second the network need to process
+    :param m: minutes
+    :return:
+    """
+    print "Analyzing new transactions for " + str(m) + " minutes."
+    t_end = time.time() + 60 * m
+    # -------- PROGRESS BAR -----------
+    total = 60 * m
+    prefix = 'Fetching unconfirmed txs:'
+    progressBar(0, prefix, total)
+    # ---------------------------------
+    list_unconfirmed_txs = []
+    while time.time() < t_end:
+        # -------- PROGRESS BAR -----------
+        index = t_end - time.time()
+        index = total - index
+        progressBar(index, prefix, total)
+        # ---------------------------------
+        unconfirmed_txs = get_json_request(unconfirmed_txs_url)
+        for el in unconfirmed_txs[u'txs']:
+            if not el['hash'] in list_unconfirmed_txs:
+                list_unconfirmed_txs.append(el['hash'])
+
+
+    print "\n" + str(len(list_unconfirmed_txs)) + " transactions requested approval in " + str(m) + " minutes."
+    print "Requested throughput: " + str(float(len(list_unconfirmed_txs)) / float((m*60))) + " txs/sec"
 
 
 def fetch_txs():
@@ -521,6 +545,43 @@ def epoch_date_yy(df):
     df['date'] = df['date'].str.slice(start=0, stop=4)
 
     return df
+
+
+def fee_more_intervals(fee):
+    """
+
+    :param fee:
+    :return:
+    """
+    if (fee <= 0.0):
+        # category 1 --> 0
+        fee = "0"
+    elif (fee > 0.0 and fee < 0.0002):
+        # category 2 --> 0.0001
+        fee = "<0.0002"
+    elif (fee >= 0.0002 and fee < 0.0004):
+        # category 3 --> 0.0002
+        fee = "<0.0004"
+    elif (fee >= 0.0004 and fee < 0.0006):
+        # category 4 --> 0.001
+        fee = "<0.0006"
+    elif (fee >= 0.0006 and fee < 0.0008):
+        # category 5 --> 0.01
+        fee = "<0.0008"
+    elif (fee >= 0.0008 and fee < 0.001):
+        # category 5 --> 0.01
+        fee = "<0.001"
+    elif (fee >= 0.001 and fee < 0.01):
+        # category 5 --> 0.01
+        fee = "<0.01"
+    elif (fee >= 0.01 and fee < 0.1):
+        # category 5 --> 0.01
+        fee = "<0.1"
+    else:
+        # category 6 --> >0.01
+        fee = ">0.1"
+
+    return fee
 
 
 def fee_intervals(fee):
@@ -1002,16 +1063,38 @@ def plot(miner=1):
 
     # -------------------------- TX LATENCY - FEE PAID ----------------------------
     # info = "plot/fee_latency"
-    # df_fl = df[['t_l', 't_f']]
+    # df_fl = df[['t_l', 't_f', 'B_ep']]
     #
     # df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
     # # df_fl = df_fl.groupby(['date']).mean().reset_index()
     #
+    # # g = sns.regplot(x="t_f", y="t_l",  data=df_fl, color="orange")
+    # # # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (sec)', ylim=(0, 6000), xlim=(0, 1))
+    #
+    # # group by date
+    # df_fl = epoch_date_yy(df_fl)
+    # del df_fl['B_ep']
+    #
+    # # categorize the fee
+    # df_fl['fee_category'] = df_fl['t_f'].apply(fee_more_intervals)
+    #
+    # df_sizes = df_fl.groupby(['date', 'fee_category']).size().to_frame('size').reset_index()
+    # print df_sizes
+    #
+    # df_fl = df_fl.groupby(['date', 'fee_category']).mean().reset_index()
     # print df_fl
     #
-    # g = sns.regplot(x="t_f", y="t_l",  data=df_fl, color="orange")
-    # # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (sec)', ylim=(0, 6000), xlim=(0, 1))
+    # # df_fl = df_fl.groupby('fee_category').mean().reset_index()
+    #
+    # df_fl['size'] = df_sizes['size']
+    # df_fl['t_l'] = df_fl['t_l'].apply(sec_hours)
+    # print df_fl
+    #
+    # g = sns.pointplot(x="fee_category", y="t_l", data=df_fl, hue='date')
+    # g.set_xticklabels(g.get_xticklabels(), rotation=50)
+    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (h)')
+    # sns.plt.ylim(0, )
 
     # -----------------------------------------------------------------------------
 
@@ -1232,7 +1315,7 @@ def plot(miner=1):
     # ax.set_ylim(0, 100)
     # ax.set_ylabel("%")
     #
-    # writer = pd.ExcelWriter('txs_feedensity_distribution.xlsx')
+    # writer = pd.ExcelWriter('tables/' + info + '.xlsx')
     # new_df.to_excel(writer, 'Sheet1')
     # writer.save()
 
@@ -1449,26 +1532,46 @@ def plot(miner=1):
 
 
     # -------------- BLOCK SIZE ----------------
-    """
-    info = "plot/block_size"
-    df_block_size = df[['Q', 'B_ep']]
-    df_block_size['date'] = df_block_size['B_ep'].apply(epoch_datetime)
-    df_block_size['date'] = df_block_size['date'].apply(revert_date_time)
-
-    # split date to have yyyy-mm
-    df_block_size['date'] = df_block_size['date'].str.slice(start=0, stop=7)
-
-    df_block_size = df_block_size.groupby(['date']).median().reset_index()
-    df_block_size['Q'] = df_block_size['Q'].apply(byte_megabyte)
-
-    print df_block_size
-
-    g = sns.pointplot(x="date", y="Q", data=df_block_size, color="green")
-    g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    g.set(xlabel='date', ylabel='Q (Mb)')
-    """
+    # info = "plot/block_size"
+    # df_block_size = df[['Q', 'B_ep']]
+    # df_block_size = epoch_date_mm(df_block_size)
+    #
+    # df_block_size = df_block_size.groupby(['date']).median().reset_index()
+    # df_block_size['Q'] = df_block_size['Q'].apply(byte_megabyte)
+    #
+    # print df_block_size
+    #
+    # ax = df_block_size.plot(x = 'date', y='Q')
+    # ax.set_xlabel("date")
+    # ax.set_ylabel("$Q$ (MB)")
+    #
+    # # g = sns.pointplot(x="date", y="Q", data=df_block_size, color="green")
+    # # g.set_xticklabels(g.get_xticklabels(), rotation=60)
+    # # g.set(xlabel='date', ylabel='$Q$ (MB)')
     # ------------------------------------------
 
+
+    # -------------- TXS LATENCY t_l OVER TIME considering TOP MINERS ---------------------
+    # info = "plot/t_l"
+    # dftl = df[['B_ep', 'B_mi', 't_l']]
+    #
+    # dftl = remove_minor_miners(dftl)
+    #
+    # dftl = epoch_date_mm(dftl)
+    # del dftl['B_ep']
+    #
+    # dftl['t_l'] = dftl['t_l'].apply(sec_hours)
+    #
+    # dftl = dftl.groupby(['B_mi', 'date']).median().reset_index()
+    #
+    # print dftl
+    #
+    # g = sns.pointplot(x="date", y="t_l", data=dftl, hue='B_mi')
+    # g.set_xticklabels(g.get_xticklabels(), rotation=60)
+    # g.set(xlabel='date', ylabel=r'$t_l$ (h)')
+    # sns.plt.ylim(0, )
+
+    # -------------------------------------------------------------------------------------
 
 
     # -------------- FEE - INPUT MINERS CALCULATIONS --------------------
@@ -1500,13 +1603,38 @@ def plot(miner=1):
     """
     # ------------------------------------------------------------
 
-    # ----------- TOP MINERS EVERY MONTH -------------------------
-    # TODO: Find a way to plot data from it
-    # info = "plot/top_miners_montly"
-    # df_topminers = df[['B_ep', 'B_mi']]
-    # df_topminers = epoch_date_mm(df_topminers)
+
+    # ----------- COUNT MINERS EVERY EPOCH -----------------------
+    # info = "plot/number_of_miners"
+    # df_miners = df[['B_ep', 'B_mi']]
+    # df_miners = epoch_date_mm(df_miners)
+    # del df_miners['B_ep']
+    # df_miners = df_miners.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+    # del df_miners['size']
+    # df_miners = df_miners.groupby('date').size().to_frame('miners').reset_index()
     #
-    # df_grouped = df_topminers.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+    # print df_miners
+    #
+    # ax = df_miners.plot(x = 'date', y='miners', color = 'orange')
+    # ax.set_xlabel("date")
+    # ax.set_ylabel("number of miners")
+    # ------------------------------------------------------------
+
+
+    # ----------- TOP MINERS EVERY MONTH -------------------------
+    # # plot the occasional miners and the mining pools
+    # info = "plot/top_miners_monthly"
+    # df_topminers = df[['B_ep', 'B_mi']]
+    # # df_topminers = epoch_date_mm(df_topminers)
+    #
+    # # todo: try to group by epoch first to plot only the blocks and not all transactions
+    # df_grouped1 = df_topminers.groupby(['B_ep', 'B_mi']).size().to_frame('size').reset_index()
+    # print df_grouped1
+    # df_grouped1 = epoch_date_mm(df_grouped1)
+    # del df_grouped1['size']
+    #
+    # df_grouped = df_grouped1.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+    # # todo: end todo
     #
     # print df_grouped
     #
@@ -1572,46 +1700,113 @@ def plot(miner=1):
     # new_df = new_df.fillna(0)
     # print new_df
     #
-    # # new_df = new_df.astype(float)
-    # #
-    # # matplotlib.style.use('ggplot')
-    # # ax = new_df.transpose().plot(kind='line', title="Trendy miners",
-    # #                                              figsize=(15, 10), legend=True, fontsize=12)
-    # # ax.set_xlabel("Date", fontsize=12)
-    # # ax.set_ylabel("Transactions", fontsize=12)
-    # # plt.show()
     #
-    #
-    # writer = pd.ExcelWriter('top_miners_montly.xlsx')
+    # writer = pd.ExcelWriter('tables/top_miners_monthly.xlsx')
     # new_df.to_excel(writer, 'Sheet1')
     # writer.save()
-
+    #
+    # miners = new_df['index'].values
+    # print miners
+    #
+    # # true / false list for adding the ip address or mining pool
+    # truefalse_list = []
+    # # match the string with re
+    # for mi in miners:
+    #     pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    #     if (pattern.match(mi)):
+    #         truefalse_list.append(True)
+    #     else:
+    #         truefalse_list.append(False)
+    #
+    # new_df['is_ip'] = truefalse_list
+    #
+    # df_mining_pool = new_df[new_df['is_ip'] == False]
+    # df_occ_miners = new_df[new_df['is_ip'] == True]
+    #
+    # number_occ_miners = len(df_occ_miners.index)
+    # number_mining_pools = len(df_mining_pool.index)
+    #
+    # df_mining_pool = df_mining_pool.groupby('is_ip').sum().reset_index()
+    # df_occ_miners = df_occ_miners.groupby('is_ip').sum().reset_index()
+    #
+    # print df_occ_miners
+    # print df_mining_pool
+    #
+    # x = list(df_occ_miners.columns.values)
+    # x.pop(0)
+    # print x
+    #
+    # y_ip = []
+    # for row in df_occ_miners.iterrows():
+    #     index, data = row
+    #     y_ip.append(data.tolist())
+    #
+    # y_ip = y_ip[0]
+    # y_ip.pop(0)
+    # print y_ip
+    #
+    # y_noip = []
+    # for row in df_mining_pool.iterrows():
+    #     index, data = row
+    #     y_noip.append(data.tolist())
+    # y_noip = y_noip[0]
+    # y_noip.pop(0)
+    # print y_noip
+    #
+    #
+    # print "Occasional miners: " + str(number_occ_miners)
+    # print "Mining pools: " + str(number_mining_pools)
+    #
+    # axes.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    # plt.plot_date(x, y_ip, "-b", label="Occasional miners " + str(number_occ_miners), lw=2)
+    # plt.plot_date(x, y_noip, "-g", label="Mining pools " + str(number_mining_pools), lw=2)
+    # font = {'family': 'normal',
+    #         'weight': 'bold',
+    #         'size': 18}
+    #
+    # # plotting
+    # matplotlib.rc('font', **font)
+    # plt.legend(loc="best")
+    # plt.xlabel("date")
+    # plt.ylabel("blocks approved")
     # ------------------------------------------------------------
 
     # ----------- TRENDY MINERS IN DIFFERENT EPOCHS --------------
     # info = "plot/trendy_miners"
     # # add date to df from epoch
-    # df = remove_minor_miners(df, 9)
-    # df = df[['B_ep', 'date', 'B_mi']]
+    # df = remove_minor_miners(df, 15)
+    # df = df[['B_ep', 'B_mi']]
     # df = epoch_date_mm(df)
     #
     # # groub by date and then miners, count how many transactions a miner approved in a certain month
     # df_grouped = df.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
     #
+    # print df_grouped
     # # calculate how many transactions were apprved by each miner in every year
-    # g = sns.pointplot(x="date", y="size", hue="B_mi", data=df_grouped, ylim=(0.0,))
+    #
+    # sns.set_context("notebook", font_scale=0.9, rc={"lines.linewidth": 0.7})
+    # g = sns.pointplot(x="date", y="size", hue="B_mi", data=df_grouped)
     # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='date', ylabel='transactions approved')
-
+    #
+    # # reduce number of labels to show
+    # ticklabels = g.get_xticklabels()
+    # new_ticklabels = []
+    # i = 0
+    # for el in ticklabels:
+    #     if (i == 0):
+    #         i = 8
+    #     else:
+    #         el = ""
+    #         i -= 1
+    #     new_ticklabels.append(el)
+    # g.set(xlabel='date', ylabel='transactions approved', xticklabels=new_ticklabels)
+    # sns.plt.ylim(0, )
     # ------------------------------------------------------------
 
-    # -------- HEAT MAP ----------
-    """
-    info = "plot/heat_map"
-    sns.heatmap(df.corr(), annot=True, fmt=".2f")
-    """
-
-
+    # -------- HEAT MAP -----------------------------
+    # info = "plot/heat_map"
+    # sns.heatmap(df.corr(), annot=True, fmt=".2f")
+    # -----------------------------------------------
 
     # ----------- BOX PLOT -----------
     """
@@ -1620,6 +1815,21 @@ def plot(miner=1):
     """
     # --------------------------------
 
+    # ------------- TRANSACTION SIZE -------------
+    # info = "plot/transaction_size"
+    #
+    # df_tq = df[['B_ep', 't_q']]
+    # df_tq = epoch_date_mm(df_tq)
+    # del df_tq['B_ep']
+    #
+    # df_tq = df_tq.groupby('date').mean().reset_index()
+    # print df_tq
+    #
+    # ax = df_tq.plot(x = 'date', y='t_q', color = 'orange')
+    # ax.set_xlabel("date")
+    # ax.set_ylabel("$t_q$ (byte)")
+
+    # --------------------------------------------
 
     # -------- MARKET SHARE OF MINERS x TRANSACTION
     # info = "plot/market_share_txs"
@@ -1635,7 +1845,7 @@ def plot(miner=1):
     # miners = miners.groupby(miners.index, sort=False).sum()
     # total = miners.sum()
     #
-    # miners = miners.head(10)
+    # miners = miners.head(18)
     # partial = miners.sum()
     # print miners
     #
@@ -1650,29 +1860,30 @@ def plot(miner=1):
 
 
     # ------------------------- MARKET SHARE OF MINERS x BLOCK -------------------------------
-    # info = "plot/market_share_blocks"
-    #
-    # df_blc_mined = df[['B_ep', 'B_mi']]
-    # df_blc_mined = df_blc_mined.groupby(['B_ep', 'B_mi']).size().reset_index()
-    #
-    # print df_blc_mined
-    # miners = df_blc_mined['B_mi'].value_counts()  # count miners
-    #
-    # print miners
-    #
-    # miners = miners.groupby(miners.index, sort=False).sum()
-    # total = miners.sum()
-    #
-    # miners = miners.head(10)
-    # partial = miners.sum()
-    # print miners
-    #
-    # label = miners.index.get_level_values(0)
-    # plt.savefig(info, bbox_inches='tight', dpi=500)
-    #
-    # series = pd.Series(miners, index=label, name='Blocks mined')
-    # series.plot.pie(figsize=(8, 8), autopct='%.2f',
-    #                 title='Blocks evaluated: ' + str(partial) + " out of: " + str(total), table=True)
+    info = "plot/market_share_blocks"
+    # creates two epoch to represent mining power in Bitcoin blockchain 2013 - 2015 / 2016 - 2017
+    date_retrieval = '2015-12'
+    df_blc_mined = df[['B_ep', 'B_mi']]
+    df_blc_mined = epoch_date_mm(df_blc_mined)
+
+    df1 = df_blc_mined[df_blc_mined['date'] > date_retrieval]
+    del df1['date']
+    df1 = df1.groupby(['B_ep','B_mi']).size().reset_index()
+    del df1['B_ep']
+    print df1
+    miners1 = df1['B_mi'].value_counts()  # count miners
+    print miners1
+    miners1 = miners1.groupby(miners1.index, sort=False).sum()
+    total1 = miners1.sum()
+    miners1 = miners1.head(10)
+    partial1 = miners1.sum()
+    label1 = miners1.index.get_level_values(0)
+    series1 = pd.Series(miners1, index=label1, name='Blocks mined')
+    print series1
+    series1.plot.pie(figsize=(8, 8), autopct='%.2f',
+                    title='Blocks evaluated: ' + str(partial1) + " out of: " + str(total1) + "\n after " + date_retrieval, table=True)
+
+    plt.savefig(info, bbox_inches='tight', dpi=500)
     # -----------------------------------------------------------------------------------------------
 
     # ------------- PARALLEL COORDINATES
@@ -1707,35 +1918,35 @@ def plot(miner=1):
     # --------------------------------------------
 
     # ------------- PARALLEL COORDINATES TIME
-
-    info = "plot/parallel_coordinates_time"
-    plt.figure()
-    df_parcord = df[['t_%', 't_l', 'B_T', 'B_ep', 'Q']]
-    df_parcord['Q'] = df_parcord['Q'].apply(byte_megabyte)
-    df_parcord['t_l'] = df_parcord['t_l'].apply(sec_hours)
-    df_parcord['B_T'] = df_parcord['B_T'].apply(sec_hours)
-
-    df_parcord = epoch_date_mm(df_parcord)
-
-    df_parcord = df_parcord.groupby('date', as_index=False).median().reset_index(drop=True)
-    del df_parcord['B_ep']
-
-    print df_parcord
-    df_parcord = df_parcord.T
-    new_header = df_parcord.iloc[0]     # grab the first row for the header
-    df_parcord = df_parcord[1:]         # take the data less the header row
-    df_parcord.columns = new_header     # set the header row as the df header
-
-    df_parcord['index_col'] = df_parcord.index
-    print df_parcord
-    # indexes = df_parcord.index.get_level_values(0)
-    #print df_parcord
-
-
-    ax = parallel_coordinates(df_parcord, 'index_col')
-    labels = ax.get_xticklabels()
-
-    ax.set_xticklabels(labels, rotation=50)
+    #
+    # info = "plot/parallel_coordinates_time"
+    # plt.figure()
+    # df_parcord = df[['t_%', 't_l', 'B_T', 'B_ep', 'Q']]
+    # df_parcord['Q'] = df_parcord['Q'].apply(byte_megabyte)
+    # df_parcord['t_l'] = df_parcord['t_l'].apply(sec_hours)
+    # df_parcord['B_T'] = df_parcord['B_T'].apply(sec_hours)
+    #
+    # df_parcord = epoch_date_mm(df_parcord)
+    #
+    # df_parcord = df_parcord.groupby('date', as_index=False).median().reset_index(drop=True)
+    # del df_parcord['B_ep']
+    #
+    # print df_parcord
+    # df_parcord = df_parcord.T
+    # new_header = df_parcord.iloc[0]     # grab the first row for the header
+    # df_parcord = df_parcord[1:]         # take the data less the header row
+    # df_parcord.columns = new_header     # set the header row as the df header
+    #
+    # df_parcord['index_col'] = df_parcord.index
+    # print df_parcord
+    # # indexes = df_parcord.index.get_level_values(0)
+    # #print df_parcord
+    #
+    #
+    # ax = parallel_coordinates(df_parcord, 'index_col')
+    # labels = ax.get_xticklabels()
+    #
+    # ax.set_xticklabels(labels, rotation=50)
     # --------------------------------------------
 
     block_epoch = df['B_ep'].values
