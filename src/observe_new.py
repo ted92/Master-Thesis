@@ -1361,12 +1361,12 @@ def plot(miner=1):
     # df_thr['thr'] = df_thr['size'] / df_thr['B_T']
     #
     # print df_thr
-    # ax = df_thr.plot(x='date', y = ['thr'])
+    # ax = df_thr.plot(x='date', y ='thr', color='orange', label='throughput $\gamma$')
     #
     # # lines, labels = ax.get_legend_handles_labels()
     # # ax.legend(lines[:2], labels[:2], loc='best')
     #
-    # ax.set_ylabel("throughput (txs/s)")
+    # ax.set_ylabel("$\gamma$ (txs/s)")
     # -------------------------------------------------------------------
 
     # --------------------------------- Transaction fee in USD -------------------------------------
@@ -1420,15 +1420,7 @@ def plot(miner=1):
     #
     # print df_usd
     #
-    # ax = df_usd.plot(x='date', y = ['USD', 'usd_fee'])
-    #
-    # # lines, labels = ax.get_legend_handles_labels()
-    # # labels = []
-    # # labels.append(u'BTC - USD exchange rate')
-    # # labels.append(u'fee paid in USD')
-    # #
-    # # ax.legend(labels, loc='best')
-    #
+    # ax = df_usd.plot(x='date', y = ['USD', 'usd_fee'], label=['USD price', '$t_f$ USD price'])
     # ax.set_ylabel("USD")
     # ----------------------------------------------------------------------------------------------
 
@@ -1571,6 +1563,49 @@ def plot(miner=1):
     # g.set(xlabel='date', ylabel=r'$t_l$ (h)')
     # sns.plt.ylim(0, )
 
+    # -------------------------------------------------------------------------------------
+
+
+
+    # ------------------- RELATION BETWEEN < 10 MIN BLOCKS AND MINERS ---------------------
+    info = "plot/creation_time_miners"
+    df_new = df[['B_ep', 'B_mi', 'B_T']]
+
+    df_new = df_new.groupby(['B_ep', 'B_mi']).mean().reset_index()
+    miners = df_new['B_mi'].values
+    del df_new['B_ep']
+
+    df_new['B_T'] = df_new['B_T'].apply(sec_minutes)
+    # divide miners in IP and mining pool
+    # true / false list for adding the ip address or mining pool
+    truefalse_list = []
+    # match the string with re
+    for mi in miners:
+        pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+        if (pattern.match(str(mi))):
+            truefalse_list.append('Occasional miner')
+        else:
+            truefalse_list.append('Mining pool')
+
+    df_new['Miner'] = truefalse_list
+
+    del df_new['B_mi']
+
+    breaks = [0, 8, 15, 20, 50, pd.np.inf]
+    diff = np.diff(breaks).tolist()
+    # make tuples of *breaks* and length of intervals
+    joint = list(zip(breaks, diff))
+    # format label
+    s1 = "{left:,.0f} to {right:,.0f}"
+    labels = [s1.format(left=yr[0], right=yr[0] + yr[1] - 1) for yr in joint]
+    df_new['minutes'] = pd.cut(df_new['B_T'],breaks, labels=labels, right=False)
+    print df_new
+    df_new.loc[df_new['minutes'] == 'NaN', 'minutes'] = '0 to 7'
+    del df_new['B_T']
+    df_new = df_new.groupby(['minutes', 'Miner']).size().to_frame('blocks').reset_index()
+    print df_new
+
+    g = sns.factorplot(x='minutes', y='blocks', hue='Miner', data=df_new, kind="bar", legend_out = False, color='orange')
     # -------------------------------------------------------------------------------------
 
 
@@ -1860,30 +1895,30 @@ def plot(miner=1):
 
 
     # ------------------------- MARKET SHARE OF MINERS x BLOCK -------------------------------
-    info = "plot/market_share_blocks"
-    # creates two epoch to represent mining power in Bitcoin blockchain 2013 - 2015 / 2016 - 2017
-    date_retrieval = '2015-12'
-    df_blc_mined = df[['B_ep', 'B_mi']]
-    df_blc_mined = epoch_date_mm(df_blc_mined)
-
-    df1 = df_blc_mined[df_blc_mined['date'] > date_retrieval]
-    del df1['date']
-    df1 = df1.groupby(['B_ep','B_mi']).size().reset_index()
-    del df1['B_ep']
-    print df1
-    miners1 = df1['B_mi'].value_counts()  # count miners
-    print miners1
-    miners1 = miners1.groupby(miners1.index, sort=False).sum()
-    total1 = miners1.sum()
-    miners1 = miners1.head(10)
-    partial1 = miners1.sum()
-    label1 = miners1.index.get_level_values(0)
-    series1 = pd.Series(miners1, index=label1, name='Blocks mined')
-    print series1
-    series1.plot.pie(figsize=(8, 8), autopct='%.2f',
-                    title='Blocks evaluated: ' + str(partial1) + " out of: " + str(total1) + "\n after " + date_retrieval, table=True)
-
-    plt.savefig(info, bbox_inches='tight', dpi=500)
+    # info = "plot/market_share_blocks"
+    # # creates two epoch to represent mining power in Bitcoin blockchain 2013 - 2015 / 2016 - 2017
+    # date_retrieval = '2015-12'
+    # df_blc_mined = df[['B_ep', 'B_mi']]
+    # df_blc_mined = epoch_date_mm(df_blc_mined)
+    #
+    # df1 = df_blc_mined[df_blc_mined['date'] > date_retrieval]
+    # del df1['date']
+    # df1 = df1.groupby(['B_ep','B_mi']).size().reset_index()
+    # del df1['B_ep']
+    # print df1
+    # miners1 = df1['B_mi'].value_counts()  # count miners
+    # print miners1
+    # miners1 = miners1.groupby(miners1.index, sort=False).sum()
+    # total1 = miners1.sum()
+    # miners1 = miners1.head(10)
+    # partial1 = miners1.sum()
+    # label1 = miners1.index.get_level_values(0)
+    # series1 = pd.Series(miners1, index=label1, name='Blocks mined')
+    # print series1
+    # series1.plot.pie(figsize=(8, 8), autopct='%.2f',
+    #                 title='Blocks evaluated: ' + str(partial1) + " out of: " + str(total1) + "\n after " + date_retrieval, table=True)
+    #
+    # plt.savefig(info, bbox_inches='tight', dpi=500)
     # -----------------------------------------------------------------------------------------------
 
     # ------------- PARALLEL COORDINATES
@@ -1918,7 +1953,6 @@ def plot(miner=1):
     # --------------------------------------------
 
     # ------------- PARALLEL COORDINATES TIME
-    #
     # info = "plot/parallel_coordinates_time"
     # plt.figure()
     # df_parcord = df[['t_%', 't_l', 'B_T', 'B_ep', 'Q']]
@@ -1948,6 +1982,47 @@ def plot(miner=1):
     #
     # ax.set_xticklabels(labels, rotation=50)
     # --------------------------------------------
+
+    # ---------------- BLOCK CREATION TIME % OF HITTING THE 10 MINUTES TARGET -----------------
+    # info = "plot/creation_time"
+    # df_T = df[['B_ep', 'B_T']]
+    #
+    # df_T = df_T.groupby('B_ep').median().reset_index()
+    # df_T['B_T'] = df_T['B_T'].apply(sec_minutes)
+    # print df_T
+    #
+    # out = pd.cut(df_T['B_T'], bins=[0, 2, 5, 15, 20, 50, 200], include_lowest=True)
+    # out_norm = out.value_counts(sort=False, normalize=True).mul(100)
+    # ax = out_norm.plot.bar(rot=0, color="orange", figsize=(12, 8), label="Block creation time")
+    # ax.set_xticklabels([c[1:-1].replace(",", " to") for c in out.cat.categories])
+    # plt.ylabel("pct")
+    #
+    # # ax = df_T.plot(x = 'date', y = 'B_T', color = 'orange', label='Block creation time')
+    # # ax.set_ylabel("$\mathcal{T}$ (min)")
+    # -----------------------------------------------------------------------------------------
+
+    # ----------- ASSUMPTIONS ON CREATION TIME / THROUGHPUT / TRANSACTION LATENCY -------------
+    # info = "plot/creation_time_assumptions"
+    # df_cr = df[['B_ep', 'B_T', 'B_t', 't_l']]
+    #
+    # df_cr = df_cr.groupby('B_ep').mean().reset_index()
+    # df_cr['thr'] = df_cr['B_t'] / df_cr['B_T']
+    #
+    # df_cr = epoch_date_dd(df_cr)
+    # df_cr = df_cr.groupby('date').mean().reset_index()
+    # del df_cr['B_ep']
+    #
+    # print df_cr
+    #
+    # df_cr['B_T'] = df_cr['B_T'].apply(sec_minutes)
+    # df_cr['t_l'] = df_cr['t_l'].apply(sec_minutes)
+    #
+    # g = sns.jointplot(x='B_T', y='t_l', kind='reg', data=df_cr, xlim=(0.0, 80.0), ylim=(0.0, 200.0), color='orange')\
+    #     .set_axis_labels("$\mathcal{T}$ (min)", "$t_l$ (min)")
+    #
+    # # ax = df_cr.plot(x='B_T', y=['t_l', 'thr'], label=['$t_l$', '$\gamma$ x10'])
+    # -----------------------------------------------------------------------------------------
+
 
     block_epoch = df['B_ep'].values
     start = epoch_datetime(block_epoch[-1])

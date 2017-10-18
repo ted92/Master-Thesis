@@ -579,10 +579,10 @@ Miner's profit equation in~\ref{eq:minerprofit} shows the gain of a miner $\lang
 where the hashing cost is represented as follows:
 \begin{equation}
 \label{eq:hashingcost}
-\langle C\rangle = \eta hT.
+\langle C\rangle = \eta h\mathcal{T}.
 \end{equation}
 So the hashing cost $\langle C\rangle$ is directly dependent from the miner's individual hash rate, $h$,
-the cost per hash, $\eta$, and the creation time, $T$. Moreover, is important to consider the
+the cost per hash, $\eta$, and the creation time, $\mathcal{T}$. Moreover, is important to consider the
 expectation value of a miner's revenue per block, this value is represented with $\langle V\rangle$
 and is equal to the amount he would earn if he won the block multiplied by his probability of
 winning. So the expected revenue would be:
@@ -610,12 +610,12 @@ the block propagation time, the
 probability of orphaning is defined as:
 \begin{equation}
 \label{eq:orphaning}
-\mathbb{P}_{orphan} = 1 - e^{-\frac{\tau}{T}}.
+\mathbb{P}_{orphan} = 1 - e^{-\frac{\tau}{\mathcal{T}}}.
 \end{equation}
 In conclusion the \emph{miner's profit equation} is defined as:
 \begin{equation}
 \label{eq:minerprofiteq}
-\langle \Pi \rangle = (R + M)\frac{h}{H} e^{-\frac{\tau}{T}} -\eta hT
+\langle \Pi \rangle = (R + M)\frac{h}{H} e^{-\frac{\tau}{\mathcal{T}}} -\eta h\mathcal{T}
 \end{equation}
 A \emph{rational miner} selects which transactions to include in his block in a manner that maximizes
 the expectation value of his profit. This selection is explained with the \emph{mempool demand curve}
@@ -664,7 +664,7 @@ exponentially with the propagation time. The equation which
 represents this curve is the following:
 \begin{equation}
 \label{eq:blockspacesupply}
-M_{supply}(Q) = R\left(e^{\frac{\Delta \tau (Q)}{T}} - 1\right),
+M_{supply}(Q) = R\left(e^{\frac{\Delta \tau (Q)}{\mathcal{T}}} - 1\right),
 \end{equation}
 where $\Delta \tau (Q) \equiv \tau(Q) - \tau(0)$.
 The propagation time ,$\tau$, is just an esteem from
@@ -1126,7 +1126,7 @@ properties are changing as well. We tried to classify the main
 properties of the system and make assumptions on how they
 may vary. This attributes are $Q$, $\mathcal{T}$, $\tau$,
 $\gamma$, $t_f$, $\langle C\rangle$, $\mathbb{P}_{orphan}$ and $t_l$ and
-our assumptions are summarized in Table~\ref{tab:possiblerelations}. For
+our assumptions are summarized in Table~\ref{tab:assumptions}. For
 each property, its row is telling what happens to other attributes
 if the attribute considered is increased/decreased. White space
 means that there might be no relation or we don't have any assumption
@@ -1139,7 +1139,7 @@ to be included in a block.
 \begin{table}
 	\begin{threeparttable}
 	\caption{Possible Relations Between Major Attributes}
-	\label{tab:possiblerelations}
+	\label{tab:assumptions}
 	\centering
 	\begin{tabular}{|p{1.4cm}|p{0.8cm}|p{0.8cm}|p{0.8cm}|p{0.8cm}|p{0.8cm}|p{0.8cm}|p{1.1cm}|p{0.8cm}|} \hline
 		&\textbf{$Q$}&\textbf{$\mathcal{T}$}&\textbf{$\tau$}&\textbf{$\gamma$}&	\textbf{$t_f$}&\textbf{$\langle C\rangle$}&	\textbf{$\mathbb{P}_{orphan}$} &\textbf{$t_l$} \\
@@ -1187,7 +1187,7 @@ fundamental techniques of machine learning which were
 useful for our purpose of analyzing the Bitcoin blockchain.
 These information were collected from Bowles' book\,\cite{bowles2015machine}.
 It is very important, to be able to verify our assumptions made in
-Table\,\ref{tab:possiblerelations}, to check how much
+Table\,\ref{tab:assumptions}, to check how much
 a pair of attributes will be related to each other.
 We measure that by using \emph{Pearson's correlation}.
 
@@ -1519,7 +1519,7 @@ using $\sim$$25$\,GB of disk space.
 \end{figure*}
 Then, the pattern we followed to store
 transactions it is the following:
-\[\langle m \dots m-b\rangle, \langle m-2b \dots m-3b\rangle,, \dots , \langle m-2kb \dots m - b(2k-1)\rangle.\]
+\[\langle m \dots m-b\rangle, \langle m-2b \dots m-3b\rangle, \dots , \langle m-2kb \dots m - b(2k-1)\rangle.\]
 Having $m$ the height of the last block retrieved and $k$ number
 of portions.
 \subsection{Data Organization}
@@ -1890,7 +1890,8 @@ of monthly active miners from $2013$ until now is displayed.
 Even if the number is relative to the $50\%$ of the
 blockchain, we analyzed every block mined during time and we state
 that after December~$2014$ until August~$2015$
-there was a relevant drop, caused by the coming of mining
+there was a relevant drop, connected with the growth
+showed in Figure~\ref{fig:trendy_miners}, mainly caused by the come of mining
 pools, KnCMiner, AntPool and BitFury in late $2014$, and the massive
 mining power growth of SlushPool and F2Pool in mid $2015$.
 This is the main cause for occasional miners' drop in the system,
@@ -1959,48 +1960,7 @@ system's strength, this scalability issue
 might result a centralization problem in the long run,
 excluding small miners from the system and letting
 only the biggest mining pools to have informations
-about the whole blockchain. 
-\begin{table}
-	\centering
-	\caption{Mining power distribution in a scenario from $2013$ until $2015$,
-		considering only the $10$ major mining pools.}
-	\label{tab:miner_share_2015}
-	\begin{tabular}{|p{3.3cm}|p{3.3cm}|p{3.3cm}|} \hline
-		\textbf{Mining Pool}&\textbf{Mining Power (\%)}& \textbf{Blocks Mined}\\
-		\hline
-		\rowcolor{F2Pool}
-		F2Pool&$13.53$&$10,548$\\
-		\hline
-		GHash.IO&$13.3$&$10,370$\\
-		\hline
-		BTC Guild&$7.37$&$5,749$\\
-		\hline
-		\rowcolor{AntPool}
-		AntPool&$6.82$&$5,323$\\
-		\hline
-		Eligius&$4.99$&$3,889$\\
-		\hline
-		\rowcolor{BitFury}
-		BitFury&$4.73$&$3,693$\\
-		\hline
-		\rowcolor{BTCC Pool}
-		BTCC Pool&$3.9$&$3,042$\\
-		\hline
-		\rowcolor{SlushPool}
-		SlushPool&$3.37$&$2,627$\\
-		\hline
-		KNCMiner&$3.12$&$2,432$\\
-		\hline
-		\rowcolor{BW.COM}
-		BW.COM&$2.67$&$2,064$\\
-		\hline
-		\rowcolor{TablesColor}
-		\textbf{Total Analyzed}&$63.8$&$49,737$\\
-		\hline
-		\textbf{Other Miners}&$36.2$&$28,225$\\
-		\hline
-	\end{tabular}
-\end{table}
+about the whole blockchain.
 \begin{table}
 	\centering
 	\caption{Mining power distribution in a scenario from $2016$ until $2017$,
@@ -2042,23 +2002,117 @@ about the whole blockchain.
 		\hline
 	\end{tabular}
 \end{table}
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=1\linewidth]{img/market_share_blocks_1}
-%	\caption{Mining power distribution in a scenario from $2013$ until $2015$, considering only the $5$ major mining pools.}
-%	\label{fig:market_share_blocks_1}
-%\end{figure}
-%\begin{figure}[h]
-%	\centering
-%	\includegraphics[width=1\linewidth]{img/market_share_blocks_2}
-%	\caption{Mining power distribution in a scenario from $2016$ until $2017$, considering only the $5$ major mining pools.}
-%	\label{fig:market_share_blocks_2}
-%\end{figure} 
-
-%TODO: Tendy miners graph with at least 15 mining pools
-%TODO: top_miners_monthly graph, number_of_miners graph
+\begin{table}
+	\centering
+	\caption{Mining power distribution in a scenario from $2013$ until $2015$,
+		considering only the $10$ major mining pools.}
+	\label{tab:miner_share_2015}
+	\begin{tabular}{|p{3.3cm}|p{3.3cm}|p{3.3cm}|} \hline
+		\textbf{Mining Pool}&\textbf{Mining Power (\%)}& \textbf{Blocks Mined}\\
+		\hline
+		\rowcolor{F2Pool}
+		F2Pool&$13.53$&$10,548$\\
+		\hline
+		GHash.IO&$13.3$&$10,370$\\
+		\hline
+		BTC Guild&$7.37$&$5,749$\\
+		\hline
+		\rowcolor{AntPool}
+		AntPool&$6.82$&$5,323$\\
+		\hline
+		Eligius&$4.99$&$3,889$\\
+		\hline
+		\rowcolor{BitFury}
+		BitFury&$4.73$&$3,693$\\
+		\hline
+		\rowcolor{BTCC Pool}
+		BTCC Pool&$3.9$&$3,042$\\
+		\hline
+		\rowcolor{SlushPool}
+		SlushPool&$3.37$&$2,627$\\
+		\hline
+		KNCMiner&$3.12$&$2,432$\\
+		\hline
+		\rowcolor{BW.COM}
+		BW.COM&$2.67$&$2,064$\\
+		\hline
+		\rowcolor{TablesColor}
+		\textbf{Total Analyzed}&$63.8$&$49,737$\\
+		\hline
+		\textbf{Other Miners}&$36.2$&$28,225$\\
+		\hline
+	\end{tabular}
+\end{table}
 \subsection{Unconfirmed Transactions}
 \label{sec:unconfirmedtxs}
+Another relevant concern about scalability in blockchains
+is the number of transaction's requests the system
+can accept. As we state in Chapter~\ref{sec:throughput},
+throughput ($\gamma$) may vary according to $Q$,
+$\mathcal{T}$ and $t_q$.
+The difficulty of the Bitcoin proof-of-work
+is adjusted according to the hashing power of the entire
+Bitcoin network so that the average time to mine a block, $\mathcal{T}$,
+will always be around a certain value. In our analysis we prove
+that $\mathcal{T}$ stays stable for the whole time of testing and this
+value is set at $10$\,minutes. In this interval of time, since
+the block size $Q$ is set to a limit of $1$\,MB, the system can
+approximately approve, if we consider an average $t_q$
+of $500$\,bytes, $3.3$ transactions per second. This value is calculated
+considering the maximum block size possible of $1$\,MB.
+If we consider an interval of time in between $2013$ and
+$2017$, the number of daily transactions that need to be approved
+scaled from $50$ thousands in $2013$ to $300$ thousands
+in $2017$ and all blocks are filled over their maximum
+capacity since April~$2016$, as Figure~\ref{fig:block_size} shows.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/block_size}
+	\caption{Average block size for every month, from $2013$ until $2017$.}
+	\label{fig:block_size}
+\end{figure}
+Because of this scaling limitation, transactions might be willing
+to pay more fee in order to get accepted in miner's mempools.
+To improve the number of transactions that can be
+accepted from the system per second we consider
+an eventual change in $\mathcal{T}$, $Q$ and $t_q$.
+We have to consider though, that even if is possible
+to improve the number of transactions that could be
+accepted from the system every second, it will be anyway
+difficult to get better results than circuits such
+as VISA or Master Card and the scalability from this
+prospective is still far to be reached.
+
+\subsubsection{Block Creation Time $\mathcal{T}$}
+In our assumptions showed in Table~\ref{tab:assumptions} we argue
+that an increment of $\mathcal{T}$ may lead to a
+$\gamma$ drop and an increment of $t_l$, for that reason we think
+might be a better choice to adjust the difficulty according to
+decrease the block creation time and not to increase it. Furthermore,
+according to Rizun\,\cite{Rizun:2015:blocksizelimit}, in Equation~\ref{eq:hashingcost}
+the cost for mining a block is directly proportioned to the block creation
+time, which means that if the $\mathcal{T}$ is decreased, the cost for
+mining a block is less. Thanks to our data frame $\delta$ we managed to
+prove that there is an inverse proportionality between $\gamma$ and
+$\mathcal{T}$. Only in blocks with a creation time lower than $10$\,minutes
+the throughput reaches peaks of $10$-$14$\,txs/sec, while in
+cases from $10$ to $20$\,minutes of creation
+time, the throughput is in between
+$4$-$2$\,txs/sec and in blocks where the $\mathcal{T}$ is
+higher than $20$\,minutes, throughput never reaches
+$2$\,txs/sec.
+
+Our assumptions about transaction latency were partially right.
+it is true that $t_l$ tends to grow with the growing
+of $\mathcal{T}$ but this is verified
+only if $\mathcal{T} \geq 10$\,minutes. If the block is mined
+before that time then we don't have any relation between
+transaction latency and block creation time. %TODO: Continue after the creation_time_miners plot has been generated, to see if occasional miners tend to mine quicker when they mange to do so
+
+First consideration regards the block
+size. We study
+
+\subsubsection{Block Size $Q$}
 %TODO: talk about the Rizun paper, how we tested the optimal block size limit and discuss the causes that might bring to an increase or not to a block size.
 
 \section{Performance}
@@ -2066,6 +2120,13 @@ about the whole blockchain.
 
 \subsection{Throughput}
 \label{sec:throughput}
+%TODO: Throughput vary according to $Q$ and $\mathcal{T}$.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/throughput}
+	\caption{Throughput ($\gamma$) of the Bitcoin blockchain calculated in a period from $2013$ until $2017$.}
+	\label{fig:throughput}
+\end{figure}
 
 \subsection{Transaction Latency}
 \label{sec:txslatency}
