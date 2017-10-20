@@ -593,7 +593,7 @@ def fee_intervals(fee):
 
     if (fee < 0.0001):
         # category 1 --> 0
-        fee = ">0"
+        fee = "0"
     elif(fee >= 0.0001 and fee < 0.0002):
         # category 2 --> 0.0001
         fee = ">0.0001"
@@ -1062,40 +1062,39 @@ def plot(miner=1):
     # -------------------------------------------------------------------------
 
     # -------------------------- TX LATENCY - FEE PAID ----------------------------
-    # info = "plot/fee_latency"
-    # df_fl = df[['t_l', 't_f', 'B_ep']]
-    #
-    # df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
-    # # df_fl = df_fl.groupby(['date']).mean().reset_index()
-    #
-    # # g = sns.regplot(x="t_f", y="t_l",  data=df_fl, color="orange")
-    # # # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (sec)', ylim=(0, 6000), xlim=(0, 1))
-    #
-    # # group by date
-    # df_fl = epoch_date_yy(df_fl)
-    # del df_fl['B_ep']
-    #
-    # # categorize the fee
-    # df_fl['fee_category'] = df_fl['t_f'].apply(fee_more_intervals)
-    #
-    # df_sizes = df_fl.groupby(['date', 'fee_category']).size().to_frame('size').reset_index()
-    # print df_sizes
-    #
-    # df_fl = df_fl.groupby(['date', 'fee_category']).mean().reset_index()
-    # print df_fl
-    #
-    # # df_fl = df_fl.groupby('fee_category').mean().reset_index()
-    #
-    # df_fl['size'] = df_sizes['size']
-    # df_fl['t_l'] = df_fl['t_l'].apply(sec_hours)
-    # print df_fl
-    #
-    # g = sns.pointplot(x="fee_category", y="t_l", data=df_fl, hue='date')
-    # g.set_xticklabels(g.get_xticklabels(), rotation=50)
-    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (h)')
-    # sns.plt.ylim(0, )
+    info = "plot/fee_latency"
+    df_fl = df[['t_l', 't_f', 'B_ep']]
+    # df_fl = df_fl.groupby(['date']).mean().reset_index()
+    df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
+    # g = sns.regplot(x="t_f", y="t_l",  data=df_fl, color="orange")
+    # # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (sec)', ylim=(0, 6000), xlim=(0, 1))
 
+    # group by date
+    df_fl = epoch_date_yy(df_fl)
+    del df_fl['B_ep']
+
+    # categorize the fee
+    df_fl['fee_category'] = df_fl['t_f'].apply(fee_more_intervals)
+
+    df_sizes = df_fl.groupby(['date', 'fee_category']).size().to_frame('size').reset_index()
+    print df_sizes
+
+    df_fl = df_fl.groupby(['date', 'fee_category']).median().reset_index()
+    print df_fl
+
+    # df_fl = df_fl.groupby('fee_category').mean().reset_index()
+
+    df_fl['size'] = df_sizes['size']
+    df_fl['t_l'] = df_fl['t_l'].apply(sec_hours)
+    print df_fl
+
+    sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+
+    g = sns.pointplot(x="fee_category", y="t_l", data=df_fl, hue='date')
+    g.set_xticklabels(g.get_xticklabels(), rotation=50)
+    g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (h)')
+    sns.plt.ylim(0, )
     # -----------------------------------------------------------------------------
 
     # -------------------- % OF ZERO FEE TX FOR EACH MINER FROM MONTH TO MONTH ------------------------
@@ -1315,10 +1314,9 @@ def plot(miner=1):
     # ax.set_ylim(0, 100)
     # ax.set_ylabel("%")
     #
-    # writer = pd.ExcelWriter('tables/' + info + '.xlsx')
-    # new_df.to_excel(writer, 'Sheet1')
-    # writer.save()
-
+    # # writer = pd.ExcelWriter('tables/' + info + '.xlsx')
+    # # new_df.to_excel(writer, 'Sheet1')
+    # # writer.save()
     # ---------------------------------------------------------------------------
 
 
@@ -1361,7 +1359,7 @@ def plot(miner=1):
     # df_thr['thr'] = df_thr['size'] / df_thr['B_T']
     #
     # print df_thr
-    # ax = df_thr.plot(x='date', y ='thr', color='orange', label='throughput $\gamma$')
+    # ax = df_thr.plot(x='date', y ='thr', color='orange', label='throughput $\gamma$', rot=45)
     #
     # # lines, labels = ax.get_legend_handles_labels()
     # # ax.legend(lines[:2], labels[:2], loc='best')
@@ -1444,7 +1442,7 @@ def plot(miner=1):
     # df_distr = df_distr.groupby(['t_f', 'date']).size().to_frame('size').reset_index()
     # # df_grouped.plot(data=df_grouped, x ='date', y='size', kind='area')
     #
-    # df_0 = df_distr[df_distr.t_f == ">0"]
+    # df_0 = df_distr[df_distr.t_f == "0"]
     # df_1 = df_distr[df_distr.t_f == ">0.0001"]
     # df_2 = df_distr[df_distr.t_f == ">0.0002"]
     # df_3 = df_distr[df_distr.t_f == ">0.0005"]
@@ -1454,7 +1452,7 @@ def plot(miner=1):
     #
     # # create a new dataframe having as columns the different t_f
     # new_df = pd.DataFrame.from_items(
-    #     [('>0 (BTC)', df_0['size'].values), ('>0.0001', df_1['size'].values), ('>0.0002', df_2['size'].values), ('>0.0005', df_3['size'].values), ('>0.001', df_4['size'].values),
+    #     [('0 (BTC)', df_0['size'].values), ('>0.0001', df_1['size'].values), ('>0.0002', df_2['size'].values), ('>0.0005', df_3['size'].values), ('>0.001', df_4['size'].values),
     #      ('>0.01', df_5['size'].values), ('date', df_0['date'].values)])
     #
     # dates = new_df['date'].values
@@ -1474,7 +1472,6 @@ def plot(miner=1):
     # ax = percent.plot.area(x = 'date')
     # ax.set_ylim(0, 100)
     # ax.set_ylabel("%")
-
     # ---------------------------------------------------------------------------------------------
 
 
@@ -1553,59 +1550,77 @@ def plot(miner=1):
     # del dftl['B_ep']
     #
     # dftl['t_l'] = dftl['t_l'].apply(sec_hours)
-    #
     # dftl = dftl.groupby(['B_mi', 'date']).median().reset_index()
-    #
     # print dftl
     #
+    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.8})
     # g = sns.pointplot(x="date", y="t_l", data=dftl, hue='B_mi')
-    # g.set_xticklabels(g.get_xticklabels(), rotation=60)
-    # g.set(xlabel='date', ylabel=r'$t_l$ (h)')
+    # # reduce number of labels to show
+    # ticklabels = g.get_xticklabels()
+    # new_ticklabels = []
+    # i = 0
+    # print ticklabels
+    # for el in ticklabels:
+    #     if (i == 0):
+    #         i = 8
+    #     else:
+    #         el = ""
+    #         i -= 1
+    #     print el
+    #     new_ticklabels.append(el)
+    # g.set_xticklabels(rotation=45)
+    # g.set(xlabel='date', ylabel=r'$t_l$ (h)', xticklabels=new_ticklabels)
     # sns.plt.ylim(0, )
-
     # -------------------------------------------------------------------------------------
 
 
 
     # ------------------- RELATION BETWEEN < 10 MIN BLOCKS AND MINERS ---------------------
-    info = "plot/creation_time_miners"
-    df_new = df[['B_ep', 'B_mi', 'B_T']]
-
-    df_new = df_new.groupby(['B_ep', 'B_mi']).mean().reset_index()
-    miners = df_new['B_mi'].values
-    del df_new['B_ep']
-
-    df_new['B_T'] = df_new['B_T'].apply(sec_minutes)
-    # divide miners in IP and mining pool
-    # true / false list for adding the ip address or mining pool
-    truefalse_list = []
-    # match the string with re
-    for mi in miners:
-        pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-        if (pattern.match(str(mi))):
-            truefalse_list.append('Occasional miner')
-        else:
-            truefalse_list.append('Mining pool')
-
-    df_new['Miner'] = truefalse_list
-
-    del df_new['B_mi']
-
-    breaks = [0, 8, 15, 20, 50, pd.np.inf]
-    diff = np.diff(breaks).tolist()
-    # make tuples of *breaks* and length of intervals
-    joint = list(zip(breaks, diff))
-    # format label
-    s1 = "{left:,.0f} to {right:,.0f}"
-    labels = [s1.format(left=yr[0], right=yr[0] + yr[1] - 1) for yr in joint]
-    df_new['minutes'] = pd.cut(df_new['B_T'],breaks, labels=labels, right=False)
-    print df_new
-    df_new.loc[df_new['minutes'] == 'NaN', 'minutes'] = '0 to 7'
-    del df_new['B_T']
-    df_new = df_new.groupby(['minutes', 'Miner']).size().to_frame('blocks').reset_index()
-    print df_new
-
-    g = sns.factorplot(x='minutes', y='blocks', hue='Miner', data=df_new, kind="bar", legend_out = False, color='orange')
+    # info = "plot/creation_time_miners"
+    # df_new = df[['B_ep', 'B_mi', 'B_T']]
+    #
+    # df_new = df_new.groupby(['B_ep', 'B_mi']).mean().reset_index()
+    #
+    # df_new = epoch_date_yy(df_new)
+    # df_new = df_new[df_new['date'] > '2015']
+    # del df_new['date']
+    # del df_new['B_ep']
+    #
+    # miners = df_new['B_mi'].values
+    #
+    #
+    # df_new['B_T'] = df_new['B_T'].apply(sec_minutes)
+    # # divide miners in IP and mining pool
+    # # true / false list for adding the ip address or mining pool
+    # truefalse_list = []
+    # # match the string with re
+    # for mi in miners:
+    #     pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    #     if (pattern.match(str(mi))):
+    #         truefalse_list.append('Occasional miner')
+    #     else:
+    #         truefalse_list.append('Mining pool')
+    #
+    # df_new['Miner'] = truefalse_list
+    #
+    # del df_new['B_mi']
+    #
+    # breaks = [0, 8, 15, 20, 50, pd.np.inf]
+    # diff = np.diff(breaks).tolist()
+    # # make tuples of *breaks* and length of intervals
+    # joint = list(zip(breaks, diff))
+    # # format label
+    # s1 = "{left:,.0f} to {right:,.0f}"
+    # labels = [s1.format(left=yr[0], right=yr[0] + yr[1] - 1) for yr in joint]
+    # df_new['minutes'] = pd.cut(df_new['B_T'],breaks, labels=labels, right=False)
+    # print df_new
+    # df_new.loc[df_new['minutes'] == 'NaN', 'minutes'] = '0 to 7'
+    # del df_new['B_T']
+    # df_new = df_new.groupby(['minutes', 'Miner']).size().to_frame('blocks').reset_index()
+    # print df_new
+    #
+    # g = sns.factorplot(x='minutes', y='blocks', hue='Miner', data=df_new, kind="bar", legend_out = False, color='orange')
+    # g.fig.suptitle('From 2016 to 2017')
     # -------------------------------------------------------------------------------------
 
 
@@ -1854,16 +1869,15 @@ def plot(miner=1):
     # info = "plot/transaction_size"
     #
     # df_tq = df[['B_ep', 't_q']]
-    # df_tq = epoch_date_mm(df_tq)
+    # df_tq = epoch_date_dd(df_tq)
     # del df_tq['B_ep']
     #
     # df_tq = df_tq.groupby('date').mean().reset_index()
     # print df_tq
     #
-    # ax = df_tq.plot(x = 'date', y='t_q', color = 'orange')
+    # ax = df_tq.plot(x = 'date', y='t_q', color = 'orange', rot=45)
     # ax.set_xlabel("date")
     # ax.set_ylabel("$t_q$ (byte)")
-
     # --------------------------------------------
 
     # -------- MARKET SHARE OF MINERS x TRANSACTION

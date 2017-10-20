@@ -61,6 +61,8 @@
 \definecolor{BitFury}{rgb}{1, 0.627451, 0.478431}	%lightsalmon
 \definecolor{BW.COM}{rgb}{0.737255, 0.560784, 0.560784} %rosybrown
 \definecolor{SlushPool}{rgb}{0.443137, 0.776471, 0.443137} %sgichartreuse
+\definecolor{coral}{rgb}{1, 0.498039, 0.313725}
+\definecolor{lightyellow}{rgb}{0.980392, 0.980392, 0.823529}
 
 \newcommand{\listdefinitionname}{My list of definitions}
 \newlistof{definition}{def}{\listdefinitionname}
@@ -1095,7 +1097,7 @@ defines a maximum block size $Q$.
 Because of that, the marginal cost of inclusion is zero if there are
 fewer unconfirmed transactions than the capacity left in the block.
 Competitive miners make positive expected profits only if transactions
-compete for space in the blockchain. Houy\,\cite{RePEc:gat:wpaper:1407}
+compete for space in the blockchain. Houy\,\cite{houy2014EOBTF}
 argues that a maximum block size is necessary for the stability of Bitcoin.
 However in that way big mining pool might take advantage from less competition,
 having a centralization problem, since a transaction is willing to
@@ -1406,7 +1408,7 @@ For our analysis we select a time range from \#October~$2013$ to
 September~$2017$, considering more than $120$\,million of transactions
 and $100$\,thousands of blocks. Earlier than $2013$, analysis
 on the system were already performed and
-evaluated\,\cite{croman2016, RePEc:gat:wpaper:1407,
+evaluated\,\cite{croman2016, houy2014EOBTF,
 	Moser2015, Rizun:2015:blocksizelimit}
 plus the popularity of the system before
 $2011$ was low and interpreting this early data would
@@ -1812,9 +1814,12 @@ analytic system outlined in Chapter~\ref{chap:expsetup}.
 To evaluate and discuss our problem definition in Chapter~\ref{sec:probdefinition},
 we focus on considerations related to performance,
 scalability, fees and tolls.
-A large number of test has been evaluated, more than $100$ million
+To answer our questions and focus on the problems and possible soultions
+a large number of test has been evaluated, more than $100$ million
 of transactions over $100$ thousands blocks were collected, stored
-and analyzed. We state that %TODO: FINISH STATEMENT ACCORDING TO RESULTS
+and analyzed. Graphs and relations between attributes which mine to
+verify our assumptions in Table~\ref{tab:assumptions}
+are represented and discussed. We state that %TODO: FINISH STATEMENT ACCORDING TO RESULTS
 
 %TODO: put the following also in the abstract and in the introduction
 %TODO: we show that ... events happening on the bitcoin blockchain might influence fee, tolls and the way blocks choose transactions
@@ -1831,8 +1836,6 @@ and analyzed. We state that %TODO: FINISH STATEMENT ACCORDING TO RESULTS
 
 
 %TODO: The Bitcoin price has been affected of an high volatility. For that reason, predicting the fee in \gls{usd} that a client might pay is difficult and it might change from the Bitcoin price. According to \emph{Coindesk.com}.... show the bitcoin price!
-
-%TODO: Block size limit can set the number of transactions the network can confirm per block, so the throughput of the whole Bitcoin network.
 
 %TODO: In our longitudinal plot each data point visualizes aggregated data of \# blocks.
 
@@ -1960,7 +1963,8 @@ system's strength, this scalability issue
 might result a centralization problem in the long run,
 excluding small miners from the system and letting
 only the biggest mining pools to have informations
-about the whole blockchain.
+about the whole blockchain. Bitcoin is only useful if it is decentralized because
+centralization requires trust. Bitcoins value proposition is trustlessness.
 \begin{table}
 	\centering
 	\caption{Mining power distribution in a scenario from $2016$ until $2017$,
@@ -2043,6 +2047,7 @@ about the whole blockchain.
 		\hline
 	\end{tabular}
 \end{table}
+
 \subsection{Unconfirmed Transactions}
 \label{sec:unconfirmedtxs}
 Another relevant concern about scalability in blockchains
@@ -2074,8 +2079,10 @@ capacity since April~$2016$, as Figure~\ref{fig:block_size} shows.
 Because of this scaling limitation, transactions might be willing
 to pay more fee in order to get accepted in miner's mempools.
 To improve the number of transactions that can be
-accepted from the system per second we consider
-an eventual change in $\mathcal{T}$, $Q$ and $t_q$.
+accepted per second by the system, we consider
+an eventual change of $\mathcal{T}$ and $Q$, since
+we analyzed that the average $t_q$ is constant and equal to
+$500$\,bytes for the whole period of testing.
 We have to consider though, that even if is possible
 to improve the number of transactions that could be
 accepted from the system every second, it will be anyway
@@ -2098,7 +2105,7 @@ $\mathcal{T}$. Only in blocks with a creation time lower than $10$\,minutes
 the throughput reaches peaks of $10$-$14$\,txs/sec, while in
 cases from $10$ to $20$\,minutes of creation
 time, the throughput is in between
-$4$-$2$\,txs/sec and in blocks where the $\mathcal{T}$ is
+$2$-$4$\,txs/sec and in blocks where the $\mathcal{T}$ is
 higher than $20$\,minutes, throughput never reaches
 $2$\,txs/sec.
 
@@ -2107,20 +2114,140 @@ it is true that $t_l$ tends to grow with the growing
 of $\mathcal{T}$ but this is verified
 only if $\mathcal{T} \geq 10$\,minutes. If the block is mined
 before that time then we don't have any relation between
-transaction latency and block creation time. %TODO: Continue after the creation_time_miners plot has been generated, to see if occasional miners tend to mine quicker when they mange to do so
+transaction latency and block creation time.
+We suspected that this uncertain relation regarding
+blocks mined before $10$\,minutes might be
+somehow connected with who mined that particular block.
+While mining pools may have different criterion (higher transaction
+fee) while appending transactions to be mined,
+occasional miners might have none, or less. This is the reason why
+the $t_l$ might be so random if $t$ is mined by some occasional miner,
+since transactions were not selected
+according to any criterion, so a transaction $t$ who didn't offer any fee
+and is waiting to be approved since longer time, might be included
+by some occasional miner if it luckily wins the proof-of-work before
+the $10$\,minutes time. After some tests, we show the results in
+Figure~\ref{fig:creation_time_miners}. As suspected, for $0 \leq \mathcal{T} \leq 7$,
+the occasional miners take the $21.3\%$ of mining share, while in the
+other portions they never reach the $18\%$ of the total blocks mined.
 
-First consideration regards the block
-size. We study
+In conclusion, an increment of $\mathcal{T}$ is very ill-judged, while should
+be considered a decrement of it, acknowledging according to
+Equation~\ref{eq:orphaning}, that an increased bandwidth
+for a better inter-node communication is needed, otherwise we
+might have an exponential growth on $\mathbb{P}_{orphan}$.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/creation_time_miners}
+	\caption{Relation between the creation time $\mathcal{T}$ and number of block mined according to miner's category.}
+	\label{fig:creation_time_miners}
+\end{figure}
 
 \subsubsection{Block Size $Q$}
 %TODO: talk about the Rizun paper, how we tested the optimal block size limit and discuss the causes that might bring to an increase or not to a block size.
+If the creation time $\mathcal{T}$ tends to have a fixed value, is obvious that
+$Q$ plays a big role in throughput limitations. Discussions whether increase
+or not the block size limit are still ongoing and this issue has been discussed
+in several papers\,\cite{Rizun:2015:blocksizelimit, houy2014EOBTF}. Increasing
+the block size limit leads to a bigger amount of transactions that could
+be accepted every block creation time, so we may think that
+this could be the right solution to adopt
+according to increase system's performance.
+Anyway there is a big controversy on this topic, and even the
+biggest entities in Bitcoin system don't agree to a solution.
+Some such as CoinBase, Blockchain.info or BTC Guild, think is
+good to increase the block size, some others like F2Pool or Ethereum
+are neutral and other entities, for example GreenAddress, Bitrated or
+Bitcoinpaygate, think that this is just pushing the problem a little
+further and is not a good solution.
+In our assumptions we also state that transaction fee
+$t_f$ may decrease with an increment of the block size
+limit since transactions don't have to compete anymore for
+space in the block. So a small block size will require higher
+fees for fast confirmation, which will bring the
+following pros ($+$) and cons ($-$)\,\cite{blocksizecontroversy}:%TODO: RELATION WITH FEE DENSITY AND FEE PAID (TWO AREA GRAPHS AND Q GRAPH)
+\begin{itemize}
+	\item [$+$] It will no longer be cheap to spam transactions such as Satoshi Dice bets\,\cite{satoshidice}.
+	\item [$+$] Fees will not be zero. This is eventually a necessity in order to incentivize miners and secure the mining ecosystem.
+	\item [$-$] Bitcoin may look unattractive to new users with high fees.
+	\item [$-$] Users pay higher fees.
+\end{itemize}
+We tested that not only the $t_f$ is related
+with the increment of the block
+size limit, but thanks to our evaluations showed in
+Figures~\ref{fig:txs_fee_distribution}-\ref{fig:txs_feedensity_distribution},
+we can state that from when the blockchain started
+to become saturated in mid $2016$~(Figure~\ref{fig:block_size}),
+$t_f$ but also the fee density $\rho$ had a big increment, sign
+that the blockchain needs an urgent change according to
+avoid scalability problems.
+Increasing the block size limit is one of those possible solutions,
+but we have to consider that it might be good
+for users but also bad for miners.
+The cost for mining bigger blocks is higher, so receiving
+no more fees from users would be costly effective
+and may leads to a centralization problem, since
+larger blocks make full nodes more expensive to
+operate, having then less hashers running full nodes.
+If we consider now the statement that block size
+limit should be increased, these are the
+arguments against it:
+\begin{itemize}
+	\item Orphan rate amplification.
+	\item Damage to centralization.
+	\item "Congestion" concerns can be solved with mempool improvements including transaction eviction.
+	\item No amount of max block size would support all the world's future transactions on the main blockchain (various types of off-chain transactions are the only long-term solution).
+\end{itemize}
+In conclusion, even if we think that an immediate increment of the block size
+is not the final solution to the scalability problem, we believe that
+an immediate and temporary solution should be considered to
+avoid network congestion, too high $t_l$ and drastic increment of $t_f$.
+This temporary solution
+might be the block size limit increment, especially if
+big mining pool such as F2Pool claim that they could support
+a maximum block size of $20$\,MB\,\cite{blocksizecontroversy}.
+%TODO: Check the transaction size during time
 
 \section{Performance}
 \label{sec:performance}
+Together with scalability, performance is one of our
+main study subject on Bitcoin blockchain and we can
+say that it is highly related with scalability. Indeed in
+Chapter~\ref{sec:unconfirmedtxs} we already
+talked about throughput $\gamma$ and how it is
+related with the block size $Q$ and block creation time
+$\mathcal{T}$. We want to focus now on Bitcoin network
+performance from both, user side ($t_l$)
+and system side ($\gamma$). Moreover,
+our target by studying
+transaction latency $t_l$ is to verify our assumptions
+whether there is any relation between $t_f$ and $t_l$
+during the whole period analyzed. These tests are
+strictly related with the fees and tolls problems
+(Chapter~\ref{sec:feesandtolls}) and are important
+to make users aware whether is possible
+to pay for bandwidth in Bitcoin system and
+if yes, how to optimize their fee according to get
+faster $t_l$ for a relatively low price $t_f$.
 
 \subsection{Throughput}
 \label{sec:throughput}
-%TODO: Throughput vary according to $Q$ and $\mathcal{T}$.
+As we state in Chapter~\ref{sec:unconfirmedtxs}, $\gamma$
+is highly dependent from $Q$ and $t_q$, but also related
+to $\mathcal{T}$. Block size limit can set the
+number of transactions the network can confirm
+per block, so the throughput of the whole Bitcoin
+network. In Figure~\ref{fig:throughput} we show how
+throughput changed during years. We want to clarify that
+in $2013$ the system wasn't less performing, there were just less
+transactions to process, roughly $50$ thousands per day and
+only when the blocks started to get saturated in mid $2016$, then
+the system began to use its maximum throughput capacity of
+$\sim$$3$-$4$\,txs/sec. If compared with centralized trust-oriented
+system, throughput is extremely low. We said that circuit like
+VISA or Master Card could approve $2000$ transactions per
+second which is still unthinkable for blockchain distributed
+systems.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=1\textwidth]{img/throughput}
@@ -2134,13 +2261,27 @@ size. We study
 \section{Fees and Tolls}
 \label{sec:feesandtolls}
 %TODO: Proved that from 2013 to 2017 the $t_l$ is more dependent from the $t_f$ 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/txs_fee_distribution}
+	\caption{Transaction fee ($t_f$) distribution during the years from
+		$2013$ until $2017$.}
+	\label{fig:txs_fee_distribution}
+\end{figure}
+%TODO: Fee density and fee are directly connected, since the transaction size $t_q$ had always an average of $500$\,bytes. At the end of $2017$ eve if we have some fees with 0\bitcoin, the fee density is higher than 0, which means that recently, miners might have changed from constraints on fees to constraints on fee density.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/txs_feedensity_distribution}
+	\caption{Fee density ($\rho$) distribution during the years from
+		$2013$ until $2017$.}
+	\label{fig:txs_feedensity_distribution}
+\end{figure}
 
 \subsection{Miners' Profit}
 \label{sec:minersprofit}
 
 \subsection{Clients' Profit}
 \label{sec:clientprofit}
-
 
 %\section{Blockchain Growth}
 %\label{sec:blockchain_growth}
@@ -2588,7 +2729,7 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 \cite{tradeblock}, \cite{ethereum_website}, \cite{Larman:2004:AUP},
 \cite{Aho:1992:FCS}, \cite{matplotlib}, \cite{croman2016}, \cite{DBLP:journals/corr/EyalGSR15},
 \cite{Hildebrand:1987:INA}, \cite{mining_hw}, \cite{hashing_rate}, \cite{bitnodes}, \cite{Rizun:2015:blocksizelimit}
-\cite{linearize}, \cite{Tedeschi:2016:PBB}, \cite{Donnelly2015BNSB}, \cite{RePEc:gat:wpaper:1407},
+\cite{linearize}, \cite{Tedeschi:2016:PBB}, \cite{Donnelly2015BNSB}, \cite{houy2014EOBTF},
 \cite{visa}, \cite{DBLP:journals/corr/BartolettiBLP17}, \cite{Moser2015}, \cite{pandas}, \cite{michael_waskom_seaborn}.
 
 
