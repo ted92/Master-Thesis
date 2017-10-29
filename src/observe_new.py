@@ -97,7 +97,7 @@ b = BtcConverter()
 
 global latest_price
 # latest_price = b.get_latest_price('USD')
-latest_price = 2000.0
+latest_price = 5200.00
 
 # --------------------
 
@@ -547,16 +547,88 @@ def epoch_date_yy(df):
     return df
 
 
+def reward_intervals(h):
+    """
+
+    :param h: height of a blovk
+    :return: r reward of the block at height h
+    """
+    if(int(h) < 210000):
+        r = 50
+    elif(int(h) >= 210000 and int(h) < 420000):
+        r = 25
+    elif(int(h) >= 420000 and int(h) < 840000):
+        r = 12.5
+
+    return r
+
+
+def block_creation_time_intervals(t):
+    """
+
+    :param t: block creation time in minutes
+    :return:
+    """
+    if(t <= 0):
+        t = "0"
+    elif(t > 0 and t < 2):
+        t = "<02"
+    elif(t >= 2 and t < 4):
+        t = "<04"
+    elif(t >= 4 and t < 5):
+        t = "<05"
+    elif(t >= 5 and t < 8):
+        t = "<08"
+    elif(t >= 8 and t < 10):
+        t = "<10"
+    elif(t >= 10 and t < 12):
+        t = "<12"
+    elif(t >= 12 and t < 15):
+        t = "<15"
+    elif(t >= 15 and t < 20):
+        t = "<20"
+    elif(t >= 20 and t < 40):
+        t = "<40"
+    else:
+        t = ">40"
+    return t
+
+def block_size_intervals(q):
+    """
+
+    :param q: block size
+    :return: string with its interval
+    """
+    if(q <= 0):
+        q = "0"
+    elif (q > 0.0 and q < 0.003):
+        q = "<0.003"
+    elif (q >= 0.003 and q < 0.05):
+        q = "<0.05"
+    elif (q >= 0.05 and q < 0.1):
+        q = "<0.1"
+    elif (q >= 0.1 and q < 0.3):
+        q = "<0.3"
+    elif (q >= 0.3 and q < 0.5):
+        q = "<0.5"
+    elif (q >= 0.5 and q < 0.8):
+        q = "<0.8"
+    elif (q >= 0.8 and q < 1):
+        q = "<1"
+    else:
+        q = ">1"
+    return q
+
 def fee_more_intervals(fee):
     """
 
     :param fee:
     :return:
     """
-    if (fee <= 0.0):
+    if (fee <= 0.0001):
         # category 1 --> 0
         fee = "0"
-    elif (fee > 0.0 and fee < 0.0002):
+    elif (fee > 0.0001 and fee < 0.0002):
         # category 2 --> 0.0001
         fee = "<0.0002"
     elif (fee >= 0.0002 and fee < 0.0004):
@@ -777,7 +849,7 @@ def plot(miner=1):
     regression.append(37)
     regression.append(2)
     new_x, new_y, f = polynomial_interpolation(r"$f^{36}_{\langle \Pi \rangle}(\mathcal{T})$", creation_time_list, profit_list, regression[1])
-    plt.plot(new_x, new_y, "r-", label=r"$f^{36}_{\langle \Pi \rangle}(\mathcal{T})$", lw=3)
+    plt.plot(new_x, new_y, "r-", label=r"$f^{36}_{\langle \Pi \rangle}(\mathcal{T})$", lw=2)
     
     # -------------
     #axes.set_ylim([0, 0.00007])
@@ -1045,64 +1117,431 @@ def plot(miner=1):
     # print val
     # ========
 
+    # ------------------------- COMPARISON R (REWARD) AND M (FEE) -----------------------------
+    # info = "plot/reward_fee"
+    # new_df = df[['B_he', 't_f', 'B_ep']]
+    # new_df = new_df.groupby(['B_ep', 'B_he']).sum().reset_index()
+    # new_df = epoch_date_dd(new_df)
+    # del new_df["B_ep"]
+    # new_df['reward'] = new_df['B_he'].apply(reward_intervals)
+    # del new_df['B_he']
+    # new_df = new_df.groupby('date').sum().reset_index()
+    # new_df['t_f'] = new_df['t_f'].apply(satoshi_bitcoin)
+    # print new_df
+    #
+    # axes.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    # plt.plot_date(new_df['date'].values, new_df['t_f'], "-b", label="$M$", lw=2)
+    # plt.plot_date(new_df['date'].values, new_df['reward'].values, "-g", label="$R$", lw=2)
+    # font = {'family': 'normal',
+    #         'weight': 'bold',
+    #         'size': 18}
+    # # axes.set_ylim([0, 26])
+    # matplotlib.rc('font', **font)
+    # plt.xticks(rotation=45)
+    # plt.legend(loc="best")
+    # plt.xlabel("date")
+    # plt.ylabel("BTC")
+    # -----------------------------------------------------------------------------------------
+
+
+    # ------------------------------ MINER'S PROFIT WITH MORE MINERS --------------------------
+    # info = "plot/profit_multiple miners"
+    # miner = 3
+    # new_df = df[['B_ep', 't_f', 'B_T']]
+    # new_df = new_df.groupby(['B_ep', 'B_T']).sum().reset_index()
+    # new_df['t_f'] = new_df['t_f'].apply(satoshi_bitcoin)
+    #
+    # epoch = new_df['B_ep'].values
+    #
+    # # ----- create arrays to determine the BTC price for each epoch
+    # btc_usd = get_json_request("https://api.blockchain.info/charts/market-price?timespan=all&format=json")
+    # values = btc_usd['values']
+    # y = []  # BTC price in USD
+    # x = []  # epoch
+    # for el in values:
+    #     y.append(el['y'])
+    #     x.append(el['x'])
+    # # create array containing x and y coordinates of the BTC-USD price
+    # y = np.asarray(y)
+    # x = np.asarray(x)
+    # epoch[:] = [int(el) for el in epoch]
+    # usd_array = []  # array with value in USD according to epoch
+    # for ep in epoch:
+    #     index = find_nearest(x, ep)
+    #     usd_array.append(y[index])
+    # new_df['btc_price'] = usd_array
+    #
+    # hashing_rate = get_json_request("https://api.blockchain.info/charts/hash-rate?timespan=all&format=json")
+    # values = hashing_rate['values']
+    # y = []  # BTC price in USD
+    # x = []  # epoch
+    # for el in values:
+    #     y.append(el['y'])
+    #     x.append(el['x'])
+    # # create array containing x and y coordinates of the BTC-USD price
+    # y = np.asarray(y)
+    # x = np.asarray(x)
+    # epoch[:] = [int(el) for el in epoch]
+    # hashing_rate_array = []  # array with value in USD according to epoch
+    # for ep in epoch:
+    #     index = find_nearest(x, ep)
+    #     hashing_rate_array.append(y[index])
+    #
+    # hashing_rate_array[:] = [int(el) for el in hashing_rate_array]
+    # hashing_rate_array[:] = [el * 1000000000000 for el in hashing_rate_array]
+    # new_df['hashing_rate'] = hashing_rate_array
+    #
+    # creation_time = new_df['B_T'].values
+    # fee = new_df['t_f'].values
+    # prices = new_df['btc_price'].values
+    # hashing_rate = new_df['hashing_rate'].values
+    #
+    # # calculate the profit considering more miners working together
+    # number_of_miners = [1, 50, 100, 500]
+    #
+    # for el in number_of_miners:
+    #     profits = []
+    #     revenues = []
+    #     costs = []
+    #
+    #     # calculate profits revenue and costs
+    #     for f, t, p, h in zip(fee, creation_time, prices, hashing_rate):
+    #         if(t <= 0):
+    #             t = 0.001
+    #         profit, revenue, cost = calculate_profit(f, t, p, h, miner, el)
+    #         profits.append(profit)
+    #         revenues.append(revenue)
+    #         costs.append(cost)
+    #
+    #     new_df['profit' + str(el)] = profits
+    #     # new_df['revenue' + str(el)] = revenues
+    #     # new_df['cost'+ str(el)] = costs
+    #
+    # new_df['B_T'] = new_df['B_T'].apply(sec_minutes)
+    # print new_df
+    #
+    # new_df['B_T'] = new_df['B_T'].apply(block_creation_time_intervals)
+    #
+    # new_df = new_df.groupby('B_T').median().reset_index()
+    # del new_df['B_ep']
+    # del new_df['btc_price']
+    # del new_df['hashing_rate']
+    # del new_df['t_f']
+    #
+    # profit_array = []
+    # new_creation_time_categories = []
+    # numb_miners = []
+    # creation_time_categories = new_df['B_T'].values
+    # for el in number_of_miners:
+    #     profit_array.extend(new_df['profit'+str(el)].values)
+    #     new_creation_time_categories.extend(creation_time_categories)
+    #     del new_df['profit'+str(el)]
+    #     for cat in creation_time_categories:
+    #         numb_miners.append(el)
+    #
+    # new_df = pd.DataFrame.from_items(
+    #     [('B_T', new_creation_time_categories), ('profit', profit_array), ('number of miners', numb_miners)])
+    #
+    # print new_df
+    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+    # g = sns.pointplot(x="B_T", y="profit", data=new_df, hue='number of miners')
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(ylabel=r'$\langle \Pi \rangle$ (BTC)')
+    # sns.plt.ylim(0, )
+    # -----------------------------------------------------------------------------------------
+
+    # ---------------------------- MINER'S PROFIT WITH AntMiner S9 ----------------------------
+    # info = "plot/profit_creation_time"
+    # info1 = "plot/cost_creation_time"
+    # info2 = "plot/revenue_creation_time"
+    # miner = 3 # AntMiner S9
+    #
+    # new_df = df[['B_ep', 't_f', 'B_T']]
+    # new_df = new_df.groupby(['B_ep', 'B_T']).sum().reset_index()
+    # new_df['t_f'] = new_df['t_f'].apply(satoshi_bitcoin)
+    #
+    # new_df = epoch_date_yy(new_df)
+    # new_df = new_df[new_df.date != '2013']
+    # new_df = new_df[new_df.date != '2014']
+    #
+    # epoch = new_df['B_ep'].values
+    #
+    # # ----- create arrays to determine the BTC price for each epoch
+    # btc_usd = get_json_request("https://api.blockchain.info/charts/market-price?timespan=all&format=json")
+    # values = btc_usd['values']
+    # y = []  # BTC price in USD
+    # x = []  # epoch
+    # for el in values:
+    #     y.append(el['y'])
+    #     x.append(el['x'])
+    # # create array containing x and y coordinates of the BTC-USD price
+    # y = np.asarray(y)
+    # x = np.asarray(x)
+    # epoch[:] = [int(el) for el in epoch]
+    # usd_array = []  # array with value in USD according to epoch
+    # for ep in epoch:
+    #     index = find_nearest(x, ep)
+    #     usd_array.append(y[index])
+    # new_df['btc_price'] = usd_array
+    #
+    #
+    # hashing_rate = get_json_request("https://api.blockchain.info/charts/hash-rate?timespan=all&format=json")
+    # values = hashing_rate['values']
+    # y = []  # BTC price in USD
+    # x = []  # epoch
+    # for el in values:
+    #     y.append(el['y'])
+    #     x.append(el['x'])
+    # # create array containing x and y coordinates of the BTC-USD price
+    # y = np.asarray(y)
+    # x = np.asarray(x)
+    # epoch[:] = [int(el) for el in epoch]
+    # hashing_rate_array = []  # array with value in USD according to epoch
+    # for ep in epoch:
+    #     index = find_nearest(x, ep)
+    #     hashing_rate_array.append(y[index])
+    #
+    # hashing_rate_array[:] = [int(el) for el in hashing_rate_array]
+    # hashing_rate_array[:] = [el * 1000000000000 for el in hashing_rate_array]
+    # new_df['hashing_rate'] = hashing_rate_array
+    #
+    # creation_time = new_df['B_T'].values
+    # fee = new_df['t_f'].values
+    # prices = new_df['btc_price'].values
+    # hashing_rate = new_df['hashing_rate'].values
+    #
+    # profits = []
+    # revenues = []
+    # costs = []
+    #
+    # # calculate profits revenue and costs
+    # for f, t, p, h in zip(fee, creation_time, prices, hashing_rate):
+    #     if(t <= 0):
+    #         t = 600
+    #     profit, revenue, cost = calculate_profit(f, t, p, h, miner=3)
+    #     profits.append(profit)
+    #     revenues.append(revenue)
+    #     costs.append(cost)
+    #
+    # new_df['profit'] = profits
+    # new_df['revenue'] = revenues
+    # new_df['cost'] = costs
+    #
+    # profits = []
+    # revenues = []
+    # costs = []
+    # # calculate also AntMiner U3 - the one with the lowest hashing rate
+    # for f, t, p, h in zip(fee, creation_time, prices, hashing_rate):
+    #     if(t <= 0):
+    #         t = 600
+    #     profit, revenue, cost = calculate_profit(f, t, p, h, miner=1, number_of_miners=10)
+    #     profits.append(profit)
+    #     revenues.append(revenue)
+    #     costs.append(cost)
+    #
+    # new_df['profitU3'] = profits
+    # new_df['revenueU3'] = revenues
+    # new_df['costU3'] = costs
+    #
+    #
+    #
+    # new_df['B_T'] = new_df['B_T'].apply(sec_minutes)
+    # print new_df
+    # ax1 = new_df.plot(x='B_T', y='cost', linestyle=' ', marker='o', color='red',
+    #                   label=r'$\langle C\rangle$ with AntMiner S9', markersize=2)
+    # ax1.set_xlabel("$\mathcal{T}(min)$")
+    # ax1.set_ylabel(r"Cost $\langle C\rangle$ (BTC)")
+    # ax1.set_xlim(0, 30)
+    # ax1.set_ylim(0, 0.0001)
+    # plt.savefig(info1, bbox_inches='tight', dpi=500)
+    #
+    # ax2 = new_df.plot(x='B_T', y='revenue', linestyle=' ', marker='o', color='green',
+    #                   label=r'$\langle V\rangle$ with AntMiner S9', markersize=2)
+    # ax2.set_xlabel("$\mathcal{T}(min)$")
+    # ax2.set_ylabel(r"Revenue $\langle V\rangle$ (BTC)")
+    # ax2.set_xlim(0, 30)
+    # ax2.set_ylim(0, 0.0001)
+    # plt.savefig(info2, bbox_inches='tight', dpi=500)
+    #
+    #
+    # ax = new_df.plot(x='B_T', y='profit',linestyle=' ',marker='o', color='orange',
+    #                  label=r'$\langle \Pi \rangle$ with AntMiner S9', markersize=2)
+    # ax.set_xlabel("$\mathcal{T}(min)$")
+    # ax.set_ylabel(r"Profit $\langle \Pi \rangle$ (BTC)")
+    # ax.set_xlim(0, 60)
+    # # ax.set_ylim(0, 0.0001)
+    # ax.set_ylim(0, 0.00022)
+    # # -- REGRESSION
+    # regression = []
+    # regression.append(r"$f_{\langle \Pi \rangle}(\mathcal{T})$")
+    # regression.append(38)
+    # regression.append(2)
+    # new_x, new_y, f = polynomial_interpolation(r"$f^{38}_{\langle \Pi \rangle}(\mathcal{T})$", new_df['B_T'].values,
+    #                                            new_df['profit'].values, regression[1])
+    # plt.plot(new_x, new_y, "r-", label=r"$f^{38}_{\langle \Pi \rangle}(\mathcal{T})$", lw=2)
+    #
+    # new_x, new_y, f = polynomial_interpolation(r"$f^{2}_{\langle \Pi \rangle}(\mathcal{T})$", new_df['B_T'].values,
+    #                                            new_df['profit'].values, regression[2])
+    # plt.plot(new_x, new_y, "g-", label=r"$f^{2}_{\langle \Pi \rangle}(\mathcal{T})$", lw=2)
+    #
+    # # regression with AntMinerU3
+    # new_x, new_y, f = polynomial_interpolation(r"$f^{2}_{\langle \Pi \rangle U3}(\mathcal{T})$", new_df['B_T'].values,
+    #                                            new_df['profitU3'].values, regression[2])
+    # plt.plot(new_x, new_y, "b-", label=r"$f^{2}_{\langle \Pi \rangle U3}(\mathcal{T})$", lw=2)
+    # # -------------
+    # -----------------------------------------------------------------------------------------
+
+    # ------------------------ ZERO FEE / MINING POOL - OCCASIONAL MINERS -------------------------
+    # info = "plot/zero_fee_category"
+    # new_df = df[['B_ep', 't_f', 'B_mi']]
+    # new_df = new_df[new_df.t_f == 0]
+    # new_df = epoch_date_mm(new_df)
+    #
+    # del new_df['B_ep']
+    # miners = new_df['B_mi'].values
+    # # true / false list for adding the ip address or mining pool
+    # truefalse_list = []
+    # # match the string with re
+    # for mi in miners:
+    #     pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    #     if (pattern.match(str(mi))):
+    #         truefalse_list.append('Occasional Miner')
+    #     else:
+    #         truefalse_list.append('Mining Pool')
+    #
+    # del new_df['B_mi']
+    # new_df['is_ip'] = truefalse_list
+    #
+    # df_total = new_df.groupby('date').size().to_frame('size').reset_index()
+    # total_size = df_total['size'].values
+    #
+    # new_df = new_df.groupby(['date', 'is_ip']).size().to_frame('size').reset_index()
+    # print new_df
+    #
+    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+    # g = sns.pointplot(x="date", y="size", data=new_df, hue='is_ip')
+    #
+    # # reduce number of labels to show
+    # ticklabels = g.get_xticklabels()
+    # new_ticklabels = []
+    # i = 0
+    # for el in ticklabels:
+    #     if (i == 0):
+    #         i = 8
+    #     else:
+    #         el = ""
+    #         i -= 1
+    #     new_ticklabels.append(el)
+    #
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='date', ylabel='0-fee transactions', xticklabels=new_ticklabels)
+    # sns.plt.ylim(0, )
+    # ---------------------------------------------------------------------------------------------
+
     # ------------------------ FEE OUTPUT, BTC IN CIRCULATION---------------------------
     # info = "plot/total_btc"
     # df_btc = df[['t_in', 'B_ep']]
     #
-    # df_btc = epoch_date_mm(df_btc)
+    # df_btc = epoch_date_dd(df_btc)
     # df_btc['t_in'] = df_btc['t_in'].apply(satoshi_bitcoin)
     # df_btc = df_btc.groupby('date').sum().reset_index()
+    # df_btc['t_in'] = df_btc['t_in'].apply(lambda x: x * 2)
     #
     # print df_btc
     # df_btc = df_btc.interpolate(method='cubic')
-    # ax = df_btc.plot(x='date', y='t_in')
+    # ax = df_btc.plot(x='date', y='t_in', label='total BTC in circulation')
     # ax.set_ylabel("money (BTC)")
-    # ax.set_ylim(0, 10000000)
-
     # -------------------------------------------------------------------------
 
+    # ----------------------- RELATION Q AND TX LATENCY ---------------------------
+    # info = "plot/blocksize_latency"
+    # # print block size and transaction latency relation
+    # new_df = df[['B_ep', 't_l', 'Q']]
+    # new_df = epoch_date_yy(new_df)
+    # del new_df['B_ep']
+    # new_df['Q'] = new_df['Q'].apply(byte_megabyte)
+    # new_df['q_category'] = new_df['Q'].apply(block_size_intervals)
+    #
+    # new_df = new_df.groupby(['date', 'q_category']).mean().reset_index()
+    # new_df = new_df[new_df.date != '2013']
+    # new_df['t_l'] = new_df['t_l'].apply(sec_hours)
+    #
+    # print new_df
+    #
+    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+    # g = sns.pointplot(x="q_category", y="t_l", data=new_df, hue='date')
+    #
+    #
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='$Q$ (MB)', ylabel='$t_l$ (h)')
+    # sns.plt.ylim(0, )
+    # -------------------------------------------------------------------------
+
+
+    # -------------------------------TX LATENCY/FEE PAID - MINER'S SIDE ---------------------------------
+    # year = '2013'
+    # info = "plot/fee_latency_miners_" + year
+    # # plot the top miners according their fee and latency in transactions to see which miners are more picky
+    # # while choosing transactions
+    # new_df = df[['t_l', 't_f', 'B_mi', 'B_ep']]
+    #
+    # # select by year:
+    # new_df = epoch_date_yy(new_df)
+    # del new_df['B_ep']
+    # new_df = new_df[new_df.date == year]
+    # print new_df
+    # del new_df['date']
+    #
+    # new_df = remove_minor_miners(new_df, 5)
+    # new_df['t_f'] = new_df['t_f'].apply(satoshi_bitcoin)
+    # new_df['fee_category'] = new_df['t_f'].apply(fee_more_intervals)
+    # new_df = new_df.groupby(['B_mi', 'fee_category']).median().reset_index()
+    # new_df['t_l'] = new_df['t_l'].apply(sec_hours)
+    # print new_df
+    #
+    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+    # g = sns.pointplot(x="fee_category", y="t_l", data=new_df, hue='B_mi')
+    #
+    # # # annotate
+    # # i = 0
+    # # for y in new_df["t_l"].values:
+    # #     g.annotate('a', xy=(i, y))
+    #
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (h)')
+    # sns.plt.ylim(0, )
+    # ---------------------------------------------------------------------------------------------------
+
+
     # -------------------------- TX LATENCY - FEE PAID ----------------------------
-    info = "plot/fee_latency"
-    df_fl = df[['t_l', 't_f', 'B_ep']]
-    # df_fl = df_fl.groupby(['date']).mean().reset_index()
-    df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
-    # g = sns.regplot(x="t_f", y="t_l",  data=df_fl, color="orange")
-    # # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (sec)', ylim=(0, 6000), xlim=(0, 1))
-
-    # group by date
-    df_fl = epoch_date_yy(df_fl)
-    del df_fl['B_ep']
-
-    # categorize the fee
-    df_fl['fee_category'] = df_fl['t_f'].apply(fee_more_intervals)
-
-    df_sizes = df_fl.groupby(['date', 'fee_category']).size().to_frame('size').reset_index()
-    print df_sizes
-
-    df_fl = df_fl.groupby(['date', 'fee_category']).median().reset_index()
-    print df_fl
-
-    # df_fl = df_fl.groupby('fee_category').mean().reset_index()
-
-    df_fl['size'] = df_sizes['size']
-    df_fl['t_l'] = df_fl['t_l'].apply(sec_hours)
-    print df_fl
-
-    sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
-
-    g = sns.pointplot(x="fee_category", y="t_l", data=df_fl, hue='date')
-    g.set_xticklabels(g.get_xticklabels(), rotation=50)
-    g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (h)')
-    sns.plt.ylim(0, )
+    # info = "plot/fee_latency"
+    # df_fl = df[['t_l', 't_f', 'B_ep']]
+    # df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
+    #
+    # df_fl = epoch_date_yy(df_fl)
+    # del df_fl['B_ep']
+    #
+    # # categorize the fee
+    # df_fl['fee_category'] = df_fl['t_f'].apply(fee_more_intervals)
+    # del df_fl['t_f']
+    #
+    # df_fl = df_fl.groupby(['date', 'fee_category']).median().reset_index()
+    # df_fl['t_l'] = df_fl['t_l'].apply(sec_hours)
+    # print df_fl
+    #
+    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+    # g = sns.pointplot(x="fee_category", y="t_l", data=df_fl, hue='date')
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (h)')
+    # sns.plt.ylim(0, )
     # -----------------------------------------------------------------------------
 
-    # -------------------- % OF ZERO FEE TX FOR EACH MINER FROM MONTH TO MONTH ------------------------
-    # info = "plot/zero_fee_monthly"
+    # -------------------- % OF ZERO FEE TX FOR EACH MINER EVERY YEAR ------------------------
+    # info = "plot/zero_fee_yearly"
     #
     # df_zero = df[['B_ep', 't_f', 'B_mi']]
-    # df_zero = remove_minor_miners(df_zero, 5)
-    # df_zero = epoch_date_mm(df_zero)
+    # df_zero = remove_minor_miners(df_zero, 15)
+    # df_zero = epoch_date_yy(df_zero)
     #
     # df_only_zero = df_zero[df_zero.t_f == 0]
     #
@@ -1162,9 +1601,23 @@ def plot(miner=1):
     #
     # print df_zero
     #
-    # g = sns.pointplot(x="date", y="%0", hue="B_mi", data=df_zero)
+    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+    # g = sns.pointplot(x="B_mi", y="%0", hue="date", data=df_zero)
+    #
+    # # # reduce number of labels to show
+    # # ticklabels = g.get_xticklabels()
+    # # new_ticklabels = []
+    # # i = 0
+    # # for el in ticklabels:
+    # #     if (i == 0):
+    # #         i = 8
+    # #     else:
+    # #         el = ""
+    # #         i -= 1
+    # #     new_ticklabels.append(el)
+    #
     # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='date', ylabel='% of zero-fee transactions')
+    # g.set(xlabel='miners', ylabel='% of zero-fee transactions')
     # -------------------------------------------------------------------------------------------------
 
 
@@ -1185,7 +1638,6 @@ def plot(miner=1):
     # ax = df_txs.plot(x='date', y='size')
     # ax.set_xlabel("date")
     # ax.set_ylabel("number of txs")
-
     # ----------------------------------------------------------------------------
 
     # -------------------- % OF ZERO FEE TX FOR EACH MINER FROM ALL TIME ------------------------
@@ -1240,6 +1692,7 @@ def plot(miner=1):
     #
     # # create a new df containing the percentage of the zero transaction fee per miner
     # miners[r'%0'] = new_list
+    # print miners
     #
     # ax = miners.plot.bar(x='index', y='%0')
     # ax.set_xlabel("miners")
@@ -1368,67 +1821,63 @@ def plot(miner=1):
     # -------------------------------------------------------------------
 
     # --------------------------------- Transaction fee in USD -------------------------------------
-    # # eligible transactions are the ones which have a size in between 200 and 300 bytes
-    # info = "plot/txs_USD"
-    # df_usd = df[['t_f', 'B_T', 'B_ep']]
-    #
-    # btc_usd = get_json_request("https://api.blockchain.info/charts/market-price?timespan=all&format=json")
-    # values = btc_usd['values']
-    #
-    # y = []
-    # x = []
-    # for el in values:
-    #     y.append(el['y'])
-    #     x.append(el['x'])
-    #
-    # # create array containing x and y coordinates of the BTC-USD price
-    # y = np.asarray(y)
-    # x = np.asarray(x)
-    #
-    # # add the USD value in dataframe
-    #
-    # # create USD array
-    # epoch = df_usd['B_ep'].values
-    # epoch[:] = [int(el) for el in epoch]
-    #
-    # usd_array = []
-    # for ep in epoch:
-    #     index = find_nearest(x, ep)
-    #     usd_array.append(y[index])
-    #
-    # df_usd['USD'] = usd_array
-    #
-    # df_usd['t_f'] = df_usd['t_f'].apply(satoshi_bitcoin)
-    #
-    # # adding the fee paid in USD
-    # usd_price = df_usd['USD'].values
-    # fees = df_usd['t_f'].values
-    # fees[:] = [float(el) for el in fees]
-    # usd_price[:] = [float(el) for el in usd_price]
-    #
-    # fee_in_usd = []
-    # for usd, fee in zip(usd_price, fees):
-    #     fee_in_usd.append(usd*fee)
-    #
-    # df_usd['usd_fee'] = fee_in_usd
-    # df_usd = epoch_date_mm(df_usd)
-    #
-    # df_usd = df_usd.sort_values('date')
-    # df_usd = df_usd[df_usd.usd_fee <= df_usd.USD]
-    #
-    # print df_usd
-    #
-    # ax = df_usd.plot(x='date', y = ['USD', 'usd_fee'], label=['USD price', '$t_f$ USD price'])
-    # ax.set_ylabel("USD")
+    info = "plot/txs_USD"
+    df_usd = df[['t_f', 'B_ep']]
+
+    btc_usd = get_json_request("https://api.blockchain.info/charts/market-price?timespan=all&format=json")
+    values = btc_usd['values']
+
+    y = []
+    x = []
+    for el in values:
+        y.append(el['y'])
+        x.append(el['x'])
+
+    # create array containing x and y coordinates of the BTC-USD price
+    y = np.asarray(y)
+    x = np.asarray(x)
+
+    # add the USD value in dataframe
+
+    # create USD array
+    epoch = df_usd['B_ep'].values
+    epoch[:] = [int(el) for el in epoch]
+
+    usd_array = []
+    for ep in epoch:
+        index = find_nearest(x, ep)
+        usd_array.append(y[index])
+
+    df_usd['USD'] = usd_array
+
+    df_usd['t_f'] = df_usd['t_f'].apply(satoshi_bitcoin)
+
+    # adding the fee paid in USD
+    usd_price = df_usd['USD'].values
+    fees = df_usd['t_f'].values
+    fees[:] = [float(el) for el in fees]
+    usd_price[:] = [float(el) for el in usd_price]
+
+    fee_in_usd = []
+    for usd, fee in zip(usd_price, fees):
+        fee_in_usd.append(usd*fee)
+
+    df_usd['usd_fee'] = fee_in_usd
+    df_usd = epoch_date_dd(df_usd)
+    del df_usd['B_ep']
+    df_usd = df_usd.groupby('date').mean().reset_index()
+
+    df_usd = df_usd.sort_values('date')
+    print df_usd
+    df_usd = df_usd[df_usd.usd_fee <= df_usd.USD]
+    print df_usd
+
+    # ax = df_usd.plot(x='date', y = 'USD', rot=45, color ='green', label ='USD price')
+    ax = df_usd.plot(x = 'date', y ='usd_fee', rot=45, color ='blue', label='$t_f$ USD price')
+
+    ax.set_ylabel("USD")
     # ----------------------------------------------------------------------------------------------
 
-
-
-    # --------------------------------- Eligible transactions -------------------------------------
-    # eligible transactions are the ones which have a size in between 200 and 300 bytes
-
-
-    # ---------------------------------------------------------------------------------------------
 
     # ---------------------------- Distribution of transaction fees -------------------------------
     # info = "plot/txs_fee_distribution"
@@ -1539,6 +1988,40 @@ def plot(miner=1):
     # # g.set(xlabel='date', ylabel='$Q$ (MB)')
     # ------------------------------------------
 
+    # ------------------------- TXS LATENCY ------------------------
+    # info = "plot/txs_latency"
+    # new_df = df[['B_ep', 't_l']]
+    # new_df = epoch_date_dd(new_df)
+    #
+    # del new_df['B_ep']
+    #
+    # new_df = new_df.groupby('date').median().reset_index()
+    # new_df['t_l'] = new_df['t_l'].apply(sec_hours)
+    #
+    # print new_df
+    #
+    # ax = new_df.plot(x = 'date', y='t_l', color = 'orange', label = '$t_l$')
+    # ax.set_xlabel("date")
+    # ax.set_ylabel("$t_l$ (h)")
+    # ax.set_ylim(0, max(new_df['t_l'].values))
+    # --------------------------------------------------------------
+
+    # ------------------------- TXS FEE ------------------------
+    # info = "plot/txs_fee"
+    # new_df = df[['B_ep', 't_f']]
+    # new_df = epoch_date_dd(new_df)
+    #
+    # del new_df['B_ep']
+    #
+    # new_df = new_df.groupby('date').median().reset_index()
+    # new_df['t_f'] = new_df['t_f'].apply(satoshi_bitcoin)
+    #
+    # print new_df
+    #
+    # ax = new_df.plot(x='date', y='t_f', color='orange', label='$t_f$', rot=45)
+    # ax.set_xlabel("date")
+    # ax.set_ylabel("$t_f$ (BTC)")
+    # --------------------------------------------------------------
 
     # -------------- TXS LATENCY t_l OVER TIME considering TOP MINERS ---------------------
     # info = "plot/t_l"
@@ -1551,6 +2034,8 @@ def plot(miner=1):
     #
     # dftl['t_l'] = dftl['t_l'].apply(sec_hours)
     # dftl = dftl.groupby(['B_mi', 'date']).median().reset_index()
+    # # order dataframe by date
+    # dftl = dftl.sort_values('date')
     # print dftl
     #
     # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.8})
@@ -1566,13 +2051,11 @@ def plot(miner=1):
     #     else:
     #         el = ""
     #         i -= 1
-    #     print el
     #     new_ticklabels.append(el)
-    # g.set_xticklabels(rotation=45)
+    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
     # g.set(xlabel='date', ylabel=r'$t_l$ (h)', xticklabels=new_ticklabels)
     # sns.plt.ylim(0, )
     # -------------------------------------------------------------------------------------
-
 
 
     # ------------------- RELATION BETWEEN < 10 MIN BLOCKS AND MINERS ---------------------
@@ -1627,21 +2110,26 @@ def plot(miner=1):
     # -------------- FEE - INPUT MINERS CALCULATIONS --------------------
     # info = "plot/fee_input_miners"
     # df_fee_per = remove_minor_miners(df, 20)
+    # df_fee_per = df_fee_per[['B_ep', 't_in', 't_f', 'B_mi', 't_ou']]
+    # df_fee_per = epoch_date_yy(df_fee_per)
+    # del df_fee_per['B_ep']
+    #
     # df_fee_per['t_per'] = calculate_percentage_txs_fee(df_fee_per)
     #
     # print df_fee_per['t_per']
     #
-    # df_inputtxs = df_fee_per[['t_in', 't_f', 'B_mi', 't_per']]
-    # df_inputtxs = df_inputtxs.groupby('B_mi').median().reset_index()
+    # df_inputtxs = df_fee_per[['t_in', 't_f', 'B_mi', 't_per', 'date']]
+    # df_inputtxs = df_inputtxs.groupby(['date','B_mi']).median().reset_index()
     # df_inputtxs['t_in'] = df_inputtxs['t_in'].apply(satoshi_bitcoin)
     # df_inputtxs['t_f'] = df_inputtxs['t_f'].apply(satoshi_bitcoin)
     # print df_inputtxs
-    # # sns.pointplot(x="B_mi", y="t_f", data=df_inputtxs, color="green")
-    # # sns.pointplot(x="B_mi", y="t_in", data=df_inputtxs, color="red")
-    # g = sns.pointplot(x="B_mi", y="t_per", data=df_inputtxs, color="green")
+    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+    # g = sns.pointplot(x="B_mi", y="t_per", data=df_inputtxs, hue='date')
     # g.set(xlabel='major miners', ylabel='$t_f$ %')
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
+    # g.set_xticklabels(g.get_xticklabels(), rotation=65)
     # -------------------------------------------------------------------
+
+
 
     # ------------- FEE PAID WITH DIFFERENT MINERS ---------------
     """
@@ -2047,43 +2535,6 @@ def plot(miner=1):
     print ("transactions evaluated in between:\n" + str(start) + "\n" + str(end))
     print ("\n" + "number of transactions: " + str(len(block_epoch)))
 
-    # latency = df['t_l'].values
-    # latency[:] = [float(x) for x in latency]
-
-    # percentage = calculate_percentage_txs_fee(df)
-
-
-    # df_byepoch = df.groupby('B_he')
-    # print df_byepoch.median()
-
-    #plt.plot(block_epoch, percentage, "r-", label="% fee paid on the net total amount")
-    # --- put data (epoch) in plot form epoch to datetime
-
-    #x_labels = axes.get_xticks().tolist()
-    #x_labels = date_to_plot(x_labels)
-    #axes.set_xticklabels(x_labels, rotation=45)
-
-    # -------------
-
-
-    #t_q = df['t_q'].values
-    #t_f = df['t_f'].values
-
-    #together = zip(t_q, t_f)
-    #sorted_together = sorted(together)
-
-    #t_q = [x[0] for x in sorted_together]
-    #t_f = [x[1] for x in sorted_together]
-
-    #plt.plot(t_q, "-r", label="transaction size")
-    #plt.plot(t_f, "-g", label="transaction fee")
-
-    #sns.boxplot(df.t_f, groupby=df.B_ep)
-    #sns.pointplot(x="B_ep", y="t_f", data=df)
-    #sns.jointplot(np.asarray(x_vals), np.asarray(y_vals), kind="reg", stat_func=None, color="g", xlim=(0.0, 200000.0), ylim=(0.0, 100.0))
-    #plt.plot(x_vals, y_vals, "ro", label="transaction visibility")
-
-
     # ----- REGRESSION ------
     """
     regression = []
@@ -2364,7 +2815,7 @@ def propagation_time_function(q):
 
     return to_return
 
-def calculate_profit(fee, creation_time, miner):
+def calculate_profit(fee, creation_time, price, bitcoin_hash_rate, miner, number_of_miners=1):
     """
     return the profit of a single block, knowing the creation time and the fee paid from the transactions.
     We consider 2 type of miners
@@ -2372,34 +2823,32 @@ def calculate_profit(fee, creation_time, miner):
     2 - Hashing power of 25200 MH/s and consumption of 1250 Watt
     :param fee: M money from transactions, in BTC
     :param creation_time: time to mine a block in seconds
+    :param price: current BTC price
+    :param hashing_r;   current hashing rate
     :return: profit in BTC
     """
 
     profit = 0
     reward = 12.5
-    propagation_time = 10.0
-    bitcoin_hash_rate = 3700000000000000.0
-    #bitcoin_hash_rate = 5061202213000000.0
+    propagation_time = 15.7
+    # bitcoin_hash_rate = 3700000000000000.0
+    # bitcoin_hash_rate = 5061202213000000.0
 
-    if (miner == 1):  # Smallest miner
-        cost_x_hash = 4.7/1000000000000    # in USD
-        hashing_rate = 100000.0
-    elif (miner == 2):
-        hashing_rate = 25200000.0
-        cost_x_hash = 3.4/1000000000000    # in USD
+    if (miner == 1):  # AntMiner U3
+        btc_x_hour = 0.063 * 0.04 / price
+        btc_x_sec = btc_x_hour / (60 * 60)
+        hashing_rate = 1000000000.0
+        cost_x_hash = btc_x_sec / hashing_rate
+    elif (miner == 3):  # AntPool S9- Biggest miners
+        btc_x_hour = 1.375 * 0.04 / price
+        btc_x_sec = btc_x_hour /(60*60)
+        hashing_rate = 14000000000000.0
+        cost_x_hash = btc_x_sec/hashing_rate
 
-    elif (miner == 3):  # AntPool - Biggest miners
-        cost_x_hash = 1.091/1000000000000000
-        hashing_rate = 14000000000.0
-
-    elif (miner == 4):  # second biggest miner working
-        cost_x_hash = 7.778/1000000000000000
-        hashing_rate = 700000000.0
-
-    cost_x_hash = cost_x_hash / latest_price    # in BTC
+    # cost_x_hash = cost_x_hash / price   # in BTC
     p_orphan = 1 - math.exp(-(propagation_time/creation_time))
-    cost = cost_x_hash * hashing_rate * creation_time
-    revenue = (reward + fee) * (hashing_rate/bitcoin_hash_rate) * (1 - p_orphan)
+    cost = cost_x_hash * hashing_rate * number_of_miners * creation_time
+    revenue = (reward + fee) * (hashing_rate*number_of_miners/bitcoin_hash_rate) * (1 - p_orphan)
 
     profit = revenue - cost
 
@@ -2989,7 +3438,6 @@ def create_growing_time_list(time_list, initial_time=0):
         previous_time = time_to_append
 
     return growing_time_list
-
 
 def calculate_transactions_fee(txs, epoch = None):
     """

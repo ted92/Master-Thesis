@@ -207,36 +207,30 @@ provided from \url{blockchain.info}.
 
 %TODO: ADJUST INTRODUCTION
 In $1964$, Paul Baran\,\cite{Baran1964:ODC}
-represented a very clear topology describing the differences
+described the differences
 between a centralized, decentralized and distributed
-network~(Figure\,\ref{fig:networks}). Since then, the attention
+network. Since then, the attention
 in developing systems moved from a centralized scheme to a distributed one,
-leaving most of the computation to every single user in the network
-rather than a central coordinator.
-Such a change might be easy for systems that do not require much of
-security, where authentication or authorization is minimal.
+leaving most of the computation to every single processor in the network
+rather than at central coordinator.
+Such a change might be easy for systems that do require little
+security, for instance systems that do not require authentication
+and authorization of users.
 However, the more a system needs to be secure, the more the decentralization
 process might be tricky as it becomes very important to rely on
 some trusted central coordinator. Systems that more than others need
 to be secure are the one related to e-commerce, banking and trades, all
 systems that have to deal with money.
 
-\begin{figure}[h!]
-	\centering
-	\includegraphics[width=1\textwidth]{img/networks}
-	\caption{Differences between network topologies. Source: On Distributed
-		Communication Networks, Paul Baran, 1964.}
-	\label{fig:networks}
-\end{figure}
-
-In $1983$, a research paper by David Chaum introduced the idea of digital cash\,\cite{chaum83blindsign}. In $1990$ he founded \emph{DigiCash},
+In $1983$, David Chaum introduced the idea of
+digital cash\,\cite{chaum83blindsign}. In $1990$ he founded \emph{DigiCash},
 an electronic cash company that closed because of bankrupt in
-$1998$. After that, other systems such as \emph{e-gold} ($1996$) and
+$1998$. After DigiCash, other systems such as \emph{e-gold} ($1996$) and
 \emph{PayPal} ($1998$) emerged. However, these systems allowed
 digital money transfer while they were still relying on a central authority.
 In $2008$ Satoshi~Nakatomo has presented Bitcoin\,\cite{Nakamoto_bitcoin},
 the first decentralized digital currency.
-Until $2008$ e-commerce used to rely exclusively on financial institutions
+Until $2008$ e-commerce relied exclusively on financial institutions
 serving as trusted third parties. Those are involved in the electronic
 payments process and they have to guarantee consistency of the
 transactions and security of data.
@@ -252,102 +246,102 @@ originally based on the bitcoin protocol, then in $2013$
 Gavin~Wood has presented \emph{Ethereum}\,\cite{ethereum} and in
 $2014$ \emph{Monero} currency was released.
 
-The order of transaction is essential in any cryptocurrency systems. 
-However, establishing correct order can be problematic in
+The order of transaction is essential in any currency systems,
+however, establishing correct order can be problematic in
 decentralized cryptocurrency systems as they allow 
 arbitrary nodes to join, including nodes that might be malicious.
-If arbitrary or Byzantine faults are allowed, the system might be left in an inconsistent or invalid state\,\cite{Lamport1982}.
+If arbitrary or Byzantine faults are allowed,
+the system might be left in an inconsistent or invalid state\,\cite{Lamport1982}.
 The ability to mask Byzantine faults has been implemented in various systems such as
 Byzantium\,\cite{Garcia:2011:EMB}, HRDB\,\cite{vandiver2007hrdb} and MITRA\,\cite{Luiz:2014:MBF}.
 These protocol guarantees consistency of transactions having
 $f$ faulty nodes, with a total of $N$ nodes where $N=2f+1$ or $N=3f+1$, and
 a protocol like \emph{Fireflies}\,\cite{Johansen2015Fireflies} provides secure and
 scalable membership management and communication substrate in overlay
-network with Byzantine members. To guarantee an order of
-transaction all these cryptocurrencies rely on the \emph{blockchain} protocol.
+network with Byzantine members.
 
 \section{Blockchains}
 \label{sec:blockchains}
+To guarantee an order of transaction all these
+cryptocurrencies rely on the \emph{blockchain} protocol.
 The need to tolerate malicious members was the reason for introducing
-the \emph{blockchain} into cryptocurrency systems. The fundamental principle 
-behind the blockchain is that consensus on transaction ordering is based on 
+the \emph{blockchain} into cryptocurrency systems.
+A blockchain is essentially a distributed
+database of records or public ledger of all transactions or
+digital events that have been executed and
+shared among participating parties\,\cite{crosby2016blockchain}.
+The fundamental principle  behind the blockchain is that
+consensus on transaction ordering is based on 
 contributed computational power rather than number of participants. 
-The blockchain works by appending
-transactions in blocks. Every block is generated after a relevant computation
-(\emph{proof-of-work}),
-and each new block is appended to the public ledger of data,
-the blockchain, having in that way an ever growing chain of data
+The blockchain works by appending transactions into blocks.
+Every block is generated after a relevant computation, called
+\emph{proof-of-work}, and each new block is
+appended to the public ledger of data, the blockchain, having in
+that way an ever growing chain of information
 containing every transaction ever happened.
+Blockchains essentially implements a distributed
+consensus protocols that enable a set of untrusted
+processes to agree on the content of an append only data structures,
+often referred to as ledgers. 
+These ledgers are divided into blocks and linked together in sequence by hashes. 
+They facilitate transactions between consenting individuals
+who would otherwise have no means to trust each other and
+deal with geographical separation and interfacing difficulties.
+This technology promises a highly resilient and
+communication substrate where messages are kept potentially for a long time.
 
-Besides its use in cryptocurrency, this blockchain technology
+Besides its use in cryptocurrency, blockchain technology
 opens up to several usages in different sectors such as
-trading, file storage or identity management. Indeed it is already
+trading, file storage, and identity management. Indeed it is already
 used by NASDAQ in its private socket market.  If used in a \gls{p2p}
-file sharing network, the blockchain removes the need of a centralized
-data base and heavy storage areas. Moreover it allows users to create
+file sharing network, blockchain removes the need of a centralized
+data base. Moreover it allows users to create
 tamper-proof digital identities for themselves.
 Blockchain technology opens up to usages in several important sectors
 such as trading, file storage, and identity management.
 
-Blockchains essentially implements a distributed
-consensus protocols that enable a set of untrusted
-processes to agree on the content of an append only data structures. 
-These ledgers are divided into blocks and linked together in sequence by hashes. 
-They facilitate transactions between consenting individuals
-who would otherwise have no means to trust each other and
-deal with geographical separation and interfacing difficulties 
-This technology promises a highly resilient and
-communication substrate where messages are kept potentially for a long time.
-
-Nonetheless, decentralized digital currencies also have some side effects.
+There are several important limitations in current blockchain technologies.
 The most relevant is \emph{scalability}, due to the steady growth of the
 blockchain. It should be also considered that
 decentralized cryptocurrencies operate in open (or permissionless) networks
-in which the ledger of data could be manipulated from arbitrary adversaries and
-according also to the paper from University of Singapore\,\cite{Luu:2016}
-security of smart contracts has not received much attention yet. And since the
-only part not protected from cryptography
+in which the ledger of data could be manipulated from arbitrary adversaries.
+According to the paper from University of Singapore\,\cite{Luu:2016},
+security of smart contracts have not received much attention yet.
+Since the only part not protected from cryptography
 is the \emph{order of transactions}\,\cite{ethereum_white_paper},
 an attacker would try to convince the network that a transaction
 occurred earlier than another one to gain money.
-The security bugs in smart contracts are classified as \emph{Transaction-Ordering Dependence},
+The security bugs in smart contracts are classified as
+\emph{Transaction-Ordering Dependence},
 \emph{Timestamp Dependence}, \emph{Mishandled Exceptions}
 and \emph{Reentrancy Vulnerability}\,\cite{Luu:2016}.
 In this thesis we refrain from explaining Bitcoin and its terminology in detail
 and refer the reader to already existing high-level\,\cite{Underwood:2016:BBB,
 Bohme2015BETG}
 or technical\,\cite{Nakamoto_bitcoin, ethereum_white_paper}.
- description.
+description.
 \section{Problem Statement}
 \label{sec:probdefinition}
 While doing research, studying and reading papers related to blockchains,
 it turned out that the most urgent concerns are related to
 its scalability, performance and a profit optimization from participant
 in the whole system.
-In $2015$, Möser and Böhme write\,\cite{Moser2015}:
-\begin{quote}
-	\emph{Bitcoin may not be as cheap for consumers as it appears.}
-	[\dots]
-	\emph{Bitcoin users are encouraged to pay fees to miners, up
-	to $10$\,cents (\gls{usd}), per trnsaction, irrispective of the amount
-paid.}
-\end{quote}
-
-Rizun writes in $2015$\,\cite{Rizun:2015:blocksizelimit}:
-\begin{quote}
-	\emph{The block size limit was set at one megabyte, corresponding
-		roughly to three transactions per second.}
-		[\dots]
-		\emph{The transaction rate is over three hundred times larger
-		than when the block size limit was introduced, and rising the limit
-		is now being seriously considered.}
-\end{quote}
-Then Croman writes in $2016$\,\cite{croman2016}:
-\begin{quote}
-\emph{The current trend of increasing the block sizes on Bitcoin protends
-a potential problem where the system will reach its maximum capacity to clear
-transactions, probably by $2017$.}
-\end{quote}
+In $2015$, Möser and Böhme\,\cite{Moser2015} said that
+Bitcoin may not be as cheap for consumers as it appears, and
+that Bitcoin users are encouraged to pay fees to miners, up
+to $10$\,cents (\gls{usd}), per trnsaction, irrispective of the amount
+paid.
+Always in $2015$ Rizun\,\cite{Rizun:2015:blocksizelimit} writes that
+the block size limit was set at one megabyte, corresponding
+roughly to three transactions per second but
+the transaction rate is over three hundred times larger
+than when the block size limit was introduced, and rising the limit
+is now being seriously considered.
+In $2016$ Croman\,\cite{croman2016} announce that
+the current trend of increasing the block sizes on Bitcoin protends
+a potential problem where the system
+will reach its maximum capacity to clear
+transactions, probably by $2017$.
 
 %TODO: REVIEW THIS:
 It is obvious then that these problems need to be taken
@@ -360,7 +354,9 @@ Bitcoin blockchain, analyzed with a blcockhain analytic system developed
 for this purpose. We provide detailed insights and analysis on how
 Bitcoin's characteristics, such as fee, block size and reward to different
 miners involved have changed over time, and provide an
-updated model describing how the Bitcoin blockchain will grow.
+updated view from the one proposed
+from Möser and Böhme\,\cite{Moser2015} about
+the tolls and fees in the system.
 Furthermore, we analyzed the
 correlation between the fee paid from a transaction
 and its \emph{latency}, or the time it takes to 
@@ -490,21 +486,18 @@ if there are any abnormalities in the ledger of public data.
 %Finally, Chapter~\ref{chap:conclusion} includes future implementation of the system,
 %possible development of this project and conclusions of the overall work.
 
-\chapter{Related Works - SotA}
+\chapter{Related Works}
 \label{chap:prev_works}
-As mentioned in Chapter~\ref{chap:introduction},
-scalability and analysis on the blockchain has been taken into consideration
+Scalability and analysis on the blockchain
+has been taken into consideration
 by many researchers in the past years.
-This chapter summarizes the most relevant papers or
-works that talks about Bitcoin,
-blockchain and decentralized cryptocurrencies,
-it gives a short view of what has already been done and
-the reults obtained.
-In our previous paper\,\cite{Tedeschi:2016:PBB}, we enhance
+This chapter summarizes the most
+relevant works on Bitcoin,
+blockchain and decentralized cryptocurrencies.
+In our previous work\,\cite{Tedeschi:2016:PBB}, we enhance
 the importance of paying for having a certain
 bandwidth in the Bitcoin network.
-A paper
-from Peter~R.~Rizun\,\cite{Rizun:2015:blocksizelimit},
+Peter~R.~Rizun\,\cite{Rizun:2015:blocksizelimit},
 explains how a rational Bitcoin
 miner should select transactions from his node mempool,
 when creating a new block,
@@ -514,7 +507,7 @@ new data from more recent sources to this idea of
 select the right transactions to earn more money out of the whole
 mining process.
 Scalability has taken into consideration
-in the Position Paper of Kyle Croman\,\cite{croman2016}, they
+in the work of Kyle Croman et al.\,\cite{croman2016}, they
 analyze how fundamental bottlenecks in Bitcoin limit the ability
 of its current peer-to-peer
 overlay network to support substantially higher
@@ -541,7 +534,7 @@ how \emph{VISA}\,\cite{visa} makes money as well.
 A pressing concern exists over the ramifications of changing (or not)
 a Bitcoin protocol rule called \emph{block size limit}. This rule sets an
 upper bound on the network's transactional capacity, or \emph{throughput}.
-The limit was set at $1$\,Mb, corresponding roughly to three transactions
+The limit is currently set at $1$\,Mb, corresponding roughly to three transactions
 per second. When this limit was set, it was over eight hundred times
 greater than what was required. However in $2015$, blocks
 were filled near capacity and users experienced delays. In $2015$
@@ -1016,26 +1009,27 @@ and still be able to compensate miners and users.
 
 \chapter{Technical Background}
 \label{chap:techback}
-This chapter wants to introduce the reader in blockchain systems,
-particularly the Bitcoin one. We show a list of symbols which
-might be useful for reading in Appendix~\ref{app:LOS}. However,
-we won't go in deep details explaining Bitcoin or its
-terminology and we refer
+This chapter gives a brief introduction to
+the blockchain systems, with a particular
+focus on Bitcoin. The list of symbols
+used is showed in Appendix~\ref{app:LOS}.
+For further detail we refer
 to already existing high-level\,\cite{Bohme2015BETG} or
 technical\,\cite{ethereum, bitcoinmining,
 bitcoin_blockchain, Rizun:2015:blocksizelimit, Nakamoto_bitcoin,
-ethereum_white_paper} descriptions, but we will explain the concept
-of payments and fee in Bitcoin system, how miners profit from
-mining,
+ethereum_white_paper} descriptions, but we will briefly explain
+the concept of mining and introduce the notion
+of payments and fee in Bitcoin system,
+how miners profit from mining,
 how a user could choose whether including fee or not in its
 transactions and how performance and scalability is
 changing the way miners select transactions.
-We will also talk about some machine learning
+We will also describe about some machine learning
 techniques and data structures.
 
-Should be clear, before reading, the differences
-between \emph{centralized} and \emph{decentralized} digital currencies.
-These differences are summarized in Table~\ref{tab:centralized_vs_decentralized}.
+Differences between are \emph{centralized}
+and \emph{decentralized} digital currencies
+are summarized in Table~\ref{tab:centralized_vs_decentralized}.
 As mentioned in Chapter~\ref{chap:introduction}, more decentralized
 digital currencies are emerging nowadays, and they aim
 to facilitate transactions between consenting individuals who would otherwise
@@ -1081,7 +1075,127 @@ according to keep an average $\mathcal{T}$ of $10$\,minutes.
 		\hline		
 	\end{tabular}
 \end{table}
-%TODO: BLOCKCHAIN SECTION - FEES
+
+%TODO: Talk briefly about mining
+\section{Mining}
+\label{sec:mining}
+In a decentralized cryptocurrency network transactions need to be approved by all the
+participant before being validated and confirmed. This validation requires high computational
+time and it might be expensive in matter of electricity and resources used.
+
+\definition{\emph{Mining} is how transactions are validated and confirmed by the network.}
+
+To validate and confirm transactions, the network needs \emph{miners}.
+According to the Bitcoin miner
+document\,\cite{bitcoinmining_process}, Bitcoin miners
+create new blocks by solving a proof-of-work
+problem that is chained through
+cryptographic proof of the previous block.
+The work and the effort spent to create new blocks
+is often referred as mining\,\cite{bitcoinmining_process}.
+The mining process involves identifying a value
+that when hashed twice with SHA-256, begins
+with a number of zero bits. If the amount
+of zeros needed for the creation
+is raised, the average work required
+increases exponentially, while a hash can always be
+verified by executing a single round of
+double SHA-256\,\cite{bitcoinmining_process, sha}.
+A miner choose whether include a transaction into a block or not,
+and we believe that nowadays this inclusion strongly depends on
+the fee that this transaction has to offer.
+The first miner who solves the proof-of-work gains the sum
+of the fees offered by each transaction included in the block,
+$M$, plus the block reward, $R$, which
+is now set at $12.5$\,\bitcoin.
+After the new block is mined, this information
+is spread through the whole network and
+if this solution is propagated to the $50\% + 1$
+of the nodes in the system then
+the block is validate and all the
+transactions in it are accepted and confirmed.
+Finally, miners in the network express their acceptance by
+moving to work on the next block,
+incorporating the hash of the accepted block.
+
+\subsection{Proof-of-Work}
+\label{sec:proof-of-work}
+Cynthia Dwork and Moni Naor defined the proof-of-work as follows\,\cite{proof-of-work}:
+\definition{\emph{Proof-of-work} is a piece of data which is difficult
+	(costly, time-consuming) to produce but easy for others to verify and
+	which satisfies certain requirements.}
+
+Mining a block is difficult because the SHA-256 hash of a block's header
+must be lower or equal to a certain \emph{target value} in order for the
+block to be accepted by the network.
+Producing proof-of-work is a random process with low probability
+of hitting the target value,
+so that a lot of trial and error is required on average before a valid
+proof-of-work is generated.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/proof-of-work-schema}
+	\caption{Diagram that shows how proof-of-work works, inspired from
+		\url{www.bitcoinmining.com/}\,\cite{bitcoinmining}.}
+	\label{fig:proof-of-work-schema}
+\end{figure}
+
+As said above, proof-of-work is a part of the mining process and a valid proof
+of work is determined by incrementing a nonce until a value is found that gives the block's
+hash the required number of leading zero bits. Once the hashing has produced a
+valid result, the block cannot be changed without redoing the work. As later blocks are
+chained after it, the work to change the block would include redoing the work for
+each subsequent block\,\cite{bitcoinmining_process}.
+The best chain is the longest one, so is the one that requires the greatest
+amount of effort to be produced, and majority consensus in Bitcoin
+is represented by this longest chain. In this way if the
+majority of the computing power is controlled by honest nodes, the honest
+chain will grow fastest and outpace any competing chains.
+A very good diagram which represent the proof-of-work is presented
+in Figure~\ref{fig:proof-of-work-schema}.
+
+\subsection{Miners \& Mining Pools}
+\label{sec:miner}
+With paper money a government decides when
+to print and distribute money. Bitcoin doesn't
+have a central government and
+it uses a special software to solve math problems
+to get a certain amount of coins in exchange.
+This provides a smart way to issue the currency.
+
+\definition{A \emph{miner} is a computer
+	specifically designed to solve problems according to the
+	proof-of-work algorithm and
+	they are required to approve transactions.}
+
+Since miners are required to approve
+transactions, more miners means a more
+secure network.
+To become a Bitcoin miner nowadays you
+need to buy highly specified chips called
+\gls{asic}. Informations about this
+hardware can be found at
+\url{bitcoinmining.com}\,\cite{bitcoinmining}.
+In early days of Bitcoin ($2009$-$2013$)
+it was possible to mine with your computer CPU
+or high speed video processor card.
+Today that's no longer possible since custom
+Bitcoin \gls{asic} chips offer performance
+up to $x100$ the capability of older
+systems\,\cite{bitcoinmining} and another reason is
+the coming of mining pools, bringing then a constant
+growth of the \emph{mining difficulty}.
+
+\definition{A \emph{pooled mining} combines the work of many miners
+	toward a common goal.}
+
+Pools of miners or mining pools
+find solutions faster than individual member and each
+miner is rewarded proportionally with the amount of work it provides.
+Mining is an important and integral part of Bitcoin that ensures \emph{fairness}
+while keeping the Bitcoin network \emph{stable}, \emph{safe} and \emph{secure}\,\cite{bitcoinmining}.
+
 \section{Bitcoin \& Fees}
 \label{sec:bitcoinfee}
 We talked about miners and that they mine blocks including
@@ -2136,6 +2250,10 @@ be considered a decrement of it, acknowledging according to
 Equation~\ref{eq:orphaning}, that an increased bandwidth
 for a better inter-node communication is needed, otherwise we
 might have an exponential growth on $\mathbb{P}_{orphan}$.
+%TODO: TO TEST IT
+Furthermore, in Chapter~\ref{sec:minersprofit}, we state that
+with an higher $\mathcal{T}$ the profit $\langle \Pi \rangle$ of
+a miner is significantly lower.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=1\textwidth]{img/creation_time_miners}
@@ -2144,10 +2262,9 @@ might have an exponential growth on $\mathbb{P}_{orphan}$.
 \end{figure}
 
 \subsubsection{Block Size $Q$}
-%TODO: talk about the Rizun paper, how we tested the optimal block size limit and discuss the causes that might bring to an increase or not to a block size.
 If the creation time $\mathcal{T}$ tends to have a fixed value, is obvious that
 $Q$ plays a big role in throughput limitations. Discussions whether increase
-or not the block size limit are still ongoing and this issue has been discussed
+or not the block size limit are still ongoing and this issue has been brought up
 in several papers\,\cite{Rizun:2015:blocksizelimit, houy2014EOBTF}. Increasing
 the block size limit leads to a bigger amount of transactions that could
 be accepted every block creation time, so we may think that
@@ -2165,7 +2282,7 @@ $t_f$ may decrease with an increment of the block size
 limit since transactions don't have to compete anymore for
 space in the block. So a small block size will require higher
 fees for fast confirmation, which will bring the
-following pros ($+$) and cons ($-$)\,\cite{blocksizecontroversy}:%TODO: RELATION WITH FEE DENSITY AND FEE PAID (TWO AREA GRAPHS AND Q GRAPH)
+following pros ($+$) and cons ($-$)\,\cite{blocksizecontroversy}:
 \begin{itemize}
 	\item [$+$] It will no longer be cheap to spam transactions such as Satoshi Dice bets\,\cite{satoshidice}.
 	\item [$+$] Fees will not be zero. This is eventually a necessity in order to incentivize miners and secure the mining ecosystem.
@@ -2206,7 +2323,6 @@ This temporary solution
 might be the block size limit increment, especially if
 big mining pool such as F2Pool claim that they could support
 a maximum block size of $20$\,MB\,\cite{blocksizecontroversy}.
-%TODO: Check the transaction size during time
 
 \section{Performance}
 \label{sec:performance}
@@ -2230,7 +2346,7 @@ to pay for bandwidth in Bitcoin system and
 if yes, how to optimize their fee according to get
 faster $t_l$ for a relatively low price $t_f$.
 
-\subsection{Throughput}
+\subsection{Throughput $\gamma$}
 \label{sec:throughput}
 As we state in Chapter~\ref{sec:unconfirmedtxs}, $\gamma$
 is highly dependent from $Q$ and $t_q$, but also related
@@ -2243,11 +2359,22 @@ in $2013$ the system wasn't less performing, there were just less
 transactions to process, roughly $50$ thousands per day and
 only when the blocks started to get saturated in mid $2016$, then
 the system began to use its maximum throughput capacity of
-$\sim$$3$-$4$\,txs/sec. If compared with centralized trust-oriented
+$\sim$$3$-$4$\,txs/sec. However, if compared with centralized trust-oriented
 system, throughput is extremely low. We said that circuit like
 VISA or Master Card could approve $2000$ transactions per
 second which is still unthinkable for blockchain distributed
-systems.
+systems. Our assumptions on throughput (Table~\ref{tab:assumptions})
+turned out to be right about the block size and the block
+creation time, indeed according to have an higher throughput
+in the system, $Q$ needs to be bigger,
+$\mathcal{T}$ lower, or both, with
+all the advantages and disadvantages that this could bring
+enhanced in Chapter~\ref{sec:unconfirmedtxs}.
+However, an increment on $\gamma$ will bring
+a raise on the cost $\langle C\rangle$ to
+mine a new block if $Q$ is changed, and
+a growth of $\mathbb{P}_{orphan}$ with also repercussions
+on $\langle C\rangle$ if $\mathcal{T}$ is lowered.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=1\textwidth]{img/throughput}
@@ -2255,11 +2382,272 @@ systems.
 	\label{fig:throughput}
 \end{figure}
 
-\subsection{Transaction Latency}
+\subsection{Transaction Latency $t_l$}
 \label{sec:txslatency}
+Another important aspect of performance
+regards the bandwidth Bitocin could offer to users.
+We considered then the latency $t_l$ of every
+transaction analyzed, which is the time necessary for
+$t$ to be approved by the network. We want to find
+causes about how and why $t_l$ and $t_f$
+changed during this years pointing out, if any,
+the relation between these two data, so the
+users are aware while paying a certain $t_f$, in how much
+time approximately their transactions will be approved
+and confirmed by the network.
+We observed that from $2013$ to $2017$, while the average
+transaction latency didn't vary much and was stable
+at $\sim$$15$ minutes, the fee paid from users to the miners
+has undergone a strong raise, from an average of $0.0001$\,\bitcoin~to
+$0.0004$, up to $0.0012$\,\bitcoin~in $2017$, where the Bitcoin price is
+also $x2000$ higher than $2013$. In our assumptions (Table~\ref{tab:assumptions})
+we show how $t_l$ could be affected by other changes in the system.
+While assumptions on $\tau$ and $\gamma$ are immediate,
+so the transaction latency will increase if the
+propagation time grows and will decrease if the throughput
+gets higher, other might not be that direct and they require
+a deeper study. We analyzed then the relation between
+block size $Q$ and transaction latency $t_l$. We categorized
+numerical data from $Q$ according to the different block
+sizes during the years showed in Figure~\ref{fig:block_size}
+and plotted them yearly to show
+any possible relation with $t_l$.
+As we suspected, during the years
+whenever there was an increment in the block size, transaction
+latency had a drop, and we can confirm an inverse proportionality
+between the two attributes. In $2016$ when we had the final
+increment to $1$\,MB, the latency started
+to become very low, while in $2017$ when the blocks
+started to get saturated we have a latency up to
+$x9$ times higher, plus smaller blocks in $2017$ have
+a bigger impact on an high transaction latency as
+Figure~\ref{fig:blocksize_latency} shows.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/blocksize_latency}
+	\caption{Relation between $t_l$ and $Q$ from $2014$ to $2017$.}
+	\label{fig:blocksize_latency}
+\end{figure}
+
+Not much intuitive and more difficult to study was also the
+relation between $t_l$ fee and $t_f$. According
+to analysis made on $t_f$ we opportunely categorized the fee paid
+from users to miners and then we split the data frame per year.
+Table~\ref{tab:fee_categorized} enhance this categorization and
+Figure~\ref{fig:fee_latency} shows the plot generated while analyzing
+more than $100$\,million of transactions from $2013$ to $2017$.
+\begin{table}
+	\centering
+	\caption{Table representing the results in Figure~\ref{fig:fee_latency},
+	showing how $t_l$ might vary for each category of fee.}
+	\label{tab:fee_categorized}
+	\begin{tabular}{|p{2.5cm}|p{4.5cm}|p{3cm}|} \hline
+		\textbf{Fee category}&\textbf{$t_f$ value (\bitcoin)}& \textbf{$t_l$ variation (h)}\\
+		\hline
+		$0$&$t_f = 0$& $1$ to $33$\\
+		\hline
+		$<$$0.0002$&$0\leq t_f < 0.0002$&$0$+ to $5$+\\
+		\hline
+		$<$$0.0004$&$0.0002\leq t_f < 0.0004$&$0$+ to $2.5$\\
+		\hline
+		$<$$0.0006$&$0.0004\leq t_f < 0.0006$&$0$+ to $1.5$\\
+		\hline
+		$<$$0.0008$&$0.0006\leq t_f < 0.0008$&$0$+ to $1$\\
+		\hline
+		$<$$0.001$&$0.0008\leq t_f < 0.001$&$0$+ to $1$\\
+		\hline
+		$<$$0.01$&$0.001\leq t_f < 0.01$&$0$+ to $1$\\
+		\hline
+		$<$$0.1$&$0.01\leq t_f < 0.1$&$0$+ to $1.5$\\
+		\hline
+		$>$$0.1$&$t_f \geq 0.1$&$0$+ to $2$\\
+		\hline
+	\end{tabular}
+\end{table}
+As Table~\ref{tab:fee_categorized} and Figure~\ref{fig:fee_latency} enhance,
+the fee paid from users has a bigger impact year by year on the
+available bandwidth the system offers. Our assumptions about this relation
+were right, and especially after the blocks started to get saturated in
+mid $2016$ we had a big change in the way miners include transactions.
+If in $2013$-$2014$ miners and mining pools tended to include in blocks
+a compromise between fee and waiting time, in $2017$ miners tend to
+completely ignore $0$-fee transactions. This could be good to
+avoid transactions spam and it is good for miners which are gaining
+more out of mining, since the block reward is halved every $210,000$
+blocks. On the other hand, impatient users need to pay an higher fee to
+see their transaction approved faster.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/fee_latency}
+	\caption{Relation between $t_l$ and $t_f$ during time.}
+	\label{fig:fee_latency}
+\end{figure}
+Furthermore, we can state that in $2017$,
+$0$-fee transactions have a latency of $\sim$$33$\,hours,
+$x4$ times bigger than $2016$, $x8$ than $2015$ and more than $x16$
+times bigger than $2013$-$2014$, which means that the problem
+of block saturation has taken into consideration by excluding
+$0$-fee transactions.
+These leads us to the fees and tolls problem in the system and
+to explain how we studied them and what we concluded out of it.
 
 \section{Fees and Tolls}
 \label{sec:feesandtolls}
+This Section aims to show the changes of tips and tolls in Bitcoin
+system from $2013$ to $2017$. In the paper from
+Möser and Böhme\,\cite{Moser2015} they claim that
+the hard size limit still doesn't affect the level of the fee paid.
+We want to enhance instead, that nowadays the saturation
+problem it significantly drive the fee paid
+from users in order to get more bandwidth
+or to be accepted at all. Furthermore, at the time
+of analysis ($2015$), Bitcoin claimed that the fees were
+lower than $0.1\%$ while nowadays
+we analyzed (Figure~\ref{fig:fee_input_miners})
+to have an average
+percentage of $0.25$\%,
+which is more than the double.
+Plus we want to consider the mining cost
+for miners, from what it is driven and how it will change
+in the past years.
+When we talk about fees and tolls we might refer both to miner's
+profit and users' benefits.
+
+\subsection{Miners' Profit}
+\label{sec:minersprofit}
+The study of miner's profit is complex and a lot of
+data analysis and manipulation is required. Knowledge
+regarding electricity consumption, mining hardware and
+cost of hashing is needed and a deep study and data analysis
+on how the hashing Bitcoin rate and Bitcoin price in \gls{usd}
+changed during the years has to be taken into consideration.
+Making assumptions on mining costs/profits might be
+very difficult due to the information withheld from mining pools.
+We think though, that this is an important concern and it has
+to be considered and studied since the block reward is even
+halved every $210,000$ blocks and miners should find another
+way to profit out of mining. Solutions for miners might be to
+additionally charge users with higher fees or to optimize
+their mining profit $\langle \Pi \rangle$ by analyzing
+the costs $\langle C \rangle$ and the revenue $\langle V \rangle$
+during time. We refrain to Equations~\ref{eq:hashingcost}, \ref{eq:expectedrevenue},
+\ref{eq:minerprofiteq} in order to calculate
+$\langle C \rangle$, $\langle V \rangle$ and $\langle \Pi \rangle$.
+For the reckoning
+we had to adapt our data and formulas to the
+Bitcoin price and Bitcoin total hash rate $H$ at the time
+when data were generated. To do so, we extracted our
+time information from $\delta$, collected \gls{json} data
+regarding $H$ and Bitcoin price from \url{blockchain.info}
+and finally fitted them in order to get $\langle \Pi \rangle$,
+$\langle C \rangle$ and $\langle V \rangle$.
+While calculating data using Equation~\ref{eq:minerprofiteq}
+we deal with, following Croman~\cite{croman2016},
+a propagation time of $\tau = 15.7$\,seconds,
+considering in that way a scenario with
+an average block size of $1$\,MB and
+a $50$\% propagation; in addition, we contemplate
+an electricity cost of $0.04$\,\$/kWh (Chinese price, since
+AntPool is a Chinese mining pool) and
+examining the most powerful
+mining hardware on the market for Bitcoin,
+AntMiner S$9$~\cite{antminerS9}, having an hashing power
+of $h = 14,000,000$\,MH/s and a consumption
+of $1375$\,W, with an overall cost per hash of
+$\eta = 1.091 * 10^{-18}$\,\$/H.
+For our calculations we only considered transactions from
+$2015$ to $2017$, when Bitcoin's price was already over
+$300$\,\$, before that, data might contain too many
+outliers due to huge differences in Bitcoin's hashing
+rate and Bitcoin price and they could drive the
+analysis to an incorrect status.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/profit_creation_time}
+	\caption{Profit $\langle \Pi \rangle$ mining with AntMiner S$9$ from
+		$2015$ until $2017$ according to block creation time $\mathcal{T}$.}
+	\label{fig:profit_creation_time}
+\end{figure}
+Figure~\ref{fig:profit_creation_time} shows how the
+miner's profit is related with the block creation time and how
+after $15$\,minutes the miner starts to decrease its profit.
+This is caused by the constant growth of the cost
+necessary to mine a block, $\langle C \rangle$,
+which is directly proportional to the cost per hash $\eta$ and
+the block creation time $\mathcal{T}$.
+Is important to enhance that Figure~\ref{fig:profit_creation_time} shows
+the profit $\langle \Pi \rangle$ for a single miner
+using AntMiner S$9$ and that in a real
+case scenario we might have hundreds of
+computers working together, so the calculation
+of the revenue $\langle V \rangle$ gives much
+more possibilities to find a new block, having then
+a much higher profit that needs to be shared
+among all the miners. 
+In order to optimize $\langle \Pi \rangle$, the
+difficulty should never be increased in a way to
+%TODO: Explain that with another graph - regression ones
+have a creation time $\mathcal{T} >> 10$\,minutes,
+and for miner's sake, should be even better to slightly
+decrease $\mathcal{T}$ according to avoid
+useless computation that leads to an higher cost and waste
+of electricity.
+Furthermore, as we will see in
+Chapter~\ref{sec:userbenefits}, miners most likely
+include transactions with an higher fee density ($\rho$),
+so if users are not willing to pay more fee,
+once all the best $\rho$-wise
+transactions are already included in the new upcoming block
+but $Q$ is not reached yet, miners
+have to include lower fee density
+transactions, having in that way a loss in their profit.
+So if we look at it from a miner's prospective, the increment
+of $Q$ might not be the best choice in the long run, unless the
+fees are standardized in a way that every
+miner has a guaranteed profit.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/reward_fee}
+	\caption{Miners revenue $\langle V \rangle$ divided in block reward $R$ and sum
+		of all $t_f$s in a block, $M$, analyzed in between $2013$-$2015$. Data are
+	represented daily, and the $R$ and $M$ values are sums of every specific day.}
+	\label{fig:reward_fee}
+\end{figure}
+If back in $2009$-$2013$ the block revenue was
+poorly influenced by user's fees and it relied more
+on the reward $R$, we can see instead
+in Figure~\ref{fig:reward_fee} that $R$ is decreasing
+while the fees are getting higher and we expect 
+$t_f$s to overcome $R$ by $2020$ when the
+reward is halved again at $6.25$\,\bitcoin.
+%TODO: Conclusions
+As we have seen, the block profit $\langle \Pi \rangle$
+is also highly influenced by the
+users' fees $t_f$,
+but it is obvious that more a miner will
+request for fee,
+more users are discouraged to pay with Bitcoin.
+Furthermore we noticed a strong link between
+the halving of $R$ in mid $2016$ and the increment of $t_f$.
+Because of that we analyzed transaction fees
+offered by users to see how they are influenced
+in paying more or less \bitcoin~to the miners during
+they years.
+\subsection{Users' Benefits}
+\label{sec:userbenefits}
+In order to make assumptions and conclusions on how
+users should use their fees to optimize their bandwidth in
+the system, we first analyze how the $t_f$ changed during
+time. Figure~\ref{fig:txs_fee_distribution} shows a $t_f$
+divided in categories and represented in percentage for each
+category. We can notice that after the first half of $2016$
+fees in between $0$\,\bitcoin~and $0.0002$\,\bitcoin~almost disappeared
+from the system, and considering that the Bitcoin price raised
+from less than $1000$\,\$ to more than $4000$\,\$ in between
+mid $2016$ and second half of $2017$ this results to be
+as a huge increment on the fees paid to miners.
+%TODO: Define when is convenient for users to pay fee for bandwidth
 %TODO: Proved that from 2013 to 2017 the $t_l$ is more dependent from the $t_f$ 
 \begin{figure}[h]
 	\centering
@@ -2277,11 +2665,12 @@ systems.
 	\label{fig:txs_feedensity_distribution}
 \end{figure}
 
-\subsection{Miners' Profit}
-\label{sec:minersprofit}
-
-\subsection{Clients' Profit}
-\label{sec:clientprofit}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{img/fee_input_miners}
+	\caption{Average \% of $t_f$ paid from users to the top $20$ miners of all times, divided by year.}
+	\label{fig:fee_input_miners}
+\end{figure}
 
 %\section{Blockchain Growth}
 %\label{sec:blockchain_growth}
@@ -2766,21 +3155,21 @@ show bibliography \cite{Nakamoto_bitcoin}, \cite{ethereum}, \cite{Back02hashcash
 	\item [$t_\%$] percentage of $t_{in}$ paid in fee, $t_f$.
 	\item [$\mathcal{T}$] expected block interval time~($\sim$\,$10$\,min)
 	\item [$\mathbb{P}_{orphan}$] probability that given a block is orphaned.
-	\item [$\tau$] block solution propagation time, we consider a $\tau = 10$\,
-	seconds according to Decker\,\cite{Decker2013IPBN}. %TODO: analyze recent data form Croman
+	\item [$\tau$] block solution propagation time, we consider a $\tau = 15.7$\,
+	seconds according to Croman\,\cite{croman2016}. %TODO: analyze recent data form Croman
 	\item [$t_{epoch}$] timestamp of a transaction $t$.
 	Epoch of when $t$ was first seen in the network
 	\item [$\eta$] cost per hash.
 	\item [$\langle \Pi \rangle$] expectation value of a miner’s profit per block.
 	\item [$\langle V\rangle$] expectation value of a miner’s revenue per block.
 	\item [$\langle C\rangle$] expectation value of a miner's hashing cost per block.
-	\item [$R$] block reward, currently at 12.5 \bitcoin.
+	\item [$R$] block reward, currently at 12.5 \bitcoin, halved every $210,000$ blocks.
 	\item [$h$] miner's individual hash rate.
 	\item [$H$] total hash rate of Bitcoin network.
 	\item [$Q$] block size or block space in bytes.
 	\item [$Q^*$] the block size that maximizes the miner’s expected profit.
 	\item [$\rho$] fee density, or the price per byte for block space.
-	\item [$M$] money, bitcoin (\bitcoin).
+	\item [$M$] money in \bitcoin. Sum of all $t_f$ in a block.
 	\item [$M_{demand}(b)$] partial sum of the $b$ transaction fees
 	in mempool in order of descending fee density.
 	\item [$M_{supply}(Q)$] miner’s cost due to orphaning to produce a certain block size $Q$.
