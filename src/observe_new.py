@@ -486,6 +486,7 @@ def get_all_dataframe():
     while True:
         # if the file exists
         df_name = "transaction_dataframe_"+str(i)+".tsv"
+        # df_name = "old_dataset/transaction_dataframe_"+str(i)+".tsv"
         if (os.path.isfile(df_name)):
             df = pd.DataFrame.from_csv(df_name, sep='\t')
             new_df = pd.concat([old_df, df])
@@ -1117,6 +1118,88 @@ def plot(miner=1):
     # print val
     # ========
 
+
+    # ----------------------------- CONSUMPTION OF TRANSACTIONS -------------------------------
+    # Todo: review this for green economy
+    info = "plot/consumption"
+    new_df = df[['B_ep', 'B_t', 'B_mi']]
+    # default values
+    # mining_pools = 10
+    # miners_per_mining_pool = 1000
+
+    new_df = new_df.groupby(['B_ep', 'B_mi']).median().reset_index()
+    new_df = epoch_date_dd(new_df)
+    # dataframe showing how many transactions approved per day
+    new_df = new_df.groupby(['date', 'B_mi']).sum().reset_index()
+    print new_df
+
+
+    # miners = new_df['B_mi'].values
+    # number_of_miners = []   # if mining pool this value is x1000
+    # for mi in miners:
+    #     pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    #     if (pattern.match(str(mi))):
+    #         number_of_miners.append(1)
+    #     else:
+    #         number_of_miners.append(1000)
+    # new_df['miner_value'] = number_of_miners
+
+    epoch = []
+    i = 0
+    ep = 1357027535
+    while (i<60):
+        epoch.append(ep)
+        ep += 2500000
+        i += 1
+
+    miners = [25000, 28000, 30000, 28000, 25000, 20000, 18000, 10000, 20000, 30000, 40000, 50000,
+              80000, 60000, 65000, 70000, 68000, 80000, 78000, 110000, 80000, 60000, 80000, 105000,
+              120000, 100000, 80000, 85000, 90000, 95000, 110000, 125000, 98000, 85000, 110000, 115000,
+              125000, 130000, 110000, 128000, 100000, 98000, 99000, 105000, 135000, 145000, 140000, 144000,
+              150000, 155000, 140000, 135000, 160000, 180000, 165000, 144000, 125000, 160000, 170000, 180000]
+
+    miner_value = []
+    blocks_epoch = new_df['B_ep'].values
+    for ep in blocks_epoch:
+        index = find_nearest(epoch, ep)
+        miner_value.append(miners[index])
+
+    new_df['miner_value'] = miner_value
+
+    del new_df['B_ep']
+    del new_df['B_mi']
+    new_df = new_df.groupby('date').sum().reset_index()
+    consumption_antminer = 33  # KW/h per day
+    new_df['daily_consumption'] = new_df['miner_value'].apply(lambda x: x * consumption_antminer)
+    del new_df['miner_value']
+    new_df['B_t'] = new_df['B_t'].apply(lambda x: x * 2)
+    print new_df
+    # total_consumption_hour = consumption_antminer * mining_pools * miners_per_mining_pool
+    # new_df['consumption/tx'] = new_df['B_t'].apply(lambda x: total_consumption_hour/(x/24))
+    daily_consumption = new_df['daily_consumption'].values
+    oneday_transactions = new_df['B_t'].values
+
+    consumption_tx = []
+    for d, o in zip(daily_consumption, oneday_transactions):
+        c = d/o
+        consumption_tx.append(c)
+    new_df['consumption/tx'] = consumption_tx
+    print new_df
+    axes.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.plot_date(new_df['date'].values, new_df['consumption/tx'], "-r", label="Kw/h", lw=2)
+
+    font = {'family': 'normal',
+            'weight': 'bold',
+            'size': 18}
+    # # axes.set_ylim([0, 26])
+    matplotlib.rc('font', **font)
+    plt.xticks(rotation=45)
+    plt.legend(loc="best")
+    plt.xlabel("date")
+    plt.ylabel("Kw/h")
+    # -----------------------------------------------------------------------------------------
+
+
     # ------------------------- COMPARISON R (REWARD) AND M (FEE) -----------------------------
     # info = "plot/reward_fee"
     # new_df = df[['B_he', 't_f', 'B_ep']]
@@ -1127,6 +1210,10 @@ def plot(miner=1):
     # del new_df['B_he']
     # new_df = new_df.groupby('date').sum().reset_index()
     # new_df['t_f'] = new_df['t_f'].apply(satoshi_bitcoin)
+    #
+    # new_df['t_f'] = new_df['t_f'].apply(lambda x: x * 2)
+    # new_df['reward'] = new_df['reward'].apply(lambda x: x * 2)
+    #
     # print new_df
     #
     # axes.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
@@ -1254,7 +1341,6 @@ def plot(miner=1):
     # info = "plot/profit_creation_time"
     # info1 = "plot/cost_creation_time"
     # info2 = "plot/revenue_creation_time"
-    # miner = 3 # AntMiner S9
     #
     # new_df = df[['B_ep', 't_f', 'B_T']]
     # new_df = new_df.groupby(['B_ep', 'B_T']).sum().reset_index()
@@ -1317,8 +1403,8 @@ def plot(miner=1):
     # # calculate profits revenue and costs
     # for f, t, p, h in zip(fee, creation_time, prices, hashing_rate):
     #     if(t <= 0):
-    #         t = 600
-    #     profit, revenue, cost = calculate_profit(f, t, p, h, miner=3)
+    #         t = 0.01
+    #     profit, revenue, cost, miner = calculate_profit(f, t, p, h, miner=3)
     #     profits.append(profit)
     #     revenues.append(revenue)
     #     costs.append(cost)
@@ -1327,28 +1413,29 @@ def plot(miner=1):
     # new_df['revenue'] = revenues
     # new_df['cost'] = costs
     #
-    # profits = []
-    # revenues = []
-    # costs = []
-    # # calculate also AntMiner U3 - the one with the lowest hashing rate
-    # for f, t, p, h in zip(fee, creation_time, prices, hashing_rate):
-    #     if(t <= 0):
-    #         t = 600
-    #     profit, revenue, cost = calculate_profit(f, t, p, h, miner=1, number_of_miners=10)
-    #     profits.append(profit)
-    #     revenues.append(revenue)
-    #     costs.append(cost)
-    #
-    # new_df['profitU3'] = profits
-    # new_df['revenueU3'] = revenues
-    # new_df['costU3'] = costs
+    # # profits = []
+    # # revenues = []
+    # # costs = []
+    # # # calculate also AntMiner U3 - the one with the lowest hashing rate
+    # # for f, t, p, h in zip(fee, creation_time, prices, hashing_rate):
+    # #     if(t <= 0):
+    # #         t = 600
+    # #     profit, revenue, cost = calculate_profit(f, t, p, h, miner=1, number_of_miners=10)
+    # #     profits.append(profit)
+    # #     revenues.append(revenue)
+    # #     costs.append(cost)
+    # #
+    # # new_df['profitU3'] = profits
+    # # new_df['revenueU3'] = revenues
+    # # new_df['costU3'] = costs
     #
     #
     #
     # new_df['B_T'] = new_df['B_T'].apply(sec_minutes)
     # print new_df
+    # print len(costs)
     # ax1 = new_df.plot(x='B_T', y='cost', linestyle=' ', marker='o', color='red',
-    #                   label=r'$\langle C\rangle$ with AntMiner S9', markersize=2)
+    #                   label=r'$\langle C\rangle$ with ' + miner, markersize=2)
     # ax1.set_xlabel("$\mathcal{T}(min)$")
     # ax1.set_ylabel(r"Cost $\langle C\rangle$ (BTC)")
     # ax1.set_xlim(0, 30)
@@ -1356,7 +1443,7 @@ def plot(miner=1):
     # plt.savefig(info1, bbox_inches='tight', dpi=500)
     #
     # ax2 = new_df.plot(x='B_T', y='revenue', linestyle=' ', marker='o', color='green',
-    #                   label=r'$\langle V\rangle$ with AntMiner S9', markersize=2)
+    #                   label=r'$\langle V\rangle$ with ' + miner, markersize=2)
     # ax2.set_xlabel("$\mathcal{T}(min)$")
     # ax2.set_ylabel(r"Revenue $\langle V\rangle$ (BTC)")
     # ax2.set_xlim(0, 30)
@@ -1365,30 +1452,39 @@ def plot(miner=1):
     #
     #
     # ax = new_df.plot(x='B_T', y='profit',linestyle=' ',marker='o', color='orange',
-    #                  label=r'$\langle \Pi \rangle$ with AntMiner S9', markersize=2)
+    #                  label=r'$\langle \Pi \rangle$ with ' + miner, markersize=2)
     # ax.set_xlabel("$\mathcal{T}(min)$")
     # ax.set_ylabel(r"Profit $\langle \Pi \rangle$ (BTC)")
-    # ax.set_xlim(0, 60)
-    # # ax.set_ylim(0, 0.0001)
-    # ax.set_ylim(0, 0.00022)
+    # ax.set_xlim(0, 80)
+    # ax.set_ylim(0, 0.00009)
+    # # ax.set_ylim(-0.00001, 0.0000005)
     # # -- REGRESSION
     # regression = []
     # regression.append(r"$f_{\langle \Pi \rangle}(\mathcal{T})$")
-    # regression.append(38)
+    # regression.append(39)
     # regression.append(2)
-    # new_x, new_y, f = polynomial_interpolation(r"$f^{38}_{\langle \Pi \rangle}(\mathcal{T})$", new_df['B_T'].values,
-    #                                            new_df['profit'].values, regression[1])
-    # plt.plot(new_x, new_y, "r-", label=r"$f^{38}_{\langle \Pi \rangle}(\mathcal{T})$", lw=2)
     #
-    # new_x, new_y, f = polynomial_interpolation(r"$f^{2}_{\langle \Pi \rangle}(\mathcal{T})$", new_df['B_T'].values,
+    # new_x, new_y, f = polynomial_interpolation(r"$f^{" + str(regression[2]) + r"}_{\langle \Pi \rangle}(\mathcal{T})$", new_df['B_T'].values,
     #                                            new_df['profit'].values, regression[2])
-    # plt.plot(new_x, new_y, "g-", label=r"$f^{2}_{\langle \Pi \rangle}(\mathcal{T})$", lw=2)
+    # plt.plot(new_x, new_y, "r-", label=r"$f^{" + str(regression[2]) + r"}_{\langle \Pi \rangle}(\mathcal{T})$", lw=2)
     #
+    # # new_x, new_y, f = polynomial_interpolation(r"$f^{" + str(regression[1]) + r"}_{\langle \Pi \rangle}(\mathcal{T})$", new_df['B_T'].values,
+    # #                                            new_df['profit'].values, regression[1])
+    # # plt.plot(new_x, new_y, "g-", label=r"$f^{" + str(regression[1]) + r"}_{\langle \Pi \rangle}(\mathcal{T})$", lw=2)
     # # regression with AntMinerU3
-    # new_x, new_y, f = polynomial_interpolation(r"$f^{2}_{\langle \Pi \rangle U3}(\mathcal{T})$", new_df['B_T'].values,
-    #                                            new_df['profitU3'].values, regression[2])
-    # plt.plot(new_x, new_y, "b-", label=r"$f^{2}_{\langle \Pi \rangle U3}(\mathcal{T})$", lw=2)
+    # # new_x, new_y, f = polynomial_interpolation(r"$f^{2}_{\langle \Pi \rangle U3}(\mathcal{T})$", new_df['B_T'].values,
+    #                                            #new_df['profitU3'].values, regression[2])
+    # # plt.plot(new_x, new_y, "b-", label=r"$f^{2}_{\langle \Pi \rangle U3}(\mathcal{T})$", lw=2)
     # # -------------
+    #
+    # # --- calculating MAE
+    # predicted = []
+    # for el in new_df['B_T'].values:
+    #     x = float(el)
+    #     pred_y = f(x)
+    #     predicted.append(pred_y)
+    # print "MAE: " + str(mean_absolute_error(new_df['profit'].values, predicted)) + "\n"
+    # print "MSE: " + str(math.sqrt(mean_squared_error(new_df['profit'].values, predicted))) + "\n"
     # -----------------------------------------------------------------------------------------
 
     # ------------------------ ZERO FEE / MINING POOL - OCCASIONAL MINERS -------------------------
@@ -1514,624 +1610,657 @@ def plot(miner=1):
 
 
     # -------------------------- TX LATENCY - FEE PAID ----------------------------
+    # # TODO: RE-DO with MAE
     # info = "plot/fee_latency"
-    # df_fl = df[['t_l', 't_f', 'B_ep']]
+    # df_fl = df[['B_ep', 't_l', 't_f', 't_q']]
     # df_fl['t_f'] = df_fl['t_f'].apply(satoshi_bitcoin)
-    #
+    # df_fl = df_fl.groupby('B_ep').median().reset_index()
     # df_fl = epoch_date_yy(df_fl)
+    # df_fl = df_fl[df_fl.date != '2013']
+    # df_fl = df_fl[df_fl.date != '2014']
+    # df_fl = df_fl[df_fl.date != '2015']
+    # df_fl = df_fl[df_fl.date != '2016']
     # del df_fl['B_ep']
-    #
     # # categorize the fee
-    # df_fl['fee_category'] = df_fl['t_f'].apply(fee_more_intervals)
-    # del df_fl['t_f']
+    # # df_fl['fee_category'] = df_fl['t_f'].apply(fee_more_intervals)
+    # # del df_fl['t_f']
+    # # df_fl = df_fl.groupby(['date', 'fee_category']).median().reset_index()
     #
-    # df_fl = df_fl.groupby(['date', 'fee_category']).median().reset_index()
+    # # df_fl['fee_density'] = df_fl['t_f'] / df_fl['t_q']
     # df_fl['t_l'] = df_fl['t_l'].apply(sec_hours)
     # print df_fl
     #
-    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
-    # g = sns.pointplot(x="fee_category", y="t_l", data=df_fl, hue='date')
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='$t_f$ (BTC)', ylabel='$t_l$ (h)')
-    # sns.plt.ylim(0, )
-    # -----------------------------------------------------------------------------
-
-    # -------------------- % OF ZERO FEE TX FOR EACH MINER EVERY YEAR ------------------------
-    # info = "plot/zero_fee_yearly"
-    #
-    # df_zero = df[['B_ep', 't_f', 'B_mi']]
-    # df_zero = remove_minor_miners(df_zero, 15)
-    # df_zero = epoch_date_yy(df_zero)
-    #
-    # df_only_zero = df_zero[df_zero.t_f == 0]
-    #
-    #
-    # df_zero = df_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
-    # df_only_zero = df_only_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
-    #
-    # print df_zero
-    # print df_only_zero
-    #
-    # # create two lists containing B_mi and size each, for total txs and zero fee only
-    # b_mi = df_zero['B_mi'].values
-    # tx_size = df_zero['size'].values
-    #
-    # b_mi_0 = df_only_zero['B_mi'].values
-    # tx_size_0 = df_only_zero['size'].values
-    #
-    # all_date = df_zero['date'].values
-    # date_0 = df_only_zero['date'].values
-    #
-    # # adding missing 0% zero-fee miners
-    #
-    # i = 0
-    # j = 0
-    #
-    # new_b_mi_0 = []
-    # new_tx_size_0 = []
-    #
-    #
-    # while (i < len(b_mi)):
-    #     found = False
-    #     j = 0
-    #     while ((j < len(b_mi_0)) and (found == False)):
-    #         if((b_mi[i] == b_mi_0[j]) and (all_date[i] == date_0[j])):
-    #             new_b_mi_0.append(b_mi[i])
-    #             new_tx_size_0.append(tx_size_0[j])
-    #             found = True
-    #         else:
-    #             if((j == (len(b_mi_0)-1)) and (found == False)):
-    #                 found = True
-    #                 new_b_mi_0.append(b_mi[i])
-    #                 new_tx_size_0.append(0)
-    #             else:
-    #                 pass
-    #         j += 1
-    #     i += 1
-    #
-    # # calculate percentage on total
-    # percentage = []
-    # for zero, tot in zip(new_tx_size_0, tx_size):
-    #     perc = (float(zero) * 100) / float(tot)
-    #     percentage.append(perc)
-    #
-    # # add percentage to df_zero
-    # df_zero['number 0'] = new_tx_size_0
-    # df_zero['%0'] = percentage
-    #
-    # print df_zero
-    #
-    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
-    # g = sns.pointplot(x="B_mi", y="%0", hue="date", data=df_zero)
-    #
-    # # # reduce number of labels to show
-    # # ticklabels = g.get_xticklabels()
-    # # new_ticklabels = []
-    # # i = 0
-    # # for el in ticklabels:
-    # #     if (i == 0):
-    # #         i = 8
-    # #     else:
-    # #         el = ""
-    # #         i -= 1
-    # #     new_ticklabels.append(el)
-    #
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='miners', ylabel='% of zero-fee transactions')
-    # -------------------------------------------------------------------------------------------------
-
-
-    # ------------------------- TRANSACTIONS DISTRIBUTION -----------------------------
-    # info = "plot/txs_distribution"
-    #
-    # df_txs = df[['B_ep', 'B_t']]
-    # df_txs = epoch_date_dd(df_txs)
-    #
-    # df_txs = df_txs.groupby(['date']).size().to_frame('size').reset_index()
-    #
-    # print df_txs
-    #
-    # df_txs['size'] = df_txs['size'].apply(lambda x: x * 2)
-    #
-    # print df_txs
-    #
-    # ax = df_txs.plot(x='date', y='size')
-    # ax.set_xlabel("date")
-    # ax.set_ylabel("number of txs")
-    # ----------------------------------------------------------------------------
-
-    # -------------------- % OF ZERO FEE TX FOR EACH MINER FROM ALL TIME ------------------------
-    # info = "plot/zero_fee"
-    #
-    # df_zero = df[['B_ep', 't_f', 'B_mi']]
-    #
-    # # create two dataframes containing in one, the number of zero transactions per miner and in the other the total number of transaction per miner
-    # miners = df_zero['B_mi'].value_counts()
-    # miners = miners.groupby(miners.index, sort=False).sum().reset_index()
-    #
-    # df_only_zero = df_zero[df_zero.t_f == 0]
-    # miners_zero = df_only_zero['B_mi'].value_counts()
-    # miners_zero = miners_zero.groupby(miners_zero.index, sort=False).sum().reset_index()
-    #
-    #
-    # miners = miners.head(20)
-    # miners_zero_new = pd.DataFrame()
-    # miners_zero_old = pd.DataFrame()
-    #
-    # for miner in miners['index']:
-    #     miners_zero_old = miners_zero[miners_zero['index'] == miner]
-    #     miners_zero_new = pd.concat([miners_zero_old, miners_zero_new])
-    #
-    # # append in the new zero df the miners which had 0 txs with zero-fee
-    # i = 0
-    # for miner in miners['index']:
-    #     if(miner in miners_zero_new['index'].values):
-    #         pass
-    #     else:
-    #         miners_zero_new.loc[i] = [miner, 0]
-    #     i += 1
-    #
-    # print miners
-    # print miners_zero_new
-    # miners = miners.sort_values(by='index')
-    # miners_zero_new = miners_zero_new.sort_values(by='index')
-    #
-    # list_0 = miners_zero_new['B_mi'].values
-    # list_tot = miners['B_mi'].values
-    #
-    # miners['0'] = list_0
-    # print miners
-    # print miners_zero_new
-    #
-    #
-    #
-    # new_list = []
-    # for zero, tot in zip(list_0, list_tot):
-    #     perc = (float(zero) * 100) / float(tot)
-    #     new_list.append(perc)
-    #
-    # # create a new df containing the percentage of the zero transaction fee per miner
-    # miners[r'%0'] = new_list
-    # print miners
-    #
-    # ax = miners.plot.bar(x='index', y='%0')
-    # ax.set_xlabel("miners")
-    # ax.set_ylabel("% of zero-fee transactions")
-
-    # -----------------------------------------------------------------------------
-
-
-    # ------------------------ FEE DENSITY / FEE LATENCY -------------------------
-    # # TODO: NOT WORKING BECAUSE OF THE DIVISION, USE THE FUNCTION DIVIDE!
-    # info = "plot/fee_density_latency"
-    #
-    # df_dens_lat = df[['t_l', 't_f', 't_q', 'B_ep']]
-    # df_dens_lat = epoch_date_dd(df_dens_lat)
-    #
-    # df_dens_lat['f_dens'] = (df_dens_lat['t_f'] / df_dens_lat['t_q'])
-    #
-    # df_dens_lat = df_dens_lat.groupby('date').median().reset_index()
-    #
-    # print df_dens_lat
-    #
-    # ax = df_dens_lat.plot(x='t_l', y='f_dens')
-    # ax.set_ylabel(r"$\rho$")
-    # ax.set_xlabel(r"$t_l$")
-
-    # ----------------------------------------------------------------------------
-
-    # ------------------------ FEE DENSITY DISTRIBUTION -------------------------
-    # info = "plot/txs_feedensity_distribution"
-    #
-    # df_fdens = df[['t_f', 't_q', 'B_ep']]
-    #
-    # # # split date to have yyyy-mm
-    # df_fdens = epoch_date_mm(df_fdens)
-    #
-    # #create fee density
-    # df_fdens['f_dens'] = df_fdens['t_f'] / df_fdens['t_q']
-    #
-    # # # get a category for the fee
-    # df_fdens['f_dens'] = df_fdens['f_dens'].apply(fee_density_intervals)
-    # # # groub by date and then miners, count how many transactions a miner approved in a certain month
-    # df_fdens = df_fdens.groupby(['f_dens', 'date']).size().to_frame('size').reset_index()
-    # # # df_grouped.plot(data=df_grouped, x ='date', y='size', kind='area')
-    #
-    # df_0 = df_fdens[df_fdens.f_dens == "0"]
-    # df_1 = df_fdens[df_fdens.f_dens == "<50"]
-    # df_2 = df_fdens[df_fdens.f_dens == "<100"]
-    # df_3 = df_fdens[df_fdens.f_dens == "<200"]
-    # df_4 = df_fdens[df_fdens.f_dens == "<300"]
-    # df_5 = df_fdens[df_fdens.f_dens == ">300"]
-    #
-    # # create a new dataframe having as columns the different t_f
-    # new_df = pd.DataFrame.from_items(
-    #     [('0 (sat/byte)', df_0['size'].values), ('<50', df_1['size'].values), ('<100', df_2['size'].values), ('<200', df_3['size'].values), ('<300', df_4['size'].values),
-    #      ('>300', df_5['size'].values), ('date', df_0['date'].values)])
-    #
-    # dates = new_df['date'].values
-    #
-    # col_list = list(new_df)
-    # col_list.remove('date')
-    # new_df['total'] = new_df[col_list].sum(axis=1)
-    # df1 = new_df.drop(['date'], axis=1)
-    #
-    # percent = df1.div(df1.total, axis='index') * 100
-    #
-    # percent = percent.drop(['total'], axis=1)
-    # percent['date'] = dates
-    # print percent
-    #
-    #
-    # ax = percent.plot.area(x = 'date')
-    # ax.set_ylim(0, 100)
-    # ax.set_ylabel("%")
-    #
-    # # writer = pd.ExcelWriter('tables/' + info + '.xlsx')
-    # # new_df.to_excel(writer, 'Sheet1')
-    # # writer.save()
-    # ---------------------------------------------------------------------------
-
-
-    # ------------------------ FEE DENSITY -------------------------
-    # # fee density per miner
-    # info = "plot/fee_density"
-    #
-    # df_fdens = df[['t_f', 't_q', 'B_mi', 'B_ep']]
-    #
-    # df_fdens = remove_minor_miners(df_fdens, 4)
-    #
-    # # df_fdens['t_f'] = df_fdens['t_f'].apply(satoshi_bitcoin)
-    # df_fdens['f_dens'] = df_fdens['t_f'] / df_fdens['t_q']
-    #
-    # df_fdens = epoch_date_mm(df_fdens)
-    #
-    # df_fdens = df_fdens.groupby(['date', 'B_mi']).mean().reset_index()
-    #
-    # g = sns.pointplot(x="date", y="f_dens", hue="B_mi", data=df_fdens)
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='date', ylabel=r'$\rho$ (sat/byte)')
-
-    # --------------------------------------------------------------
-
-
-    # --------------------------- THROUGHPUT ----------------------------
-    # info = "plot/throughput"
-    # df_thr = df[['B_t', 'B_T', 'B_ep']]
-    # df_thr = epoch_date_dd(df_thr)
-    #
-    # df_thr = df_thr.groupby(['date']).size().to_frame('size').reset_index()
-    # size = df_thr['size'].values
-    #
-    # df_thr = df[['B_t', 'B_T', 'B_ep']]
-    # df_thr = epoch_date_dd(df_thr)
-    # df_thr = df_thr.groupby(['date', 'B_ep']).median().reset_index()
-    # df_thr = df_thr.groupby(['date']).sum().reset_index()
-    # df_thr['size'] = size
-    # df_thr = df_thr[['date', 'size', 'B_T']]
-    # df_thr['thr'] = df_thr['size'] / df_thr['B_T']
-    #
-    # print df_thr
-    # ax = df_thr.plot(x='date', y ='thr', color='orange', label='throughput $\gamma$', rot=45)
-    #
-    # # lines, labels = ax.get_legend_handles_labels()
-    # # ax.legend(lines[:2], labels[:2], loc='best')
-    #
-    # ax.set_ylabel("$\gamma$ (txs/s)")
-    # -------------------------------------------------------------------
-
-    # --------------------------------- Transaction fee in USD -------------------------------------
-    info = "plot/txs_USD"
-    df_usd = df[['t_f', 'B_ep']]
-
-    btc_usd = get_json_request("https://api.blockchain.info/charts/market-price?timespan=all&format=json")
-    values = btc_usd['values']
-
-    y = []
-    x = []
-    for el in values:
-        y.append(el['y'])
-        x.append(el['x'])
-
-    # create array containing x and y coordinates of the BTC-USD price
-    y = np.asarray(y)
-    x = np.asarray(x)
-
-    # add the USD value in dataframe
-
-    # create USD array
-    epoch = df_usd['B_ep'].values
-    epoch[:] = [int(el) for el in epoch]
-
-    usd_array = []
-    for ep in epoch:
-        index = find_nearest(x, ep)
-        usd_array.append(y[index])
-
-    df_usd['USD'] = usd_array
-
-    df_usd['t_f'] = df_usd['t_f'].apply(satoshi_bitcoin)
-
-    # adding the fee paid in USD
-    usd_price = df_usd['USD'].values
-    fees = df_usd['t_f'].values
-    fees[:] = [float(el) for el in fees]
-    usd_price[:] = [float(el) for el in usd_price]
-
-    fee_in_usd = []
-    for usd, fee in zip(usd_price, fees):
-        fee_in_usd.append(usd*fee)
-
-    df_usd['usd_fee'] = fee_in_usd
-    df_usd = epoch_date_dd(df_usd)
-    del df_usd['B_ep']
-    df_usd = df_usd.groupby('date').mean().reset_index()
-
-    df_usd = df_usd.sort_values('date')
-    print df_usd
-    df_usd = df_usd[df_usd.usd_fee <= df_usd.USD]
-    print df_usd
-
-    # ax = df_usd.plot(x='date', y = 'USD', rot=45, color ='green', label ='USD price')
-    ax = df_usd.plot(x = 'date', y ='usd_fee', rot=45, color ='blue', label='$t_f$ USD price')
-
-    ax.set_ylabel("USD")
-    # ----------------------------------------------------------------------------------------------
-
-
-    # ---------------------------- Distribution of transaction fees -------------------------------
-    # info = "plot/txs_fee_distribution"
-    # df_distr = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_ep']]
-    # # split date to have yyyy-mm
-    # df_distr = epoch_date_mm(df_distr)
-    # df_distr['t_f'] = df_distr['t_f'].apply(satoshi_bitcoin)
-    # # get a category for the fee
-    # df_distr['t_f'] = df_distr['t_f'].apply(fee_intervals)
-    # # groub by date and then miners, count how many transactions a miner approved in a certain month
-    # df_distr = df_distr.groupby(['t_f', 'date']).size().to_frame('size').reset_index()
-    # # df_grouped.plot(data=df_grouped, x ='date', y='size', kind='area')
-    #
-    # df_0 = df_distr[df_distr.t_f == "0"]
-    # df_1 = df_distr[df_distr.t_f == ">0.0001"]
-    # df_2 = df_distr[df_distr.t_f == ">0.0002"]
-    # df_3 = df_distr[df_distr.t_f == ">0.0005"]
-    # df_4 = df_distr[df_distr.t_f == ">0.001"]
-    # df_5 = df_distr[df_distr.t_f == ">0.01"]
-    #
-    #
-    # # create a new dataframe having as columns the different t_f
-    # new_df = pd.DataFrame.from_items(
-    #     [('0 (BTC)', df_0['size'].values), ('>0.0001', df_1['size'].values), ('>0.0002', df_2['size'].values), ('>0.0005', df_3['size'].values), ('>0.001', df_4['size'].values),
-    #      ('>0.01', df_5['size'].values), ('date', df_0['date'].values)])
-    #
-    # dates = new_df['date'].values
-    #
-    # col_list = list(new_df)
-    # col_list.remove('date')
-    # new_df['total'] = new_df[col_list].sum(axis=1)
-    # df1 = new_df.drop(['date'], axis=1)
-    #
-    # percent = df1.div(df1.total, axis='index') * 100
-    #
-    # percent = percent.drop(['total'], axis=1)
-    # percent['date'] = dates
-    # print percent
-    #
-    #
-    # ax = percent.plot.area(x = 'date')
-    # ax.set_ylim(0, 100)
-    # ax.set_ylabel("%")
-    # ---------------------------------------------------------------------------------------------
-
-
-
-    # ---------------------------------- ANDREWS CURVES -----------------------------------
-    # info = "plot/andrews"
-    # df_andrews = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_mi']]
-    # andrews_curves(df_andrews, 'B_mi')
-    # -------------------------------------------------------------------------------------
-
-    # ---------------------- TRANSACTION LATENCY FROM EACH MINER --------------------------
-    # info = "plot/tx_latency"
-    # df = epoch_date_mm(df)
-    # df = df[['t_l', 'B_mi', 'date', 'B_ep']]
-    #
-    # df['t_l'] = df['t_l'].apply(sec_minutes)
-    #
-    # df_grouped = df.groupby(['date', 'B_mi']).median().reset_index()
-    # df_grouped = remove_minor_miners(df_grouped, 8)
-    # print df_grouped
-    # g = sns.pointplot(x="date", y="t_l", hue="B_mi", data=df_grouped)
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='date', ylabel='$t_l$ (min)')
-
-    # -------------------------------------------------------------------------------------
-
-    # -------------------- FEE DISTRIBUTED OVER TIME ACCORDING TO DIFFERENT MINERS --------------------
-
-    # info = "plot/fee_distribution"
-    # df_feedistr = df[['t_f', 'B_mi', 'B_ep']]
-    # df_feedistr = remove_minor_miners(df_feedistr)
-    #
-    # df_feedistr['t_f'] = df_feedistr['t_f'].apply(satoshi_bitcoin)
-    #
-    # df_feedistr['date'] = df_feedistr['B_ep'].apply(epoch_datetime)
-    # df_feedistr['date'] = df_feedistr['date'].apply(revert_date_time)
-    # # split date to have yyyy-mm
-    # df_feedistr['date'] = df_feedistr['date'].str.slice(start=0, stop=7)
-    # df_feedistr = df_feedistr.groupby(['date', 'B_mi']).median().reset_index()
-    # # print df_feedistr
-    #
-    # g = sns.pointplot(x="date", y="t_f", hue="B_mi", data=df_feedistr, legend_out = True)
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='date', ylabel='$t_f$ (BTC)')
-
-    # -------------------------------------------------------------------------------------------------
-
-
-    # -------------- BLOCK SIZE ----------------
-    # info = "plot/block_size"
-    # df_block_size = df[['Q', 'B_ep']]
-    # df_block_size = epoch_date_mm(df_block_size)
-    #
-    # df_block_size = df_block_size.groupby(['date']).median().reset_index()
-    # df_block_size['Q'] = df_block_size['Q'].apply(byte_megabyte)
-    #
-    # print df_block_size
-    #
-    # ax = df_block_size.plot(x = 'date', y='Q')
-    # ax.set_xlabel("date")
-    # ax.set_ylabel("$Q$ (MB)")
-    #
-    # # g = sns.pointplot(x="date", y="Q", data=df_block_size, color="green")
-    # # g.set_xticklabels(g.get_xticklabels(), rotation=60)
-    # # g.set(xlabel='date', ylabel='$Q$ (MB)')
-    # ------------------------------------------
-
-    # ------------------------- TXS LATENCY ------------------------
-    # info = "plot/txs_latency"
-    # new_df = df[['B_ep', 't_l']]
-    # new_df = epoch_date_dd(new_df)
-    #
-    # del new_df['B_ep']
-    #
-    # new_df = new_df.groupby('date').median().reset_index()
-    # new_df['t_l'] = new_df['t_l'].apply(sec_hours)
-    #
-    # print new_df
-    #
-    # ax = new_df.plot(x = 'date', y='t_l', color = 'orange', label = '$t_l$')
-    # ax.set_xlabel("date")
+    # ax = df_fl.plot(x='t_f', y='t_l', linestyle=' ', marker='o', color='orange',
+    #                                   label='$t_l$', markersize=2 ,rot=45)
+    # ax.set_xlabel("$t_f$ (BTC)")
+    # # ax.set_xlabel(r"$\rho$ (sat/byte)")
     # ax.set_ylabel("$t_l$ (h)")
-    # ax.set_ylim(0, max(new_df['t_l'].values))
-    # --------------------------------------------------------------
+    # # ax.set_ylim(0, 0.0001)
+    # ax.set_ylim(0, 4)
+    # # ax.set_xlim(0, 0.003)
+    # ax.set_xlim(0, 0.003)
+    # # ax.set_xlim(0, 700)
+    #
+    # # -- REGRESSION
+    # regression = []
+    # regression.append(r"$f_{t_l}(t_f)$")
+    # regression.append(2)
+    # regression.append(39)
+    # new_x, new_y, f = polynomial_interpolation(r"$f^{" + str(regression[2]) + r"}_{t_l}(t_f)$", df_fl['t_f'].values,
+    #                                            df_fl['t_l'].values, regression[2])
+    # plt.plot(new_x, new_y, "g-", label=r"$f^{" + str(regression[2]) + r"}_{t_l}(t_f)$", lw=2)
+    #
+    # new_x, new_y, f = polynomial_interpolation(r"$f^{" + str(regression[1]) + r"}_{t_l}(t_f)$", df_fl['t_f'].values,
+    #                                            df_fl['t_l'].values, regression[1])
+    # plt.plot(new_x, new_y, "r-", label=r"$f^{" + str(regression[1]) + r"}_{t_l}(t_f)$", lw=2)
+    #
+    # # --- calculating MAE
+    # predicted = []
+    # for el in df_fl['t_f'].values:
+    #     x = float(el)
+    #     pred_y = f(x)
+    #     predicted.append(pred_y)
+    # print "MAE: " + str(mean_absolute_error(df_fl['t_l'].values, predicted)) + "\n"
+    # print "RMSE: " + str(math.sqrt(mean_squared_error(df_fl['t_l'].values, predicted))) + "\n"
+# -----------------------------------------------------------------------------
 
-    # ------------------------- TXS FEE ------------------------
-    # info = "plot/txs_fee"
-    # new_df = df[['B_ep', 't_f']]
-    # new_df = epoch_date_dd(new_df)
-    #
-    # del new_df['B_ep']
-    #
-    # new_df = new_df.groupby('date').median().reset_index()
-    # new_df['t_f'] = new_df['t_f'].apply(satoshi_bitcoin)
-    #
-    # print new_df
-    #
-    # ax = new_df.plot(x='date', y='t_f', color='orange', label='$t_f$', rot=45)
-    # ax.set_xlabel("date")
-    # ax.set_ylabel("$t_f$ (BTC)")
-    # --------------------------------------------------------------
-
-    # -------------- TXS LATENCY t_l OVER TIME considering TOP MINERS ---------------------
-    # info = "plot/t_l"
-    # dftl = df[['B_ep', 'B_mi', 't_l']]
-    #
-    # dftl = remove_minor_miners(dftl)
-    #
-    # dftl = epoch_date_mm(dftl)
-    # del dftl['B_ep']
-    #
-    # dftl['t_l'] = dftl['t_l'].apply(sec_hours)
-    # dftl = dftl.groupby(['B_mi', 'date']).median().reset_index()
-    # # order dataframe by date
-    # dftl = dftl.sort_values('date')
-    # print dftl
-    #
-    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.8})
-    # g = sns.pointplot(x="date", y="t_l", data=dftl, hue='B_mi')
-    # # reduce number of labels to show
-    # ticklabels = g.get_xticklabels()
-    # new_ticklabels = []
-    # i = 0
-    # print ticklabels
-    # for el in ticklabels:
-    #     if (i == 0):
-    #         i = 8
-    #     else:
-    #         el = ""
-    #         i -= 1
-    #     new_ticklabels.append(el)
-    # g.set_xticklabels(g.get_xticklabels(), rotation=45)
-    # g.set(xlabel='date', ylabel=r'$t_l$ (h)', xticklabels=new_ticklabels)
-    # sns.plt.ylim(0, )
-    # -------------------------------------------------------------------------------------
-
-
-    # ------------------- RELATION BETWEEN < 10 MIN BLOCKS AND MINERS ---------------------
-    # info = "plot/creation_time_miners"
-    # df_new = df[['B_ep', 'B_mi', 'B_T']]
-    #
-    # df_new = df_new.groupby(['B_ep', 'B_mi']).mean().reset_index()
-    #
-    # df_new = epoch_date_yy(df_new)
-    # df_new = df_new[df_new['date'] > '2015']
-    # del df_new['date']
-    # del df_new['B_ep']
-    #
-    # miners = df_new['B_mi'].values
-    #
-    #
-    # df_new['B_T'] = df_new['B_T'].apply(sec_minutes)
-    # # divide miners in IP and mining pool
-    # # true / false list for adding the ip address or mining pool
-    # truefalse_list = []
-    # # match the string with re
-    # for mi in miners:
-    #     pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-    #     if (pattern.match(str(mi))):
-    #         truefalse_list.append('Occasional miner')
-    #     else:
-    #         truefalse_list.append('Mining pool')
-    #
-    # df_new['Miner'] = truefalse_list
-    #
-    # del df_new['B_mi']
-    #
-    # breaks = [0, 8, 15, 20, 50, pd.np.inf]
-    # diff = np.diff(breaks).tolist()
-    # # make tuples of *breaks* and length of intervals
-    # joint = list(zip(breaks, diff))
-    # # format label
-    # s1 = "{left:,.0f} to {right:,.0f}"
-    # labels = [s1.format(left=yr[0], right=yr[0] + yr[1] - 1) for yr in joint]
-    # df_new['minutes'] = pd.cut(df_new['B_T'],breaks, labels=labels, right=False)
-    # print df_new
-    # df_new.loc[df_new['minutes'] == 'NaN', 'minutes'] = '0 to 7'
-    # del df_new['B_T']
-    # df_new = df_new.groupby(['minutes', 'Miner']).size().to_frame('blocks').reset_index()
-    # print df_new
-    #
-    # g = sns.factorplot(x='minutes', y='blocks', hue='Miner', data=df_new, kind="bar", legend_out = False, color='orange')
-    # g.fig.suptitle('From 2016 to 2017')
-    # -------------------------------------------------------------------------------------
-
-
-    # -------------- FEE - INPUT MINERS CALCULATIONS --------------------
-    # info = "plot/fee_input_miners"
-    # df_fee_per = remove_minor_miners(df, 20)
-    # df_fee_per = df_fee_per[['B_ep', 't_in', 't_f', 'B_mi', 't_ou']]
-    # df_fee_per = epoch_date_yy(df_fee_per)
-    # del df_fee_per['B_ep']
-    #
-    # df_fee_per['t_per'] = calculate_percentage_txs_fee(df_fee_per)
-    #
-    # print df_fee_per['t_per']
-    #
-    # df_inputtxs = df_fee_per[['t_in', 't_f', 'B_mi', 't_per', 'date']]
-    # df_inputtxs = df_inputtxs.groupby(['date','B_mi']).median().reset_index()
-    # df_inputtxs['t_in'] = df_inputtxs['t_in'].apply(satoshi_bitcoin)
-    # df_inputtxs['t_f'] = df_inputtxs['t_f'].apply(satoshi_bitcoin)
-    # print df_inputtxs
-    # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
-    # g = sns.pointplot(x="B_mi", y="t_per", data=df_inputtxs, hue='date')
-    # g.set(xlabel='major miners', ylabel='$t_f$ %')
-    # g.set_xticklabels(g.get_xticklabels(), rotation=65)
-    # -------------------------------------------------------------------
+# -------------------- % OF ZERO FEE TX FOR EACH MINER EVERY YEAR ------------------------
+# info = "plot/zero_fee_yearly"
+#
+# df_zero = df[['B_ep', 't_f', 'B_mi']]
+# df_zero = remove_minor_miners(df_zero, 15)
+# df_zero = epoch_date_yy(df_zero)
+#
+# df_only_zero = df_zero[df_zero.t_f == 0]
+#
+#
+# df_zero = df_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+# df_only_zero = df_only_zero.groupby(['date', 'B_mi']).size().to_frame('size').reset_index()
+#
+# print df_zero
+# print df_only_zero
+#
+# # create two lists containing B_mi and size each, for total txs and zero fee only
+# b_mi = df_zero['B_mi'].values
+# tx_size = df_zero['size'].values
+#
+# b_mi_0 = df_only_zero['B_mi'].values
+# tx_size_0 = df_only_zero['size'].values
+#
+# all_date = df_zero['date'].values
+# date_0 = df_only_zero['date'].values
+#
+# # adding missing 0% zero-fee miners
+#
+# i = 0
+# j = 0
+#
+# new_b_mi_0 = []
+# new_tx_size_0 = []
+#
+#
+# while (i < len(b_mi)):
+#     found = False
+#     j = 0
+#     while ((j < len(b_mi_0)) and (found == False)):
+#         if((b_mi[i] == b_mi_0[j]) and (all_date[i] == date_0[j])):
+#             new_b_mi_0.append(b_mi[i])
+#             new_tx_size_0.append(tx_size_0[j])
+#             found = True
+#         else:
+#             if((j == (len(b_mi_0)-1)) and (found == False)):
+#                 found = True
+#                 new_b_mi_0.append(b_mi[i])
+#                 new_tx_size_0.append(0)
+#             else:
+#                 pass
+#         j += 1
+#     i += 1
+#
+# # calculate percentage on total
+# percentage = []
+# for zero, tot in zip(new_tx_size_0, tx_size):
+#     perc = (float(zero) * 100) / float(tot)
+#     percentage.append(perc)
+#
+# # add percentage to df_zero
+# df_zero['number 0'] = new_tx_size_0
+# df_zero['%0'] = percentage
+#
+# print df_zero
+#
+# sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+# g = sns.pointplot(x="B_mi", y="%0", hue="date", data=df_zero)
+#
+# # # reduce number of labels to show
+# # ticklabels = g.get_xticklabels()
+# # new_ticklabels = []
+# # i = 0
+# # for el in ticklabels:
+# #     if (i == 0):
+# #         i = 8
+# #     else:
+# #         el = ""
+# #         i -= 1
+# #     new_ticklabels.append(el)
+#
+# g.set_xticklabels(g.get_xticklabels(), rotation=45)
+# g.set(xlabel='miners', ylabel='% of zero-fee transactions')
+# -------------------------------------------------------------------------------------------------
 
 
+# ------------------------- TRANSACTIONS DISTRIBUTION -----------------------------
+# info = "plot/txs_distribution"
+#
+# df_txs = df[['B_ep', 'B_t']]
+# df_txs = epoch_date_dd(df_txs)
+#
+# df_txs = df_txs.groupby(['date']).size().to_frame('size').reset_index()
+#
+# print df_txs
+#
+# df_txs['size'] = df_txs['size'].apply(lambda x: x * 2)
+#
+# print df_txs
+#
+# ax = df_txs.plot(x='date', y='size')
+# ax.set_xlabel("date")
+# ax.set_ylabel("number of txs")
+# ----------------------------------------------------------------------------
 
-    # ------------- FEE PAID WITH DIFFERENT MINERS ---------------
+# -------------------- % OF ZERO FEE TX FOR EACH MINER FROM ALL TIME ------------------------
+# info = "plot/zero_fee"
+#
+# df_zero = df[['B_ep', 't_f', 'B_mi']]
+#
+# # create two dataframes containing in one, the number of zero transactions per miner and in the other the total number of transaction per miner
+# miners = df_zero['B_mi'].value_counts()
+# miners = miners.groupby(miners.index, sort=False).sum().reset_index()
+#
+# df_only_zero = df_zero[df_zero.t_f == 0]
+# miners_zero = df_only_zero['B_mi'].value_counts()
+# miners_zero = miners_zero.groupby(miners_zero.index, sort=False).sum().reset_index()
+#
+#
+# miners = miners.head(20)
+# miners_zero_new = pd.DataFrame()
+# miners_zero_old = pd.DataFrame()
+#
+# for miner in miners['index']:
+#     miners_zero_old = miners_zero[miners_zero['index'] == miner]
+#     miners_zero_new = pd.concat([miners_zero_old, miners_zero_new])
+#
+# # append in the new zero df the miners which had 0 txs with zero-fee
+# i = 0
+# for miner in miners['index']:
+#     if(miner in miners_zero_new['index'].values):
+#         pass
+#     else:
+#         miners_zero_new.loc[i] = [miner, 0]
+#     i += 1
+#
+# print miners
+# print miners_zero_new
+# miners = miners.sort_values(by='index')
+# miners_zero_new = miners_zero_new.sort_values(by='index')
+#
+# list_0 = miners_zero_new['B_mi'].values
+# list_tot = miners['B_mi'].values
+#
+# miners['0'] = list_0
+# print miners
+# print miners_zero_new
+#
+#
+#
+# new_list = []
+# for zero, tot in zip(list_0, list_tot):
+#     perc = (float(zero) * 100) / float(tot)
+#     new_list.append(perc)
+#
+# # create a new df containing the percentage of the zero transaction fee per miner
+# miners[r'%0'] = new_list
+# print miners
+#
+# ax = miners.plot.bar(x='index', y='%0')
+# ax.set_xlabel("miners")
+# ax.set_ylabel("% of zero-fee transactions")
+
+# -----------------------------------------------------------------------------
+
+
+# ------------------------ FEE DENSITY / FEE LATENCY -------------------------
+# # TODO: NOT WORKING BECAUSE OF THE DIVISION, USE THE FUNCTION DIVIDE!
+# info = "plot/fee_density_latency"
+#
+# df_dens_lat = df[['t_l', 't_f', 't_q', 'B_ep']]
+# df_dens_lat = epoch_date_dd(df_dens_lat)
+#
+# df_dens_lat['f_dens'] = (df_dens_lat['t_f'] / df_dens_lat['t_q'])
+#
+# df_dens_lat = df_dens_lat.groupby('date').median().reset_index()
+#
+# print df_dens_lat
+#
+# ax = df_dens_lat.plot(x='t_l', y='f_dens')
+# ax.set_ylabel(r"$\rho$")
+# ax.set_xlabel(r"$t_l$")
+
+# ----------------------------------------------------------------------------
+
+# ------------------------ FEE DENSITY DISTRIBUTION -------------------------
+# info = "plot/txs_feedensity_distribution"
+#
+# df_fdens = df[['t_f', 't_q', 'B_ep']]
+#
+# # # split date to have yyyy-mm
+# df_fdens = epoch_date_mm(df_fdens)
+#
+# #create fee density
+# df_fdens['f_dens'] = df_fdens['t_f'] / df_fdens['t_q']
+#
+# # # get a category for the fee
+# df_fdens['f_dens'] = df_fdens['f_dens'].apply(fee_density_intervals)
+# # # groub by date and then miners, count how many transactions a miner approved in a certain month
+# df_fdens = df_fdens.groupby(['f_dens', 'date']).size().to_frame('size').reset_index()
+# # # df_grouped.plot(data=df_grouped, x ='date', y='size', kind='area')
+#
+# df_0 = df_fdens[df_fdens.f_dens == "0"]
+# df_1 = df_fdens[df_fdens.f_dens == "<50"]
+# df_2 = df_fdens[df_fdens.f_dens == "<100"]
+# df_3 = df_fdens[df_fdens.f_dens == "<200"]
+# df_4 = df_fdens[df_fdens.f_dens == "<300"]
+# df_5 = df_fdens[df_fdens.f_dens == ">300"]
+#
+# # create a new dataframe having as columns the different t_f
+# new_df = pd.DataFrame.from_items(
+#     [('0 (sat/byte)', df_0['size'].values), ('<50', df_1['size'].values), ('<100', df_2['size'].values), ('<200', df_3['size'].values), ('<300', df_4['size'].values),
+#      ('>300', df_5['size'].values), ('date', df_0['date'].values)])
+#
+# dates = new_df['date'].values
+#
+# col_list = list(new_df)
+# col_list.remove('date')
+# new_df['total'] = new_df[col_list].sum(axis=1)
+# df1 = new_df.drop(['date'], axis=1)
+#
+# percent = df1.div(df1.total, axis='index') * 100
+#
+# percent = percent.drop(['total'], axis=1)
+# percent['date'] = dates
+# print percent
+#
+#
+# ax = percent.plot.area(x = 'date')
+# ax.set_ylim(0, 100)
+# ax.set_ylabel("%")
+#
+# # writer = pd.ExcelWriter('tables/' + info + '.xlsx')
+# # new_df.to_excel(writer, 'Sheet1')
+# # writer.save()
+# ---------------------------------------------------------------------------
+
+
+# ------------------------ FEE DENSITY -------------------------
+# # fee density per miner
+# info = "plot/fee_density"
+#
+# df_fdens = df[['t_f', 't_q', 'B_mi', 'B_ep']]
+#
+# df_fdens = remove_minor_miners(df_fdens, 4)
+#
+# # df_fdens['t_f'] = df_fdens['t_f'].apply(satoshi_bitcoin)
+# df_fdens['f_dens'] = df_fdens['t_f'] / df_fdens['t_q']
+#
+# df_fdens = epoch_date_mm(df_fdens)
+#
+# df_fdens = df_fdens.groupby(['date', 'B_mi']).mean().reset_index()
+#
+# g = sns.pointplot(x="date", y="f_dens", hue="B_mi", data=df_fdens)
+# g.set_xticklabels(g.get_xticklabels(), rotation=45)
+# g.set(xlabel='date', ylabel=r'$\rho$ (sat/byte)')
+
+# --------------------------------------------------------------
+
+
+# --------------------------- THROUGHPUT ----------------------------
+# info = "plot/throughput"
+# df_thr = df[['B_t', 'B_T', 'B_ep']]
+# df_thr = epoch_date_dd(df_thr)
+#
+# df_thr = df_thr.groupby(['date']).size().to_frame('size').reset_index()
+# size = df_thr['size'].values
+#
+# df_thr = df[['B_t', 'B_T', 'B_ep']]
+# df_thr = epoch_date_dd(df_thr)
+# df_thr = df_thr.groupby(['date', 'B_ep']).median().reset_index()
+# df_thr = df_thr.groupby(['date']).sum().reset_index()
+# df_thr['size'] = size
+# df_thr = df_thr[['date', 'size', 'B_T']]
+# df_thr['thr'] = df_thr['size'] / df_thr['B_T']
+#
+# print df_thr
+# ax = df_thr.plot(x='date', y ='thr', color='orange', label='throughput $\gamma$', rot=45)
+#
+# # lines, labels = ax.get_legend_handles_labels()
+# # ax.legend(lines[:2], labels[:2], loc='best')
+#
+# ax.set_ylabel("$\gamma$ (txs/s)")
+# -------------------------------------------------------------------
+
+# --------------------------------- Transaction fee in USD -------------------------------------
+# info = "plot/txs_USD"
+# df_usd = df[['t_f', 'B_ep']]
+#
+# btc_usd = get_json_request("https://api.blockchain.info/charts/market-price?timespan=all&format=json")
+# values = btc_usd['values']
+#
+# y = []
+# x = []
+# for el in values:
+#     y.append(el['y'])
+#     x.append(el['x'])
+#
+# # create array containing x and y coordinates of the BTC-USD price
+# y = np.asarray(y)
+# x = np.asarray(x)
+#
+# # add the USD value in dataframe
+#
+# # create USD array
+# epoch = df_usd['B_ep'].values
+# epoch[:] = [int(el) for el in epoch]
+#
+# usd_array = []
+# for ep in epoch:
+#     index = find_nearest(x, ep)
+#     usd_array.append(y[index])
+#
+# df_usd['USD'] = usd_array
+#
+# df_usd['t_f'] = df_usd['t_f'].apply(satoshi_bitcoin)
+#
+# # adding the fee paid in USD
+# usd_price = df_usd['USD'].values
+# fees = df_usd['t_f'].values
+# fees[:] = [float(el) for el in fees]
+# usd_price[:] = [float(el) for el in usd_price]
+#
+# fee_in_usd = []
+# for usd, fee in zip(usd_price, fees):
+#     fee_in_usd.append(usd*fee)
+#
+# df_usd['usd_fee'] = fee_in_usd
+# df_usd = epoch_date_dd(df_usd)
+# del df_usd['B_ep']
+# # sum for tf USD Price and mean for USD PRICE
+# df_usd = df_usd.groupby('date').sum().reset_index()
+#
+# df_usd = df_usd.sort_values('date')
+# # print df_usd
+# # df_usd = df_usd[df_usd.usd_fee <= df_usd.USD]
+# # print df_usd
+#
+# # ax = df_usd.plot(x='date', y = 'USD', rot=45, color ='green', label ='USD price')
+# ax = df_usd.plot(x = 'date', y ='usd_fee', rot=45, color ='blue', label='$t_f$ USD price')
+#
+# ax.set_ylabel("USD")
+# ----------------------------------------------------------------------------------------------
+
+
+# ---------------------------- Distribution of transaction fees -------------------------------
+# info = "plot/txs_fee_distribution"
+# df_distr = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_ep']]
+# # split date to have yyyy-mm
+# df_distr = epoch_date_mm(df_distr)
+# df_distr['t_f'] = df_distr['t_f'].apply(satoshi_bitcoin)
+# # get a category for the fee
+# df_distr['t_f'] = df_distr['t_f'].apply(fee_intervals)
+# # groub by date and then miners, count how many transactions a miner approved in a certain month
+# df_distr = df_distr.groupby(['t_f', 'date']).size().to_frame('size').reset_index()
+# # df_grouped.plot(data=df_grouped, x ='date', y='size', kind='area')
+#
+# df_0 = df_distr[df_distr.t_f == "0"]
+# df_1 = df_distr[df_distr.t_f == ">0.0001"]
+# df_2 = df_distr[df_distr.t_f == ">0.0002"]
+# df_3 = df_distr[df_distr.t_f == ">0.0005"]
+# df_4 = df_distr[df_distr.t_f == ">0.001"]
+# df_5 = df_distr[df_distr.t_f == ">0.01"]
+#
+#
+# # create a new dataframe having as columns the different t_f
+# new_df = pd.DataFrame.from_items(
+#     [('0 (BTC)', df_0['size'].values), ('>0.0001', df_1['size'].values), ('>0.0002', df_2['size'].values), ('>0.0005', df_3['size'].values), ('>0.001', df_4['size'].values),
+#      ('>0.01', df_5['size'].values), ('date', df_0['date'].values)])
+#
+# dates = new_df['date'].values
+#
+# col_list = list(new_df)
+# col_list.remove('date')
+# new_df['total'] = new_df[col_list].sum(axis=1)
+# df1 = new_df.drop(['date'], axis=1)
+#
+# percent = df1.div(df1.total, axis='index') * 100
+#
+# percent = percent.drop(['total'], axis=1)
+# percent['date'] = dates
+# print percent
+#
+#
+# ax = percent.plot.area(x = 'date')
+# ax.set_ylim(0, 100)
+# ax.set_ylabel("%")
+# ---------------------------------------------------------------------------------------------
+
+
+
+# ---------------------------------- ANDREWS CURVES -----------------------------------
+# info = "plot/andrews"
+# df_andrews = df[['t_f', 't_q', 't_%', 't_l', 'Q', 'B_T', 'B_mi']]
+# andrews_curves(df_andrews, 'B_mi')
+# -------------------------------------------------------------------------------------
+
+# ---------------------- TRANSACTION LATENCY FROM EACH MINER --------------------------
+# info = "plot/tx_latency"
+# df = epoch_date_mm(df)
+# df = df[['t_l', 'B_mi', 'date', 'B_ep']]
+#
+# df['t_l'] = df['t_l'].apply(sec_minutes)
+#
+# df_grouped = df.groupby(['date', 'B_mi']).median().reset_index()
+# df_grouped = remove_minor_miners(df_grouped, 8)
+# print df_grouped
+# g = sns.pointplot(x="date", y="t_l", hue="B_mi", data=df_grouped)
+# g.set_xticklabels(g.get_xticklabels(), rotation=45)
+# g.set(xlabel='date', ylabel='$t_l$ (min)')
+
+# -------------------------------------------------------------------------------------
+
+# -------------------- FEE DISTRIBUTED OVER TIME ACCORDING TO DIFFERENT MINERS --------------------
+
+# info = "plot/fee_distribution"
+# df_feedistr = df[['t_f', 'B_mi', 'B_ep']]
+# df_feedistr = remove_minor_miners(df_feedistr)
+#
+# df_feedistr['t_f'] = df_feedistr['t_f'].apply(satoshi_bitcoin)
+#
+# df_feedistr['date'] = df_feedistr['B_ep'].apply(epoch_datetime)
+# df_feedistr['date'] = df_feedistr['date'].apply(revert_date_time)
+# # split date to have yyyy-mm
+# df_feedistr['date'] = df_feedistr['date'].str.slice(start=0, stop=7)
+# df_feedistr = df_feedistr.groupby(['date', 'B_mi']).median().reset_index()
+# # print df_feedistr
+#
+# g = sns.pointplot(x="date", y="t_f", hue="B_mi", data=df_feedistr, legend_out = True)
+# g.set_xticklabels(g.get_xticklabels(), rotation=45)
+# g.set(xlabel='date', ylabel='$t_f$ (BTC)')
+
+# -------------------------------------------------------------------------------------------------
+
+
+# -------------- BLOCK SIZE ----------------
+# info = "plot/block_size"
+# df_block_size = df[['Q', 'B_ep']]
+# df_block_size = epoch_date_mm(df_block_size)
+#
+# df_block_size = df_block_size.groupby(['date']).median().reset_index()
+# df_block_size['Q'] = df_block_size['Q'].apply(byte_megabyte)
+#
+# print df_block_size
+#
+# ax = df_block_size.plot(x = 'date', y='Q')
+# ax.set_xlabel("date")
+# ax.set_ylabel("$Q$ (MB)")
+#
+# # g = sns.pointplot(x="date", y="Q", data=df_block_size, color="green")
+# # g.set_xticklabels(g.get_xticklabels(), rotation=60)
+# # g.set(xlabel='date', ylabel='$Q$ (MB)')
+# ------------------------------------------
+
+# ------------------------- TXS LATENCY ------------------------
+# info = "plot/txs_latency"
+# new_df = df[['B_ep', 't_l']]
+# new_df = epoch_date_dd(new_df)
+#
+# del new_df['B_ep']
+#
+# new_df = new_df.groupby('date').median().reset_index()
+# new_df['t_l'] = new_df['t_l'].apply(sec_hours)
+#
+# print new_df
+#
+# ax = new_df.plot(x = 'date', y='t_l', color = 'orange', label = '$t_l$')
+# ax.set_xlabel("date")
+# ax.set_ylabel("$t_l$ (h)")
+# ax.set_ylim(0, max(new_df['t_l'].values))
+# --------------------------------------------------------------
+
+# ------------------------- TXS FEE ------------------------
+# info = "plot/txs_fee"
+# new_df = df[['B_ep', 't_f']]
+# new_df = epoch_date_dd(new_df)
+#
+# del new_df['B_ep']
+#
+# new_df = new_df.groupby('date').median().reset_index()
+# new_df['t_f'] = new_df['t_f'].apply(satoshi_bitcoin)
+#
+# print new_df
+#
+# ax = new_df.plot(x='date', y='t_f', color='orange', label='$t_f$', rot=45)
+# ax.set_xlabel("date")
+# ax.set_ylabel("$t_f$ (BTC)")
+# --------------------------------------------------------------
+
+# -------------- TXS LATENCY t_l OVER TIME considering TOP MINERS ---------------------
+# info = "plot/t_l"
+# dftl = df[['B_ep', 'B_mi', 't_l']]
+#
+# dftl = remove_minor_miners(dftl)
+#
+# dftl = epoch_date_mm(dftl)
+# del dftl['B_ep']
+#
+# dftl['t_l'] = dftl['t_l'].apply(sec_hours)
+# dftl = dftl.groupby(['B_mi', 'date']).median().reset_index()
+# # order dataframe by date
+# dftl = dftl.sort_values('date')
+# print dftl
+#
+# sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.8})
+# g = sns.pointplot(x="date", y="t_l", data=dftl, hue='B_mi')
+# # reduce number of labels to show
+# ticklabels = g.get_xticklabels()
+# new_ticklabels = []
+# i = 0
+# print ticklabels
+# for el in ticklabels:
+#     if (i == 0):
+#         i = 8
+#     else:
+#         el = ""
+#         i -= 1
+#     new_ticklabels.append(el)
+# g.set_xticklabels(g.get_xticklabels(), rotation=45)
+# g.set(xlabel='date', ylabel=r'$t_l$ (h)', xticklabels=new_ticklabels)
+# sns.plt.ylim(0, )
+# -------------------------------------------------------------------------------------
+
+
+# ------------------- RELATION BETWEEN < 10 MIN BLOCKS AND MINERS ---------------------
+# info = "plot/creation_time_miners"
+# df_new = df[['B_ep', 'B_mi', 'B_T']]
+#
+# df_new = df_new.groupby(['B_ep', 'B_mi']).mean().reset_index()
+#
+# df_new = epoch_date_yy(df_new)
+# df_new = df_new[df_new['date'] > '2015']
+# del df_new['date']
+# del df_new['B_ep']
+#
+# miners = df_new['B_mi'].values
+#
+#
+# df_new['B_T'] = df_new['B_T'].apply(sec_minutes)
+# # divide miners in IP and mining pool
+# # true / false list for adding the ip address or mining pool
+# truefalse_list = []
+# # match the string with re
+# for mi in miners:
+#     pattern = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+#     if (pattern.match(str(mi))):
+#         truefalse_list.append('Occasional miner')
+#     else:
+#         truefalse_list.append('Mining pool')
+#
+# df_new['Miner'] = truefalse_list
+#
+# del df_new['B_mi']
+#
+# breaks = [0, 8, 15, 20, 50, pd.np.inf]
+# diff = np.diff(breaks).tolist()
+# # make tuples of *breaks* and length of intervals
+# joint = list(zip(breaks, diff))
+# # format label
+# s1 = "{left:,.0f} to {right:,.0f}"
+# labels = [s1.format(left=yr[0], right=yr[0] + yr[1] - 1) for yr in joint]
+# df_new['minutes'] = pd.cut(df_new['B_T'],breaks, labels=labels, right=False)
+# print df_new
+# df_new.loc[df_new['minutes'] == 'NaN', 'minutes'] = '0 to 7'
+# del df_new['B_T']
+# df_new = df_new.groupby(['minutes', 'Miner']).size().to_frame('blocks').reset_index()
+# print df_new
+#
+# g = sns.factorplot(x='minutes', y='blocks', hue='Miner', data=df_new, kind="bar", legend_out = False, color='orange')
+# g.fig.suptitle('From 2016 to 2017')
+# -------------------------------------------------------------------------------------
+
+
+# -------------- FEE - INPUT MINERS CALCULATIONS --------------------
+# info = "plot/fee_input_miners"
+# df_fee_per = remove_minor_miners(df, 20)
+# df_fee_per = df_fee_per[['B_ep', 't_in', 't_f', 'B_mi', 't_ou']]
+# df_fee_per = epoch_date_yy(df_fee_per)
+# del df_fee_per['B_ep']
+#
+# df_fee_per['t_per'] = calculate_percentage_txs_fee(df_fee_per)
+#
+# print df_fee_per['t_per']
+#
+# df_inputtxs = df_fee_per[['t_in', 't_f', 'B_mi', 't_per', 'date']]
+# df_inputtxs = df_inputtxs.groupby(['date','B_mi']).median().reset_index()
+# df_inputtxs['t_in'] = df_inputtxs['t_in'].apply(satoshi_bitcoin)
+# df_inputtxs['t_f'] = df_inputtxs['t_f'].apply(satoshi_bitcoin)
+# print df_inputtxs
+# sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 0.9})
+# g = sns.pointplot(x="B_mi", y="t_per", data=df_inputtxs, hue='date')
+# g.set(xlabel='major miners', ylabel='$t_f$ %')
+# g.set_xticklabels(g.get_xticklabels(), rotation=65)
+# -------------------------------------------------------------------
+
+
+
+# ------------- FEE PAID WITH DIFFERENT MINERS ---------------
     """
     info = "plot/fee_paid_to_miners"
     df = remove_minor_miners(df)
@@ -2835,11 +2964,13 @@ def calculate_profit(fee, creation_time, price, bitcoin_hash_rate, miner, number
     # bitcoin_hash_rate = 5061202213000000.0
 
     if (miner == 1):  # AntMiner U3
+        label = "AntMiner U3"
         btc_x_hour = 0.063 * 0.04 / price
         btc_x_sec = btc_x_hour / (60 * 60)
         hashing_rate = 1000000000.0
         cost_x_hash = btc_x_sec / hashing_rate
     elif (miner == 3):  # AntPool S9- Biggest miners
+        label = "AntMiner S9"
         btc_x_hour = 1.375 * 0.04 / price
         btc_x_sec = btc_x_hour /(60*60)
         hashing_rate = 14000000000000.0
@@ -2852,7 +2983,7 @@ def calculate_profit(fee, creation_time, price, bitcoin_hash_rate, miner, number
 
     profit = revenue - cost
 
-    return profit, revenue, cost
+    return profit, revenue, cost, label
 
 
 def save_transactions(n, hash):
